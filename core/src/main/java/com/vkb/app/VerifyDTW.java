@@ -24,13 +24,13 @@ import com.vkb.model.CapturedData;
 import com.vkb.model.FeatureType;
 import com.vkb.model.Signature;
 
-public class VerifyDWT {
+public class VerifyDTW {
 	private static final String BLANKS = "                                ";
 	private static final File INPUT_FOLDER = new File( Environment.RESOURCES_DIR, "user1" );
 
 	private File inputFolder;
 	
-	public VerifyDWT( File inputFile ) {
+	public VerifyDTW( File inputFile ) {
 		this.inputFolder = inputFile;
 	}
 	
@@ -120,7 +120,7 @@ public class VerifyDWT {
 
 	public static void main(String[] args) {
 		try {
-			VerifyDWT prueba = new VerifyDWT( INPUT_FOLDER );
+			VerifyDTW prueba = new VerifyDTW( INPUT_FOLDER );
 			prueba.run();
 		} 
 		catch (Exception e) {
