@@ -39,11 +39,17 @@ public class ReceiveSignatureServlet extends HttpServlet {
 		}
 		String data = parametersIt.next().getKey();
 		
-		String outputFileName = "A_" +  req.getRemoteAddr() + "_" + new Date().getTime() + ".json";
+		String outputFileName = buildFileName( req.getRemoteAddr() );
 		File outputFile = new File( outputFolder, outputFileName );
 		
 		PrintWriter outWriter = new PrintWriter(outputFile);
 		outWriter.append( data );
 		outWriter.close();
+	}
+
+	private String buildFileName(String remoteAddr) {
+		remoteAddr = remoteAddr.replace(':', '.');
+		
+		return "A_" +  remoteAddr + "_" + new Date().getTime() + ".json";
 	}
 }
