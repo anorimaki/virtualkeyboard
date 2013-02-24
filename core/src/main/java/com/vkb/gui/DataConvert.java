@@ -4,20 +4,20 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import com.vkb.FeatureFunction;
-import com.vkb.FunctionPoints;
-import com.vkb.Point;
+import com.vkb.math.FunctionPoints;
+import com.vkb.math.Point;
+import com.vkb.model.FunctionFeature;
 
 public class DataConvert {
-	public static XYDataset getDataset( FeatureFunction... functions ) {
+	public static XYDataset getDataset( FunctionFeature... functions ) {
 		XYSeriesCollection ret = new XYSeriesCollection();
-		for( FeatureFunction f : functions ) {
+		for( FunctionFeature f : functions ) {
 			ret.addSeries( getXYSeries(f) );
 		}
 		return ret ;
 	}
 	
-	public static XYSeries getXYSeries(FeatureFunction f) {
+	public static XYSeries getXYSeries(FunctionFeature f) {
 		return getXYSeries( f.getSamples() );
 	}
 

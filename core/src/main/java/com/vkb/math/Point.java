@@ -1,4 +1,4 @@
-package com.vkb;
+package com.vkb.math;
 
 public class Point {
 	private double x;

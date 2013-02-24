@@ -1,4 +1,4 @@
-package com.vkb.alg;
+package com.vkb.app.util;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,33 +7,32 @@ import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
 import com.fastdtw.dtw.TimeWarpInfo;
-import com.vkb.Feature;
-import com.vkb.alg.TraceComparator.Result;
+import com.vkb.model.FeatureType;
 
 public class FeaturesStatistics {
-	private Map<Feature, SummaryStatistics> values = new HashMap<Feature, SummaryStatistics>();
+	private Map<FeatureType, SummaryStatistics> values = new HashMap<FeatureType, SummaryStatistics>();
 	
 	public FeaturesStatistics() {
 	}
 	
-	public FeaturesStatistics( TraceComparator.Result[] results ) {
+	public FeaturesStatistics( SignatureComparator.Result[] results ) {
 		add( results );
 	}
 	
-	public void add( TraceComparator.Result[] results  ) {
-		for ( TraceComparator.Result result : results ) {
+	public void add( SignatureComparator.Result[] results  ) {
+		for ( SignatureComparator.Result result : results ) {
 			if ( result != null ) {
 				addResult( result );
 			}
 		}
 	}
 	
-	public Map<Feature, ? extends StatisticalSummary> getValues() {
+	public Map<FeatureType, ? extends StatisticalSummary> getValues() {
 		return values;
 	}
 
-	private void addResult( Result result ) {
-		for( Map.Entry<Feature, TimeWarpInfo> featureResult : result.getPartialResults().entrySet() ) {
+	private void addResult( SignatureComparator.Result result ) {
+		for( Map.Entry<FeatureType, TimeWarpInfo> featureResult : result.getPartialResults().entrySet() ) {
 			SummaryStatistics summary = values.get( featureResult.getKey() );
 			if ( summary == null ) {
 				summary = new SummaryStatistics();

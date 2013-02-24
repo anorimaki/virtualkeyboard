@@ -13,15 +13,16 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
-import com.vkb.Feature;
-import com.vkb.FunctionPoints;
-import com.vkb.Point;
-import com.vkb.RawTrace;
-import com.vkb.alg.DerivateWrapFunction;
-import com.vkb.alg.FunctionUtils;
 import com.vkb.gui.Application;
 import com.vkb.gui.DataConvert;
-import com.vkb.io.TraceParser;
+import com.vkb.io.CapturedDataParser;
+import com.vkb.math.DerivateWrapFunction;
+import com.vkb.math.FunctionPoints;
+import com.vkb.math.FunctionUtils;
+import com.vkb.math.Point;
+import com.vkb.model.CapturedData;
+import com.vkb.model.FeatureType;
+import com.vkb.model.Trace;
 
 public class VerifyDerivative {
 	private File inputFile;
@@ -31,7 +32,8 @@ public class VerifyDerivative {
 	}
 	
 	private void run() throws Exception {
-		RawTrace trace = new TraceParser().parse( inputFile );
+		CapturedData capturedData = new CapturedDataParser().parse( inputFile );
+		Trace trace = capturedData.getTrace();
 		
 		FunctionPoints x = trace.getXFunction();
 		
@@ -39,25 +41,25 @@ public class VerifyDerivative {
 		PolynomialSplineFunction interpolationFunction = interpolator.interpolate( x.getX(), x.getY() );
 		
 								//Derivate with interpolation and commons-math DerivativeStructures
-		FunctionPoints ds_p = new FunctionPoints( "Interpolation + DerivativeStructure - " + Feature.POSITION_X.name() );
-		FunctionPoints ds_v = new FunctionPoints( "Interpolation + DerivativeStructure - " + Feature.VELOCITY_X.name() );
-		FunctionPoints ds_a = new FunctionPoints( "Interpolation + DerivativeStructure - " + Feature.ACCELERATION_X.name() );
+		FunctionPoints ds_p = new FunctionPoints( "Interpolation + DerivativeStructure - " + FeatureType.POSITION_X.name() );
+		FunctionPoints ds_v = new FunctionPoints( "Interpolation + DerivativeStructure - " + FeatureType.VELOCITY_X.name() );
+		FunctionPoints ds_a = new FunctionPoints( "Interpolation + DerivativeStructure - " + FeatureType.ACCELERATION_X.name() );
 		generateFunctionsWithDerivativeStructures( interpolationFunction, x.getMinX(), x.getMaxX(), ds_p, ds_v, ds_a );
 		
 								//Derivate with finite differences
-		FunctionPoints p = FunctionUtils.sample( Feature.POSITION_X.name(), 
+		FunctionPoints p = FunctionUtils.sample( FeatureType.POSITION_X.name(), 
 												interpolationFunction, x.getMinX(), x.getMaxX(), 1.0d );
-		FunctionPoints v = derivate( "Finite differences - " + Feature.VELOCITY_X.name(), p );
-		FunctionPoints a = derivate( "Finite differences - " + Feature.ACCELERATION_X.name(), v );
+		FunctionPoints v = derivate( "Finite differences - " + FeatureType.VELOCITY_X.name(), p );
+		FunctionPoints a = derivate( "Finite differences - " + FeatureType.ACCELERATION_X.name(), v );
 		
 								//Derivate with interpolation and commons-math FiniteDifferencesDifferentiator
-		FunctionPoints ids_v = new FunctionPoints( "Interpolations + FiniteDifferencesDifferentiator - " + Feature.VELOCITY_X.name() );
-		FunctionPoints ids_a = new FunctionPoints( "Interpolations + FiniteDifferencesDifferentiator - " + Feature.ACCELERATION_X.name() );
+		FunctionPoints ids_v = new FunctionPoints( "Interpolations + FiniteDifferencesDifferentiator - " + FeatureType.VELOCITY_X.name() );
+		FunctionPoints ids_a = new FunctionPoints( "Interpolations + FiniteDifferencesDifferentiator - " + FeatureType.ACCELERATION_X.name() );
 		generateFunctionsWithFiniteDifferencesDifferentiator( x, ids_v, ids_a );
 		
 								//Derivate with interpolation and commons-math FiniteDifferencesDifferentiator
-		FunctionPoints fp_v = new FunctionPoints( "Multiples Interpolations + FiniteDifferencesDifferentiator - " + Feature.VELOCITY_X.name() );
-		FunctionPoints fp_a = new FunctionPoints( "Multiples Interpolations + FiniteDifferencesDifferentiator - " + Feature.ACCELERATION_X.name() );
+		FunctionPoints fp_v = new FunctionPoints( "Multiples Interpolations + FiniteDifferencesDifferentiator - " + FeatureType.VELOCITY_X.name() );
+		FunctionPoints fp_a = new FunctionPoints( "Multiples Interpolations + FiniteDifferencesDifferentiator - " + FeatureType.ACCELERATION_X.name() );
 		generateFunctionsWithFiniteDifferencesDifferentiatorAndMultiplesInterpolations( x, fp_v, fp_a );
 		
 		XYPlot positionPlot = generatePlot( "Position", p, ds_p );
@@ -153,8 +155,8 @@ public class VerifyDerivative {
 
 	public static void main(String[] args) {
 		try {
-			VerifyDerivative prueba = 
-					new VerifyDerivative( new File( "src/resources/jig/A_192.168.7.13_1358442748589.json" ) );
+			File inputFile = new File( Environment.RESOURCES_DIR, "user1/A_192.168.7.13_1358442748589.json" );
+			VerifyDerivative prueba = new VerifyDerivative( inputFile );
 			prueba.run();
 		} 
 		catch (Exception e) {

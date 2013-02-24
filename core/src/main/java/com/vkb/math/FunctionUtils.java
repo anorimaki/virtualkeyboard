@@ -1,10 +1,9 @@
-package com.vkb.alg;
+package com.vkb.math;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 import org.apache.commons.math3.analysis.differentiation.UnivariateDifferentiableFunction;
 
-import com.vkb.FunctionPoints;
 
 public class FunctionUtils {
 	public static FunctionPoints sample( UnivariateFunction f, double min,

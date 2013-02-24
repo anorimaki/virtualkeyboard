@@ -1,21 +1,21 @@
-package com.vkb.alg;
+package com.vkb.math.dtw;
 
 import java.util.Arrays;
 import java.util.List;
 
 import com.fastdtw.timeseries.TimeSeries;
 import com.fastdtw.timeseries.TimeSeriesPoint;
-import com.vkb.FeatureFunction;
-import com.vkb.FunctionPoints;
-import com.vkb.Point;
+import com.vkb.math.FunctionPoints;
+import com.vkb.math.Point;
+import com.vkb.model.FunctionFeature;
 
 public class DataConvert {
 
-	public static TimeSeries getTimeSeries( FeatureFunction... functions ) throws Exception {
+	public static TimeSeries getTimeSeries( FunctionFeature... functions ) throws Exception {
 		return getTimeSeries( Arrays.asList( functions) );
 	}
 	
-	public static TimeSeries getTimeSeries( List<FeatureFunction> functions ) throws Exception {
+	public static TimeSeries getTimeSeries( List<FunctionFeature> functions ) throws Exception {
 		TimeSeries ret = new TimeSeries( functions.size() );
 		
 		FunctionPoints sample0 = functions.get(0).getSamples();

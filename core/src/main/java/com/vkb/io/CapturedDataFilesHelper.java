@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.regex.Pattern;
 
-public class TraceFilesHelper {
+public class CapturedDataFilesHelper {
 	private static final Pattern traceMatcher = Pattern.compile( "A_.*\\.json" );
 	
 	public static File[] getTraceFiles( File folder ) {

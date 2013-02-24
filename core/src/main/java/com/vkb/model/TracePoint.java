@@ -1,4 +1,4 @@
-package com.vkb;
+package com.vkb.model;
 
 import com.google.gson.annotations.SerializedName;
 

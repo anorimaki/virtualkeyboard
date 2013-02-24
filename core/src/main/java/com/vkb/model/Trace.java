@@ -1,18 +1,21 @@
-package com.vkb;
+package com.vkb.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-public class RawTrace implements Iterable<TracePoint> {
+import com.vkb.math.FunctionPoints;
+import com.vkb.math.Point;
+
+public class Trace implements Iterable<TracePoint> {
 	private List<TracePoint> data;
 	
-	public RawTrace() {
+	public Trace() {
 		this( Collections.<TracePoint> emptyList() );
 	}
 	
-	public RawTrace( List<TracePoint> data ) {
+	public Trace( List<TracePoint> data ) {
 		this.data = new ArrayList<TracePoint>(data);
 	}
 	

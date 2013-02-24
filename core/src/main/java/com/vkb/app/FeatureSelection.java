@@ -8,19 +8,19 @@ import java.util.Map;
 
 import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 
-import com.fastdtw.dtw.TimeWarpInfo;
-import com.vkb.Feature;
-import com.vkb.RawTrace;
-import com.vkb.Trace;
-import com.vkb.alg.FeaturesStatistics;
-import com.vkb.alg.TraceBuilder;
-import com.vkb.alg.TraceComparator;
-import com.vkb.alg.TracesComparators;
-import com.vkb.io.TracesParser;
+import com.vkb.alg.SignatureBuilder;
+import com.vkb.app.util.DefaultSignatureBuilder;
+import com.vkb.app.util.FeaturesStatistics;
+import com.vkb.app.util.SignaturesComparators;
+import com.vkb.io.CapturedDatasParser;
+import com.vkb.model.CapturedData;
+import com.vkb.model.FeatureType;
+import com.vkb.model.Signature;
 
 public class FeatureSelection {
 	private static final String BLANKS = "                                ";
-	private static final File INPUT_FOLDERS[] = { new File( "src/resources/sara" ), new File( "src/resources/jig" ) };
+	private static final File INPUT_FOLDERS[] = { new File( Environment.RESOURCES_DIR, "user1" ), 
+													new File( Environment.RESOURCES_DIR, "user2" ) };
 	private static final DecimalFormat doubleFormat = new DecimalFormat("#.#####");
 
 	private File[] inputFolders;
@@ -30,26 +30,26 @@ public class FeatureSelection {
 	}
 
 	private void run() throws Exception {
-		TracesParser tracesParser = new TracesParser();
-		List<List<Trace>> tracesGroups = new ArrayList<List<Trace>>();
-		TraceBuilder traceBuilder = new TraceBuilder();
+		CapturedDatasParser tracesParser = new CapturedDatasParser();
+		List<List<Signature>> tracesGroups = new ArrayList<List<Signature>>();
+		SignatureBuilder traceBuilder = new DefaultSignatureBuilder();
 		for ( File inputFolder : inputFolders ) {
-			List<RawTrace> traces = tracesParser.parse(inputFolder);
+			List<CapturedData> traces = tracesParser.parse(inputFolder);
 			tracesGroups.add( traceBuilder.build(traces) );
 		}
 		
-		TracesComparators tracesComparator  = new TracesComparators();
+		SignaturesComparators tracesComparator  = new SignaturesComparators();
 		
 		System.out.println( "*********************************************" );
 		System.out.println( "**** Group 0" );
 		System.out.println( "*********************************************" );
-		TracesComparators.Result result_0 = tracesComparator.compare( tracesGroups.get(0) );
+		SignaturesComparators.Result result_0 = tracesComparator.compare( tracesGroups.get(0) );
 		FeaturesStatistics resultStatistics_0 = dump( result_0 );
 		
 		System.out.println( "*********************************************" );
 		System.out.println( "**** Group 1 vs Group 0" );
 		System.out.println( "*********************************************" );
-		TracesComparators.Result result_1_0 = tracesComparator.compare( tracesGroups.get(1), tracesGroups.get(0) );
+		SignaturesComparators.Result result_1_0 = tracesComparator.compare( tracesGroups.get(1), tracesGroups.get(0) );
 		FeaturesStatistics resultStatistics_1_0 = dump( result_1_0 );
 		
 		System.out.println( "*********************************************" );
@@ -60,13 +60,13 @@ public class FeatureSelection {
 		System.out.println( "*********************************************" );
 		System.out.println( "**** Group 1" );
 		System.out.println( "*********************************************" );
-		TracesComparators.Result result_1 = tracesComparator.compare( tracesGroups.get(1) );
+		SignaturesComparators.Result result_1 = tracesComparator.compare( tracesGroups.get(1) );
 		FeaturesStatistics resultStatistics_1 = dump( result_1 );
 		
 		System.out.println( "*********************************************" );
 		System.out.println( "**** Group 0 vs Group 1" );
 		System.out.println( "*********************************************" );
-		TracesComparators.Result result_0_1 = tracesComparator.compare( tracesGroups.get(0), tracesGroups.get(1) );
+		SignaturesComparators.Result result_0_1 = tracesComparator.compare( tracesGroups.get(0), tracesGroups.get(1) );
 		FeaturesStatistics resultStatistics_0_1 = dump( result_0_1 );
 		
 		System.out.println( "*********************************************" );
@@ -77,8 +77,8 @@ public class FeatureSelection {
 	
 	
 	private void compare( FeaturesStatistics inGroupResults, FeaturesStatistics foreingGroupResults ) {
-		for( Map.Entry<Feature, ? extends StatisticalSummary> featureStat : inGroupResults.getValues().entrySet() ) {
-			Feature feature = featureStat.getKey();
+		for( Map.Entry<FeatureType, ? extends StatisticalSummary> featureStat : inGroupResults.getValues().entrySet() ) {
+			FeatureType feature = featureStat.getKey();
 			StatisticalSummary inGroupSummary = featureStat.getValue();
 			StatisticalSummary foreingGroupSummary = foreingGroupResults.getValues().get(feature);
 			
@@ -91,17 +91,8 @@ public class FeatureSelection {
 		}
 	}
 	
-
-	private void dump(TraceComparator.Result result) {
-		for( Map.Entry<Feature, TimeWarpInfo> featureResult : result.getPartialResults().entrySet() ) {
-			System.out.print( featureResult.getKey() + ": " );
-			System.out.print( featureResult.getValue().getDistance() );
-			System.out.println();
-		}
-	}
-	
 		
-	private FeaturesStatistics dump( TracesComparators.Result result ) {
+	private FeaturesStatistics dump( SignaturesComparators.Result result ) {
 		FeaturesStatistics featuresStatistics = new FeaturesStatistics();
 		for( int i=0; i<result.size(); ++i ) {
 			FeaturesStatistics traceFeaturesStatistics = new FeaturesStatistics( result.trace(i) );
@@ -122,7 +113,7 @@ public class FeatureSelection {
 
 
 	private void dump(int tabN, FeaturesStatistics featuresStatistics) {
-		for( Map.Entry<Feature, ? extends StatisticalSummary> featureStat : featuresStatistics.getValues().entrySet() ) {
+		for( Map.Entry<FeatureType, ? extends StatisticalSummary> featureStat : featuresStatistics.getValues().entrySet() ) {
 			System.out.print( tab(tabN) + featureStat.getKey() + ": " );
 			System.out.print( "min: " + print(featureStat.getValue().getMin()) );
 			System.out.print( " | max: " + print(featureStat.getValue().getMax()) );

@@ -5,8 +5,8 @@ import java.io.FileReader;
 import java.io.Reader;
 
 import com.google.gson.Gson;
-import com.vkb.FunctionPoints;
-import com.vkb.Point;
+import com.vkb.math.FunctionPoints;
+import com.vkb.math.Point;
 
 public class FixedXIntervalFunctionParser {
 	private long interval;

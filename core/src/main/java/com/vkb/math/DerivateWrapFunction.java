@@ -1,4 +1,4 @@
-package com.vkb.alg;
+package com.vkb.math;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;

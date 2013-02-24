@@ -1,16 +1,18 @@
-package com.vkb;
+package com.vkb.model;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 
-import com.vkb.alg.FunctionUtils;
+import com.vkb.math.FunctionPoints;
+import com.vkb.math.FunctionUtils;
+import com.vkb.math.Point;
 
-public class FeatureFunction {
+public class FunctionFeature implements Feature {
 	private static final double DEFAULT_STEP = 1.0d;
-	private Feature feature;
+	private FeatureType feature;
 	private UnivariateFunction function;
 	private FunctionPoints samples;
 	
-	public FeatureFunction( Feature feature, FunctionPoints functionPoints ) {
+	public FunctionFeature( FeatureType feature, FunctionPoints functionPoints ) {
 		this.feature = feature;
 		this.function = functionPoints.interpolate();
 		
@@ -23,13 +25,14 @@ public class FeatureFunction {
 		}
 	}
 
-	public FeatureFunction( Feature feature, UnivariateFunction function, double min, double max ) {
+	public FunctionFeature( FeatureType feature, UnivariateFunction function, double min, double max ) {
 		this.feature = feature;
 		this.function = function;
 		this.samples = FunctionUtils.sample( feature.name(), function, min, max, DEFAULT_STEP );
 	}
 	
-	public Feature getFeature() {
+	@Override
+	public FeatureType getType() {
 		return feature;
 	}
 	

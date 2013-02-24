@@ -10,16 +10,20 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import com.vkb.Feature;
-import com.vkb.FunctionPoints;
-import com.vkb.Point;
-import com.vkb.RawTrace;
-import com.vkb.Trace;
+import com.vkb.alg.FeaturesExtractor;
+import com.vkb.alg.extract.DefaultFeaturesExtractor;
 import com.vkb.gui.Application;
 import com.vkb.gui.DataConvert;
 import com.vkb.io.FixedXIntervalFunctionParser;
-import com.vkb.io.TraceFilesHelper;
-import com.vkb.io.TraceParser;
+import com.vkb.io.CapturedDataFilesHelper;
+import com.vkb.io.CapturedDataParser;
+import com.vkb.math.FunctionPoints;
+import com.vkb.math.Point;
+import com.vkb.model.CapturedData;
+import com.vkb.model.FeatureType;
+import com.vkb.model.Features;
+import com.vkb.model.Signature;
+import com.vkb.model.Trace;
 
 public class VerifyInterpolation {
 	
@@ -31,25 +35,27 @@ public class VerifyInterpolation {
 	
 	
 	private void run() throws Exception {
-		RawTrace rawTrace = new TraceParser().parse( inputFile );
+		CapturedData capturedData = new CapturedDataParser().parse( inputFile );
 		FunctionPoints jigInterpolatedX = 
 				new FixedXIntervalFunctionParser(1).parse( "interpolatedX", 
-										TraceFilesHelper.getInterpolatedFile( inputFile, "X" ) );
+										CapturedDataFilesHelper.getInterpolatedFile( inputFile, "X" ) );
 		FunctionPoints jigInterpolatedY = 
 				new FixedXIntervalFunctionParser(1).parse( "interpolatedY", 
-										TraceFilesHelper.getInterpolatedFile( inputFile, "Y" ) );
+										CapturedDataFilesHelper.getInterpolatedFile( inputFile, "Y" ) );
 		
-		Trace trace = new Trace(rawTrace); 
+		FeaturesExtractor featuresExtractor = new DefaultFeaturesExtractor();
+		Features features = featuresExtractor.extract(capturedData);
+		Signature signature = new Signature( capturedData, features ); 
 		
-		XYPlot componentsPlot = generateComponentsPlot( trace, jigInterpolatedX, jigInterpolatedY );
-		XYPlot tracesPlot = generateTracePlot( trace, jigInterpolatedX, jigInterpolatedY );
+		XYPlot componentsPlot = generateComponentsPlot( signature, jigInterpolatedX, jigInterpolatedY );
+		XYPlot tracesPlot = generateTracePlot( signature, jigInterpolatedX, jigInterpolatedY );
         
         Application application = new Application("VerifyInterpolation");
 		application.run(componentsPlot, tracesPlot );
 	}
 
 	
-	private XYPlot generateTracePlot(Trace trace, FunctionPoints jigInterpolatedX,
+	private XYPlot generateTracePlot(Signature signature, FunctionPoints jigInterpolatedX,
 									FunctionPoints jigInterpolatedY) throws Exception {
 		NumberAxis xAxis = new NumberAxis("X");
         xAxis.setAutoRangeIncludesZero(false);
@@ -63,9 +69,9 @@ public class VerifyInterpolation {
         XYItemRenderer renderer = new XYLineAndShapeRenderer(true, false);
         plot.setRenderer( renderer );
         
-        RawTrace originalTrace = trace.getRawTrace();
-        FunctionPoints interpolatedX = trace.getFeature(Feature.POSITION_X).getSamples();
-        FunctionPoints interpolatedY = trace.getFeature(Feature.POSITION_Y).getSamples();
+        Trace originalTrace = signature.getCapturedData().getTrace();
+        FunctionPoints interpolatedX = signature.getFeature(FeatureType.POSITION_X).getSamples();
+        FunctionPoints interpolatedY = signature.getFeature(FeatureType.POSITION_Y).getSamples();
         List<Point> interpolatedTrace = composeXY( interpolatedX, interpolatedY );
         List<Point> jigInterpolatedTrace = composeXY( jigInterpolatedX, jigInterpolatedY );
         
@@ -96,7 +102,7 @@ public class VerifyInterpolation {
 	}
 
 
-	private XYPlot generateComponentsPlot(Trace trace, FunctionPoints jigInterpolatedX,
+	private XYPlot generateComponentsPlot(Signature signature, FunctionPoints jigInterpolatedX,
 									FunctionPoints jigInterpolatedY) throws Exception {
 
 		NumberAxis xAxis = new NumberAxis("time");
@@ -111,12 +117,14 @@ public class VerifyInterpolation {
         XYItemRenderer renderer = new XYLineAndShapeRenderer(true, false);
         plotComponents.setRenderer( renderer );
 
-        FunctionPoints originalX = trace.getRawTrace().getXFunction();
-        FunctionPoints interpolatedX = trace.getFeature(Feature.POSITION_X).getSamples();
+        Trace trace0 = signature.getCapturedData().getTrace();
+        
+        FunctionPoints originalX = trace0.getXFunction();
+        FunctionPoints interpolatedX = signature.getFeature(FeatureType.POSITION_X).getSamples();
         plotComponents.setDataset( 0, DataConvert.getDataset(originalX, jigInterpolatedX, interpolatedX) );
         
-        FunctionPoints originalY = trace.getRawTrace().getYFunction();
-        FunctionPoints interpolatedY = trace.getFeature(Feature.POSITION_Y).getSamples();
+        FunctionPoints originalY = trace0.getYFunction();
+        FunctionPoints interpolatedY = signature.getFeature(FeatureType.POSITION_Y).getSamples();
         plotComponents.setDataset( 1, DataConvert.getDataset(originalY, jigInterpolatedY, interpolatedY) );
 
         return plotComponents;
@@ -124,8 +132,8 @@ public class VerifyInterpolation {
 
 	public static void main(String[] args) {
 		try {
-			VerifyInterpolation prueba = 
-					new VerifyInterpolation( new File( "src/resources/jig/A_192.168.7.13_1358442748589.json" ) );
+			File inputFile = new File( Environment.RESOURCES_DIR, "user1/A_192.168.7.13_1358442748589.json" );
+			VerifyInterpolation prueba = new VerifyInterpolation( inputFile );
 			prueba.run();
 		} 
 		catch (Exception e) {

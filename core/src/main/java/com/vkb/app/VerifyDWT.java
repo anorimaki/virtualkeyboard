@@ -13,19 +13,20 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import com.fastdtw.dtw.TimeWarpInfo;
-import com.vkb.Feature;
-import com.vkb.RawTrace;
-import com.vkb.Trace;
-import com.vkb.alg.TraceBuilder;
-import com.vkb.alg.TraceComparator;
-import com.vkb.alg.TracesComparators;
+import com.vkb.alg.SignatureBuilder;
+import com.vkb.app.util.DefaultSignatureBuilder;
+import com.vkb.app.util.SignatureComparator;
+import com.vkb.app.util.SignaturesComparators;
 import com.vkb.gui.Application;
 import com.vkb.gui.DataConvert;
-import com.vkb.io.TracesParser;
+import com.vkb.io.CapturedDatasParser;
+import com.vkb.model.CapturedData;
+import com.vkb.model.FeatureType;
+import com.vkb.model.Signature;
 
 public class VerifyDWT {
 	private static final String BLANKS = "                                ";
-	private static final File INPUT_FOLDER = new File( "src/resources/jig" );
+	private static final File INPUT_FOLDER = new File( Environment.RESOURCES_DIR, "user1" );
 
 	private File inputFolder;
 	
@@ -35,14 +36,14 @@ public class VerifyDWT {
 	
 	
 	private void run() throws Exception {
-		TracesParser parser = new TracesParser();
-		List<RawTrace> rawTraces = parser.parse( inputFolder) ;
+		CapturedDatasParser parser = new CapturedDatasParser();
+		List<CapturedData> rawTraces = parser.parse( inputFolder) ;
 		
-		TraceBuilder traceBuilder = new TraceBuilder();
-		List<Trace> traces = traceBuilder.build(rawTraces);
+		SignatureBuilder traceBuilder = new DefaultSignatureBuilder();
+		List<Signature> traces = traceBuilder.build(rawTraces);
 		
-		TracesComparators tracesComparator  = new TracesComparators();
-		TracesComparators.Result result = tracesComparator.compare(traces);
+		SignaturesComparators tracesComparator  = new SignaturesComparators();
+		SignaturesComparators.Result result = tracesComparator.compare(traces);
 		
 		for( int i=0; i<traces.size(); ++i ) {
 			System.out.println( "Trace " + i + ": " );
@@ -53,13 +54,13 @@ public class VerifyDWT {
 	}
 	
 	
-	private void print( TraceComparator.Result[] results ) {
+	private void print( SignatureComparator.Result[] results ) {
 		for( int i=0; i<results.length; ++i ) {
-			TraceComparator.Result result = results[i];
+			SignatureComparator.Result result = results[i];
 			if ( result != null ) {
 				System.out.println( tab(1) + "- With trace " + i );
 				
-				for( Map.Entry<Feature, TimeWarpInfo> featureResult : result.getPartialResults().entrySet() ) {
+				for( Map.Entry<FeatureType, TimeWarpInfo> featureResult : result.getPartialResults().entrySet() ) {
 					System.out.println( tab(2) + featureResult.getKey() + ": " + 
 							featureResult.getValue().getDistance() );
 				}
@@ -78,10 +79,10 @@ public class VerifyDWT {
 	}
 
 
-	private void printTraces( List<Trace> traces ) {
+	private void printTraces( List<Signature> traces ) {
 		final Color colors[] = { Color.BLUE, Color.CYAN, Color.GRAY, Color.GREEN, Color.MAGENTA, Color.ORANGE };
 		//final Feature featuresToPrint[] = { Feature.VELOCITY_X, Feature.VELOCITY_Y, Feature.ACCELERATION_X, Feature.ACCELERATION_Y };
-		final Feature featuresToPrint[] = { Feature.ACCELERATION_X, Feature.ACCELERATION_Y };
+		final FeatureType featuresToPrint[] = { FeatureType.ACCELERATION_X, FeatureType.ACCELERATION_Y };
 		
 		NumberAxis xAxis = new NumberAxis("Time");
 		xAxis.setAutoRangeIncludesZero(false);
@@ -90,7 +91,7 @@ public class VerifyDWT {
 		plot.setDomainAxis(xAxis);
 		
 		int featureIndex=0;
-		for( Feature feature : featuresToPrint ) {
+		for( FeatureType feature : featuresToPrint ) {
 			XYItemRenderer renderer = new XYLineAndShapeRenderer(true, false);
 			
 			Color color = colors[featureIndex];

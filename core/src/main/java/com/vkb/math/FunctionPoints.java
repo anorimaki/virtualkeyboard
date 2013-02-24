@@ -1,4 +1,4 @@
-package com.vkb;
+package com.vkb.math;
 
 import java.util.ArrayList;
 import java.util.Collection;
