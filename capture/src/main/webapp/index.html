@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, 
+										initial-scale=1, 
+										maximum-scale=1,
+										minimum-scale=1" />
+		<title>VirtualKeyboard 9 (Android only)</title>
+	</head>
+	<script type="text/javascript" src="js/jquery-172.js"></script>
+	<body>
+		<p>Write hola</p>
+		<div id="debug" 
+			style="z-index: 0;
+			position:absolute;
+			left:0px; top:0px;" >
+		</div>
+		<canvas id="foreground"
+			style="z-index: 3;
+			position:absolute;
+			left:0px; top:0px;" >
+		</canvas>
+		<script type="text/javascript">
+			window.onload = function () {
+				var canvas = document.getElementById('foreground');
+				var canvasContext = canvas.getContext('2d');
+				var debug = document.getElementById('debug');
+
+				window.onorientationchange = resetCanvas;
+				window.onresize = resetCanvas;
+				resetCanvas();
+
+				var strokes = new Array();
+				var idMap = {};
+				if('createTouch' in document) {
+					canvas.addEventListener('touchstart', onTouchStart, false );
+					canvas.addEventListener('touchmove', onTouchMove, false );
+					canvas.addEventListener('touchend', onTouchEnd, false );
+				} else {
+					var mouseDown = false;
+					canvas.addEventListener( 'mousedown', onMouseDown, false );
+					canvas.addEventListener( 'mousemove', onMouseMove, false );
+					canvas.addEventListener( 'mouseup', onMouseUp, false );
+				}
+
+				function evaluate(stroke) {
+					sendToServer(stroke);
+				}
+				
+				function resetCanvas(e) {
+					canvas.width = window.innerWidth; 
+					canvas.height = window.innerHeight;
+					window.scrollTo(0,0); 
+				}			
+
+				function sendToServer(stroke) {
+					var serializebleStroke = new Array();
+					var minX = stroke[0].clientX;
+					var minY = stroke[0].clientY;
+					var minT = stroke[0].timeStamp;
+
+					var x, y;
+					for(i in stroke) {	
+						x = stroke[i].clientX;
+						y = stroke[i].clientY;
+						if(x < minX) minX = x;
+						if(y < minY) minY = y;
+					}
+
+					for(var i=0; i<stroke.length; ++i) {
+						serializebleStroke.push({
+							x: stroke[i].clientX - minX,
+							y: stroke[i].clientY - minY,
+							t: stroke[i].timeStamp - minT
+						});
+					}
+					var msg = { 
+						format: 'delta',
+						data: serializebleStroke
+					};
+					$.post("/append", JSON.stringify(msg),
+						function(response) {
+							console.log('stroke send successfully (' + response + ')');
+						},
+						'json' 
+					);
+				}
+
+				function onTouchStart(e) {
+					for(var i=0; i<e.touches.length; ++i) {
+						e.touches[i].timeStamp = new Date().getTime();
+						idMap[e.touches[i].identifier] = 0;
+						for(var j=0; j<strokes.length; ++j) {
+							if(strokes[j] === undefined) {
+								idMap[e.touches[i].identifier] = j;
+								break;
+							}
+						}
+						strokes[j] = new Array();
+						strokes[j].push(e.touches[i]);
+					}
+				}
+
+				function onTouchMove(e) { 
+					e.preventDefault(); 
+					for(var i=0; i<e.touches.length; ++i) {
+						e.touches[i].timeStamp = new Date().getTime();
+						strokes[idMap[e.touches[i].identifier]].push(e.touches[i]);
+					}
+				} 
+
+				function onTouchEnd(e) {
+					for(var i=0; i<e.changedTouches.length; ++i) {
+						e.changedTouches[i].timeStamp = new Date().getTime();
+						var id = idMap[e.changedTouches[i].identifier];
+						strokes[id].push(e.changedTouches[i]);
+						evaluate(strokes[id]);
+						
+						delete idMap[e.changedTouches[i].identifier]
+						delete strokes[id];
+					}
+				}
+				
+				// Mouse Touch Emulation
+				function onMouseDown(e) {
+					mouseDown = true;
+					strokes[0] = [];
+					strokes[0].push(e);
+				}	
+				
+				function onMouseMove(e) { 
+					if(mouseDown) {
+						strokes[0].push(e);
+					}
+				}
+				
+				function onMouseUp(e) {
+					mouseDown = false;
+					strokes[0].push(e);
+
+					evaluate(strokes[0]);
+					strokes[0] = null;
+				}
+			};
+		</script>
+	</body>
+</html>
