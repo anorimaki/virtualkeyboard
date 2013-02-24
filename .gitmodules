@@ -1,3 +1,0 @@
-[submodule "fastdtw"]
-	path = thirdparty/fastdtw
-	url = https://github.com/cscotta/fastdtw.git
