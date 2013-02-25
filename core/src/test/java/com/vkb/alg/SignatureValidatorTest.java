@@ -17,7 +17,7 @@ public class SignatureValidatorTest {
 	private static final File INPUT_FOLDER2 = new File( "src/resources/sara" );
 	
 	@Test
-	void testValidate() throws Exception {
+	public void testValidate() throws Exception {
 		CapturedDatasParser parser = new CapturedDatasParser();
 		List<CapturedData> datas1 = parser.parse( INPUT_FOLDER1 ) ;
 		List<CapturedData> datas2 = parser.parse( INPUT_FOLDER2 ) ;
