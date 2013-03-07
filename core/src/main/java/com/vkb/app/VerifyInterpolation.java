@@ -12,16 +12,17 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import com.vkb.alg.FeaturesExtractor;
 import com.vkb.alg.extract.DefaultFeaturesExtractor;
+import com.vkb.app.util.Environment;
 import com.vkb.gui.Application;
 import com.vkb.gui.DataConvert;
 import com.vkb.io.FixedXIntervalFunctionParser;
 import com.vkb.io.CapturedDataFilesHelper;
 import com.vkb.io.CapturedDataParser;
-import com.vkb.math.FunctionPoints;
-import com.vkb.math.Point;
+import com.vkb.math.DiscreteFunction;
 import com.vkb.model.CapturedData;
-import com.vkb.model.FeatureType;
+import com.vkb.model.FeatureId;
 import com.vkb.model.Features;
+import com.vkb.model.FunctionFeatureData;
 import com.vkb.model.Signature;
 import com.vkb.model.Trace;
 
@@ -36,10 +37,10 @@ public class VerifyInterpolation {
 	
 	private void run() throws Exception {
 		CapturedData capturedData = new CapturedDataParser().parse( inputFile );
-		FunctionPoints jigInterpolatedX = 
+		DiscreteFunction jigInterpolatedX = 
 				new FixedXIntervalFunctionParser(1).parse( "interpolatedX", 
 										CapturedDataFilesHelper.getInterpolatedFile( inputFile, "X" ) );
-		FunctionPoints jigInterpolatedY = 
+		DiscreteFunction jigInterpolatedY = 
 				new FixedXIntervalFunctionParser(1).parse( "interpolatedY", 
 										CapturedDataFilesHelper.getInterpolatedFile( inputFile, "Y" ) );
 		
@@ -55,8 +56,8 @@ public class VerifyInterpolation {
 	}
 
 	
-	private XYPlot generateTracePlot(Signature signature, FunctionPoints jigInterpolatedX,
-									FunctionPoints jigInterpolatedY) throws Exception {
+	private XYPlot generateTracePlot(Signature signature, DiscreteFunction jigInterpolatedX,
+									DiscreteFunction jigInterpolatedY) throws Exception {
 		NumberAxis xAxis = new NumberAxis("X");
         xAxis.setAutoRangeIncludesZero(false);
         
@@ -70,13 +71,15 @@ public class VerifyInterpolation {
         plot.setRenderer( renderer );
         
         Trace originalTrace = signature.getCapturedData().getTrace();
-        FunctionPoints interpolatedX = signature.getFeature(FeatureType.POSITION_X).getSamples();
-        FunctionPoints interpolatedY = signature.getFeature(FeatureType.POSITION_Y).getSamples();
-        List<Point> interpolatedTrace = composeXY( interpolatedX, interpolatedY );
-        List<Point> jigInterpolatedTrace = composeXY( jigInterpolatedX, jigInterpolatedY );
+        FunctionFeatureData xFeatureData = signature.getFeature( FeatureId.POSITION_X ).getData();
+        DiscreteFunction interpolatedX = xFeatureData.getSamples();
+        FunctionFeatureData yFeatureData = signature.getFeature( FeatureId.POSITION_Y ).getData();
+        DiscreteFunction interpolatedY = yFeatureData.getSamples();
+        List<DiscreteFunction.Point> interpolatedTrace = composeXY( interpolatedX, interpolatedY );
+        List<DiscreteFunction.Point> jigInterpolatedTrace = composeXY( jigInterpolatedX, jigInterpolatedY );
         
         XYSeriesCollection compleTraces = new XYSeriesCollection();
-        compleTraces.addSeries( DataConvert.getXYSeries( "Original", originalTrace.getTracePoints() ) );
+        compleTraces.addSeries( DataConvert.getXYSeries( "Original", originalTrace.getPositionFunction().getPoints() ) );
         compleTraces.addSeries( DataConvert.getXYSeries( "JIG Interpolated", jigInterpolatedTrace ) );
         compleTraces.addSeries( DataConvert.getXYSeries( "Interpolated", interpolatedTrace ) );		
         plot.setDataset( 0, compleTraces );
@@ -85,25 +88,25 @@ public class VerifyInterpolation {
 	}
 	
 
-	private List<Point> composeXY( FunctionPoints x, FunctionPoints y ) throws Exception {
+	private List<DiscreteFunction.Point> composeXY( DiscreteFunction x, DiscreteFunction y ) throws Exception {
 		if ( x.size() != y.size() )
 			throw new Exception( "Can't compose funcion sample with different length" );
-		List<Point> ret = new ArrayList<Point>();
+		List<DiscreteFunction.Point> ret = new ArrayList<DiscreteFunction.Point>();
 		for( int i = 0; i<x.size(); ++i ) {
-			Point xp = x.get(i);
-			Point yp = y.get(i);
+			DiscreteFunction.Point xp = x.get(i);
+			DiscreteFunction.Point yp = y.get(i);
 			if ( xp.getX() != xp.getX() ) {
 				throw new Exception( "Funtions to compose missmatch X value at position "
 									+ i + "(" + xp.getX() + "!=" + yp.getY() );
 			}
-			ret.add( new Point( xp.getY(), yp.getY() ) );
+			ret.add( new DiscreteFunction.Point( xp.getY(), yp.getY() ) );
 		}
 		return ret;
 	}
 
 
-	private XYPlot generateComponentsPlot(Signature signature, FunctionPoints jigInterpolatedX,
-									FunctionPoints jigInterpolatedY) throws Exception {
+	private XYPlot generateComponentsPlot(Signature signature, DiscreteFunction jigInterpolatedX,
+									DiscreteFunction jigInterpolatedY) throws Exception {
 
 		NumberAxis xAxis = new NumberAxis("time");
         xAxis.setAutoRangeIncludesZero(false);
@@ -119,12 +122,14 @@ public class VerifyInterpolation {
 
         Trace trace0 = signature.getCapturedData().getTrace();
         
-        FunctionPoints originalX = trace0.getXFunction();
-        FunctionPoints interpolatedX = signature.getFeature(FeatureType.POSITION_X).getSamples();
+        DiscreteFunction originalX = trace0.getXFunction();
+        FunctionFeatureData xFeatureData = signature.getFeature( FeatureId.POSITION_X ).getData();
+        DiscreteFunction interpolatedX = xFeatureData.getSamples();
         plotComponents.setDataset( 0, DataConvert.getDataset(originalX, jigInterpolatedX, interpolatedX) );
         
-        FunctionPoints originalY = trace0.getYFunction();
-        FunctionPoints interpolatedY = signature.getFeature(FeatureType.POSITION_Y).getSamples();
+        DiscreteFunction originalY = trace0.getYFunction();
+        FunctionFeatureData yFeatureData = signature.getFeature( FeatureId.POSITION_Y ).getData();
+        DiscreteFunction interpolatedY = yFeatureData.getSamples();
         plotComponents.setDataset( 1, DataConvert.getDataset(originalY, jigInterpolatedY, interpolatedY) );
 
         return plotComponents;

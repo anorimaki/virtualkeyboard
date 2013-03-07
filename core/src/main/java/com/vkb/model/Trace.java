@@ -5,8 +5,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import com.vkb.math.FunctionPoints;
-import com.vkb.math.Point;
+import com.vkb.math.DiscreteFunction;
 
 public class Trace implements Iterable<TracePoint> {
 	private List<TracePoint> data;
@@ -31,26 +30,26 @@ public class Trace implements Iterable<TracePoint> {
 		return data.size();
 	}
 	
-	public FunctionPoints getXFunction() {
-		FunctionPoints ret = new FunctionPoints("X(t)");
+	public DiscreteFunction getXFunction() {
+		DiscreteFunction ret = new DiscreteFunction("X(t)");
 		for( TracePoint p : data ) {
-			ret.add( new Point( p.getTime(), p.getX() ) );
+			ret.add( p.getTime(), p.getX() );
 		}
 		return ret;
 	}
 	
-	public FunctionPoints getYFunction() {
-		FunctionPoints ret = new FunctionPoints("Y(t)");
+	public DiscreteFunction getYFunction() {
+		DiscreteFunction ret = new DiscreteFunction("Y(t)");
 		for( TracePoint p : data ) {
-			ret.add( new Point( p.getTime(), p.getY() ) );
+			ret.add( p.getTime(), p.getY() );
 		}
 		return ret;
 	}
 	
-	public List<Point> getTracePoints() {
-		ArrayList<Point> ret = new ArrayList<Point>();
+	public DiscreteFunction getPositionFunction() {
+		DiscreteFunction ret = new DiscreteFunction("Y(x)");
 		for( TracePoint p : data ) {
-			ret.add( new Point( p.getX(), p.getY() ) );
+			ret.add( p.getX(), p.getY() );
 		}
 		return ret;
 	}

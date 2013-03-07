@@ -1,4 +1,4 @@
-package com.vkb.app;
+package com.vkb.app.util;
 
 import java.io.File;
 

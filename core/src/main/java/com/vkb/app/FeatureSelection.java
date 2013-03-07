@@ -10,11 +10,12 @@ import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 
 import com.vkb.alg.SignatureBuilder;
 import com.vkb.app.util.DefaultSignatureBuilder;
+import com.vkb.app.util.Environment;
 import com.vkb.app.util.FeaturesStatistics;
 import com.vkb.app.util.SignaturesComparators;
 import com.vkb.io.CapturedDatasParser;
 import com.vkb.model.CapturedData;
-import com.vkb.model.FeatureType;
+import com.vkb.model.FeatureId;
 import com.vkb.model.Signature;
 
 public class FeatureSelection {
@@ -30,26 +31,26 @@ public class FeatureSelection {
 	}
 
 	private void run() throws Exception {
-		CapturedDatasParser tracesParser = new CapturedDatasParser();
-		List<List<Signature>> tracesGroups = new ArrayList<List<Signature>>();
-		SignatureBuilder traceBuilder = new DefaultSignatureBuilder();
+		CapturedDatasParser inputDataParser = new CapturedDatasParser();
+		List<List<Signature>> signaturesGroups = new ArrayList<List<Signature>>();
+		SignatureBuilder signatureBuilder = new DefaultSignatureBuilder();
 		for ( File inputFolder : inputFolders ) {
-			List<CapturedData> traces = tracesParser.parse(inputFolder);
-			tracesGroups.add( traceBuilder.build(traces) );
+			List<CapturedData> inputData = inputDataParser.parse(inputFolder);
+			signaturesGroups.add( signatureBuilder.build(inputData) );
 		}
 		
-		SignaturesComparators tracesComparator  = new SignaturesComparators();
+		SignaturesComparators signaturesCompoarators  = new SignaturesComparators();
 		
 		System.out.println( "*********************************************" );
 		System.out.println( "**** Group 0" );
 		System.out.println( "*********************************************" );
-		SignaturesComparators.Result result_0 = tracesComparator.compare( tracesGroups.get(0) );
+		SignaturesComparators.Result result_0 = signaturesCompoarators.compare( signaturesGroups.get(0) );
 		FeaturesStatistics resultStatistics_0 = dump( result_0 );
 		
 		System.out.println( "*********************************************" );
 		System.out.println( "**** Group 1 vs Group 0" );
 		System.out.println( "*********************************************" );
-		SignaturesComparators.Result result_1_0 = tracesComparator.compare( tracesGroups.get(1), tracesGroups.get(0) );
+		SignaturesComparators.Result result_1_0 = signaturesCompoarators.compare( signaturesGroups.get(1), signaturesGroups.get(0) );
 		FeaturesStatistics resultStatistics_1_0 = dump( result_1_0 );
 		
 		System.out.println( "*********************************************" );
@@ -60,13 +61,13 @@ public class FeatureSelection {
 		System.out.println( "*********************************************" );
 		System.out.println( "**** Group 1" );
 		System.out.println( "*********************************************" );
-		SignaturesComparators.Result result_1 = tracesComparator.compare( tracesGroups.get(1) );
+		SignaturesComparators.Result result_1 = signaturesCompoarators.compare( signaturesGroups.get(1) );
 		FeaturesStatistics resultStatistics_1 = dump( result_1 );
 		
 		System.out.println( "*********************************************" );
 		System.out.println( "**** Group 0 vs Group 1" );
 		System.out.println( "*********************************************" );
-		SignaturesComparators.Result result_0_1 = tracesComparator.compare( tracesGroups.get(0), tracesGroups.get(1) );
+		SignaturesComparators.Result result_0_1 = signaturesCompoarators.compare( signaturesGroups.get(0), signaturesGroups.get(1) );
 		FeaturesStatistics resultStatistics_0_1 = dump( result_0_1 );
 		
 		System.out.println( "*********************************************" );
@@ -77,8 +78,8 @@ public class FeatureSelection {
 	
 	
 	private void compare( FeaturesStatistics inGroupResults, FeaturesStatistics foreingGroupResults ) {
-		for( Map.Entry<FeatureType, ? extends StatisticalSummary> featureStat : inGroupResults.getValues().entrySet() ) {
-			FeatureType feature = featureStat.getKey();
+		for( Map.Entry<FeatureId, ? extends StatisticalSummary> featureStat : inGroupResults.getValues().entrySet() ) {
+			FeatureId feature = featureStat.getKey();
 			StatisticalSummary inGroupSummary = featureStat.getValue();
 			StatisticalSummary foreingGroupSummary = foreingGroupResults.getValues().get(feature);
 			
@@ -113,7 +114,7 @@ public class FeatureSelection {
 
 
 	private void dump(int tabN, FeaturesStatistics featuresStatistics) {
-		for( Map.Entry<FeatureType, ? extends StatisticalSummary> featureStat : featuresStatistics.getValues().entrySet() ) {
+		for( Map.Entry<FeatureId, ? extends StatisticalSummary> featureStat : featuresStatistics.getValues().entrySet() ) {
 			System.out.print( tab(tabN) + featureStat.getKey() + ": " );
 			System.out.print( "min: " + print(featureStat.getValue().getMin()) );
 			System.out.print( " | max: " + print(featureStat.getValue().getMax()) );

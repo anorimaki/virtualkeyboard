@@ -13,15 +13,15 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
+import com.vkb.app.util.Environment;
 import com.vkb.gui.Application;
 import com.vkb.gui.DataConvert;
 import com.vkb.io.CapturedDataParser;
 import com.vkb.math.DerivateWrapFunction;
-import com.vkb.math.FunctionPoints;
+import com.vkb.math.DiscreteFunction;
 import com.vkb.math.FunctionUtils;
-import com.vkb.math.Point;
 import com.vkb.model.CapturedData;
-import com.vkb.model.FeatureType;
+import com.vkb.model.FeatureId;
 import com.vkb.model.Trace;
 
 public class VerifyDerivative {
@@ -35,31 +35,31 @@ public class VerifyDerivative {
 		CapturedData capturedData = new CapturedDataParser().parse( inputFile );
 		Trace trace = capturedData.getTrace();
 		
-		FunctionPoints x = trace.getXFunction();
+		DiscreteFunction x = trace.getXFunction();
 		
 		LoessInterpolator interpolator = new LoessInterpolator( 0.05d, 0, LoessInterpolator.DEFAULT_ACCURACY );
 		PolynomialSplineFunction interpolationFunction = interpolator.interpolate( x.getX(), x.getY() );
 		
 								//Derivate with interpolation and commons-math DerivativeStructures
-		FunctionPoints ds_p = new FunctionPoints( "Interpolation + DerivativeStructure - " + FeatureType.POSITION_X.name() );
-		FunctionPoints ds_v = new FunctionPoints( "Interpolation + DerivativeStructure - " + FeatureType.VELOCITY_X.name() );
-		FunctionPoints ds_a = new FunctionPoints( "Interpolation + DerivativeStructure - " + FeatureType.ACCELERATION_X.name() );
+		DiscreteFunction ds_p = new DiscreteFunction( "Interpolation + DerivativeStructure - " + FeatureId.POSITION_X.name() );
+		DiscreteFunction ds_v = new DiscreteFunction( "Interpolation + DerivativeStructure - " + FeatureId.VELOCITY_X.name() );
+		DiscreteFunction ds_a = new DiscreteFunction( "Interpolation + DerivativeStructure - " + FeatureId.ACCELERATION_X.name() );
 		generateFunctionsWithDerivativeStructures( interpolationFunction, x.getMinX(), x.getMaxX(), ds_p, ds_v, ds_a );
 		
 								//Derivate with finite differences
-		FunctionPoints p = FunctionUtils.sample( FeatureType.POSITION_X.name(), 
+		DiscreteFunction p = FunctionUtils.sample( FeatureId.POSITION_X.name(), 
 												interpolationFunction, x.getMinX(), x.getMaxX(), 1.0d );
-		FunctionPoints v = derivate( "Finite differences - " + FeatureType.VELOCITY_X.name(), p );
-		FunctionPoints a = derivate( "Finite differences - " + FeatureType.ACCELERATION_X.name(), v );
+		DiscreteFunction v = derivate( "Finite differences - " + FeatureId.VELOCITY_X.name(), p );
+		DiscreteFunction a = derivate( "Finite differences - " + FeatureId.ACCELERATION_X.name(), v );
 		
 								//Derivate with interpolation and commons-math FiniteDifferencesDifferentiator
-		FunctionPoints ids_v = new FunctionPoints( "Interpolations + FiniteDifferencesDifferentiator - " + FeatureType.VELOCITY_X.name() );
-		FunctionPoints ids_a = new FunctionPoints( "Interpolations + FiniteDifferencesDifferentiator - " + FeatureType.ACCELERATION_X.name() );
+		DiscreteFunction ids_v = new DiscreteFunction( "Interpolations + FiniteDifferencesDifferentiator - " + FeatureId.VELOCITY_X.name() );
+		DiscreteFunction ids_a = new DiscreteFunction( "Interpolations + FiniteDifferencesDifferentiator - " + FeatureId.ACCELERATION_X.name() );
 		generateFunctionsWithFiniteDifferencesDifferentiator( x, ids_v, ids_a );
 		
 								//Derivate with interpolation and commons-math FiniteDifferencesDifferentiator
-		FunctionPoints fp_v = new FunctionPoints( "Multiples Interpolations + FiniteDifferencesDifferentiator - " + FeatureType.VELOCITY_X.name() );
-		FunctionPoints fp_a = new FunctionPoints( "Multiples Interpolations + FiniteDifferencesDifferentiator - " + FeatureType.ACCELERATION_X.name() );
+		DiscreteFunction fp_v = new DiscreteFunction( "Multiples Interpolations + FiniteDifferencesDifferentiator - " + FeatureId.VELOCITY_X.name() );
+		DiscreteFunction fp_a = new DiscreteFunction( "Multiples Interpolations + FiniteDifferencesDifferentiator - " + FeatureId.ACCELERATION_X.name() );
 		generateFunctionsWithFiniteDifferencesDifferentiatorAndMultiplesInterpolations( x, fp_v, fp_a );
 		
 		XYPlot positionPlot = generatePlot( "Position", p, ds_p );
@@ -71,7 +71,7 @@ public class VerifyDerivative {
 	}
 		
 		
-	private XYPlot generatePlot( String yName, FunctionPoints... f ) {
+	private XYPlot generatePlot( String yName, DiscreteFunction... f ) {
 		NumberAxis xAxis = new NumberAxis("Time");
         xAxis.setAutoRangeIncludesZero(false);
         
@@ -90,18 +90,20 @@ public class VerifyDerivative {
 	}
 	
 	private void generateFunctionsWithFiniteDifferencesDifferentiator(
-			FunctionPoints p, FunctionPoints fp_v, FunctionPoints fp_a ) {
+			DiscreteFunction p, DiscreteFunction fp_v, DiscreteFunction fp_a ) {
 	
 		FiniteDifferencesDifferentiator differentiator = 
 				new FiniteDifferencesDifferentiator( 6, 0.1d, p.getMinX(), p.getMaxX() );
 		
 		UnivariateDifferentiableFunction pDerivateFunction = differentiator.differentiate( p.interpolate() );
 		UnivariateFunction vFunction = new DerivateWrapFunction(pDerivateFunction);
-		FunctionPoints vSamples = FunctionUtils.sample( vFunction, p.getMinX(), p.getMaxX(), 1.0d );
+		DiscreteFunction vSamples = FunctionUtils.sample( fp_v.getName(), vFunction,
+												p.getMinX(), p.getMaxX(), 1.0d );
 		
 		UnivariateDifferentiableFunction vDerivateFunction = differentiator.differentiate( vFunction );
 		UnivariateFunction aFunction = new DerivateWrapFunction(vDerivateFunction);
-		FunctionPoints aSamples = FunctionUtils.sample( aFunction, vSamples.getMinX(), vSamples.getMaxX(), 1.0d );
+		DiscreteFunction aSamples = FunctionUtils.sample( fp_a.getName(), aFunction, 
+												vSamples.getMinX(), vSamples.getMaxX(), 1.0d );
 		
 		fp_v.addAll( vSamples );
 		fp_a.addAll( aSamples );
@@ -109,16 +111,18 @@ public class VerifyDerivative {
 
 	
 	private void generateFunctionsWithFiniteDifferencesDifferentiatorAndMultiplesInterpolations(
-					FunctionPoints x, FunctionPoints fp_v, FunctionPoints fp_a ) {
+					DiscreteFunction x, DiscreteFunction fp_v, DiscreteFunction fp_a ) {
 		
 		FiniteDifferencesDifferentiator differentiator = 
 				new FiniteDifferencesDifferentiator( 6, 0.1d, x.getMinX(), x.getMaxX() );
 		
 		UnivariateDifferentiableFunction vFunction = differentiator.differentiate( x.interpolate() );
-		FunctionPoints vSamples = FunctionUtils.sample( vFunction, 1, x.getMinX(), x.getMaxX(), 1.0d );
+		DiscreteFunction vSamples = FunctionUtils.sample( fp_v.getName(), vFunction, 
+											1, x.getMinX(), x.getMaxX(), 1.0d );
 		
 		UnivariateDifferentiableFunction aFunction = differentiator.differentiate( vSamples.interpolate() );
-		FunctionPoints aSamples = FunctionUtils.sample( aFunction, 1, vSamples.getMinX(), vSamples.getMaxX(), 1.0d );
+		DiscreteFunction aSamples = FunctionUtils.sample( fp_a.getName(), aFunction, 
+											1, vSamples.getMinX(), vSamples.getMaxX(), 1.0d );
 		
 		fp_v.addAll( vSamples );
 		fp_a.addAll( aSamples );
@@ -127,8 +131,8 @@ public class VerifyDerivative {
 	
 	private void generateFunctionsWithDerivativeStructures(
 							PolynomialSplineFunction interpolationFunction, double minX,
-							double maxX, FunctionPoints ds_p, FunctionPoints ds_v,
-							FunctionPoints ds_a) {
+							double maxX, DiscreteFunction ds_p, DiscreteFunction ds_v,
+							DiscreteFunction ds_a) {
 		for( double i = minX; i<maxX; i+=1.0d ) {
 			DerivativeStructure dt = new DerivativeStructure(1, 2, 0, i);
 			DerivativeStructure dx = interpolationFunction.value(dt);
@@ -139,10 +143,10 @@ public class VerifyDerivative {
 		}
 	}
 
-	private FunctionPoints derivate( String name, FunctionPoints points) {
-		FunctionPoints ret = new FunctionPoints( name );
-		Point previous = null;
-		for ( Point p : points ) {
+	private DiscreteFunction derivate( String name, DiscreteFunction function) {
+		DiscreteFunction ret = new DiscreteFunction( name );
+		DiscreteFunction.Point previous = null;
+		for ( DiscreteFunction.Point p : function.getPoints() ) {
 			if ( previous != null ) {
 				double inc = p.getX() - previous.getX();
 				double value = (p.getY() - previous.getY()) / inc;

@@ -6,42 +6,42 @@ import org.apache.commons.math3.analysis.differentiation.UnivariateDifferentiabl
 
 
 public class FunctionUtils {
-	public static FunctionPoints sample( UnivariateFunction f, double min,
+/*	public static DiscreteFunction sample( UnivariateFunction f, double min,
 									double max, double increment ) {
-		FunctionPoints ret = new FunctionPoints();
+		DiscreteFunction ret = new DiscreteFunction();
+		sample( ret, f, min, max, increment );
+		return ret;
+	} */
+	
+	public static DiscreteFunction sample( String name, UnivariateFunction f, double min,
+									double max, double increment ) {
+		DiscreteFunction ret = new DiscreteFunction( name );
 		sample( ret, f, min, max, increment );
 		return ret;
 	}
-	
-	public static FunctionPoints sample( String name, UnivariateFunction f, double min,
-									double max, double increment ) {
-		FunctionPoints ret = new FunctionPoints( name );
-		sample( ret, f, min, max, increment );
-		return ret;
-	}
-	
-	public static FunctionPoints sample( UnivariateDifferentiableFunction f, 
+/*	
+	public static DiscreteFunction sample( UnivariateDifferentiableFunction f, 
 									int order, double min, double max, double step ) {
-		FunctionPoints ret = new FunctionPoints();
+		DiscreteFunction ret = new DiscreteFunction();
 		sample( ret, f, order, min, max, step );
 		return ret;
-	}
+	} */
 
-	public static FunctionPoints sample( String name, UnivariateDifferentiableFunction f, 
+	public static DiscreteFunction sample( String name, UnivariateDifferentiableFunction f, 
 										int order, double min, double max, double step ) {
-		FunctionPoints ret = new FunctionPoints( name );
+		DiscreteFunction ret = new DiscreteFunction( name );
 		sample( ret, f, order, min, max, step );
 		return ret;
 	}
 	
-	private static void sample( FunctionPoints result, UnivariateFunction f, 
+	private static void sample( DiscreteFunction result, UnivariateFunction f, 
 							double min,	double max, double increment ) {
 		for( double i=min; i<=max; i+=increment ) {
 			result.add( i, f.value(i) );
 		}
 	}	
 	
-	private static void sample( FunctionPoints result, UnivariateDifferentiableFunction f, 
+	private static void sample( DiscreteFunction result, UnivariateDifferentiableFunction f, 
 							int order, double min, double max, double step ) {
 		for( double i=min; i<=max; i+=step ) {
 			DerivativeStructure dt = new DerivativeStructure(1, order, 0, i);

@@ -7,10 +7,10 @@ import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
 import com.fastdtw.dtw.TimeWarpInfo;
-import com.vkb.model.FeatureType;
+import com.vkb.model.FeatureId;
 
 public class FeaturesStatistics {
-	private Map<FeatureType, SummaryStatistics> values = new HashMap<FeatureType, SummaryStatistics>();
+	private Map<FeatureId, SummaryStatistics> values = new HashMap<FeatureId, SummaryStatistics>();
 	
 	public FeaturesStatistics() {
 	}
@@ -27,12 +27,12 @@ public class FeaturesStatistics {
 		}
 	}
 	
-	public Map<FeatureType, ? extends StatisticalSummary> getValues() {
+	public Map<FeatureId, ? extends StatisticalSummary> getValues() {
 		return values;
 	}
 
 	private void addResult( SignatureComparator.Result result ) {
-		for( Map.Entry<FeatureType, TimeWarpInfo> featureResult : result.getPartialResults().entrySet() ) {
+		for( Map.Entry<FeatureId, TimeWarpInfo> featureResult : result.getPartialResults().entrySet() ) {
 			SummaryStatistics summary = values.get( featureResult.getKey() );
 			if ( summary == null ) {
 				summary = new SummaryStatistics();

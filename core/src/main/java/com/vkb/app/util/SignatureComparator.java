@@ -10,22 +10,22 @@ import com.fastdtw.dtw.TimeWarpInfo;
 import com.fastdtw.timeseries.TimeSeries;
 import com.fastdtw.util.EuclideanDistance;
 import com.vkb.math.dtw.DataConvert;
-import com.vkb.model.FunctionFeature;
-import com.vkb.model.FeatureType;
+import com.vkb.model.FunctionFeatureData;
+import com.vkb.model.FeatureId;
 import com.vkb.model.Signature;
 
 public class SignatureComparator {
-	private static final FeatureType[] comparableFeatures = { 
-		FeatureType.POSITION_X, FeatureType.POSITION_Y,
-		FeatureType.VELOCITY_X, FeatureType.VELOCITY_Y,
-		FeatureType.ACCELERATION_X, FeatureType.ACCELERATION_Y
+	private static final FeatureId[] comparableFeatures = { 
+		FeatureId.POSITION_X, FeatureId.POSITION_Y,
+		FeatureId.VELOCITY_X, FeatureId.VELOCITY_Y,
+		FeatureId.ACCELERATION_X, FeatureId.ACCELERATION_Y
 	};
 	
 	static public class Result {
 		private TimeWarpInfo globalResult;
-		private Map<FeatureType, TimeWarpInfo> partialResults;
+		private Map<FeatureId, TimeWarpInfo> partialResults;
 		
-		Result( TimeWarpInfo globalResult, Map<FeatureType, TimeWarpInfo> partialResults ) {
+		Result( TimeWarpInfo globalResult, Map<FeatureId, TimeWarpInfo> partialResults ) {
 			this.partialResults = partialResults;
 			this.globalResult = globalResult;
 		}
@@ -34,14 +34,14 @@ public class SignatureComparator {
 			return globalResult;
 		}
 		
-		public Map<FeatureType, TimeWarpInfo> getPartialResults() {
+		public Map<FeatureId, TimeWarpInfo> getPartialResults() {
 			return partialResults;
 		}
 		
 		@Override
 		public String toString() {
 			StringBuilder ret = new StringBuilder();
-			for( Map.Entry<FeatureType, TimeWarpInfo> entry : partialResults.entrySet() ) {
+			for( Map.Entry<FeatureId, TimeWarpInfo> entry : partialResults.entrySet() ) {
 				ret.append( "(" + entry.getKey() + "=" + entry.getValue().getDistance() + ") " );
 			}
 			return ret.toString();
@@ -49,14 +49,14 @@ public class SignatureComparator {
 	}
 	
 	public Result compare( Signature t1, Signature t2 ) throws Exception {
-		Map<FeatureType, TimeWarpInfo> partialResults = new HashMap<FeatureType, TimeWarpInfo>();
+		Map<FeatureId, TimeWarpInfo> partialResults = new HashMap<FeatureId, TimeWarpInfo>();
 		
-		List<FunctionFeature> t1Features = new ArrayList<FunctionFeature>();
-		List<FunctionFeature> t2Features = new ArrayList<FunctionFeature>();
+		List<FunctionFeatureData> t1Features = new ArrayList<FunctionFeatureData>();
+		List<FunctionFeatureData> t2Features = new ArrayList<FunctionFeatureData>();
 		
-		for( FeatureType feature : comparableFeatures ) {
-			FunctionFeature f1 = t1.getFeature(feature);
-			FunctionFeature f2 = t2.getFeature(feature);
+		for( FeatureId feature : comparableFeatures ) {
+			FunctionFeatureData f1 = t1.getFeature( feature ).getData();
+			FunctionFeatureData f2 = t2.getFeature( feature ).getData();
 			TimeWarpInfo result = compare( f1, f2 );
 			partialResults.put( feature, result );
 			
@@ -72,7 +72,7 @@ public class SignatureComparator {
 	}
 	
 	
-	private TimeWarpInfo compare( FunctionFeature f1, FunctionFeature f2 ) throws Exception {
+	private TimeWarpInfo compare( FunctionFeatureData f1, FunctionFeatureData f2 ) throws Exception {
 		TimeSeries ts1 = DataConvert.getTimeSeries(f1);
 		TimeSeries ts2 = DataConvert.getTimeSeries(f2);
 		

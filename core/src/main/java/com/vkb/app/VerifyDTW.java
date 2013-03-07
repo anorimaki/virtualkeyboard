@@ -15,13 +15,15 @@ import org.jfree.data.xy.XYSeriesCollection;
 import com.fastdtw.dtw.TimeWarpInfo;
 import com.vkb.alg.SignatureBuilder;
 import com.vkb.app.util.DefaultSignatureBuilder;
+import com.vkb.app.util.Environment;
 import com.vkb.app.util.SignatureComparator;
 import com.vkb.app.util.SignaturesComparators;
 import com.vkb.gui.Application;
 import com.vkb.gui.DataConvert;
 import com.vkb.io.CapturedDatasParser;
 import com.vkb.model.CapturedData;
-import com.vkb.model.FeatureType;
+import com.vkb.model.FeatureId;
+import com.vkb.model.FunctionFeatureData;
 import com.vkb.model.Signature;
 
 public class VerifyDTW {
@@ -60,7 +62,7 @@ public class VerifyDTW {
 			if ( result != null ) {
 				System.out.println( tab(1) + "- With trace " + i );
 				
-				for( Map.Entry<FeatureType, TimeWarpInfo> featureResult : result.getPartialResults().entrySet() ) {
+				for( Map.Entry<FeatureId, TimeWarpInfo> featureResult : result.getPartialResults().entrySet() ) {
 					System.out.println( tab(2) + featureResult.getKey() + ": " + 
 							featureResult.getValue().getDistance() );
 				}
@@ -82,7 +84,7 @@ public class VerifyDTW {
 	private void printTraces( List<Signature> traces ) {
 		final Color colors[] = { Color.BLUE, Color.CYAN, Color.GRAY, Color.GREEN, Color.MAGENTA, Color.ORANGE };
 		//final Feature featuresToPrint[] = { Feature.VELOCITY_X, Feature.VELOCITY_Y, Feature.ACCELERATION_X, Feature.ACCELERATION_Y };
-		final FeatureType featuresToPrint[] = { FeatureType.ACCELERATION_X, FeatureType.ACCELERATION_Y };
+		final FeatureId featuresToPrint[] = { FeatureId.ACCELERATION_X, FeatureId.ACCELERATION_Y };
 		
 		NumberAxis xAxis = new NumberAxis("Time");
 		xAxis.setAutoRangeIncludesZero(false);
@@ -91,7 +93,7 @@ public class VerifyDTW {
 		plot.setDomainAxis(xAxis);
 		
 		int featureIndex=0;
-		for( FeatureType feature : featuresToPrint ) {
+		for( FeatureId feature : featuresToPrint ) {
 			XYItemRenderer renderer = new XYLineAndShapeRenderer(true, false);
 			
 			Color color = colors[featureIndex];
@@ -100,7 +102,8 @@ public class VerifyDTW {
 			for( int traceIndex=0; traceIndex<traces.size(); ++traceIndex ) {
 				renderer.setSeriesPaint(traceIndex, color);
 				
-				XYSeries series = DataConvert.getXYSeries( traces.get(traceIndex).getFeature(feature) );
+				FunctionFeatureData featureData = traces.get(traceIndex).getFeature( feature ).getData();
+				XYSeries series = DataConvert.getXYSeries( featureData );
 				series.setKey( feature.getName() + "_" + traceIndex );
 				seriesCollection.addSeries( series );
 			}

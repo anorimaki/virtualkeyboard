@@ -10,8 +10,12 @@ public class Signature {
 		this.features = features;
 	}
 
-	public FunctionFeature getFeature( FeatureType feature ) {
+	public Feature getFeature( FeatureId feature ) {
 		return features.get( feature );
+	}
+	
+	public Features getFeatures() {
+		return features;
 	}
 	
 	public CapturedData getCapturedData() {

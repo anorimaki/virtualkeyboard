@@ -5,8 +5,7 @@ import java.io.FileReader;
 import java.io.Reader;
 
 import com.google.gson.Gson;
-import com.vkb.math.FunctionPoints;
-import com.vkb.math.Point;
+import com.vkb.math.DiscreteFunction;
 
 public class FixedXIntervalFunctionParser {
 	private long interval;
@@ -15,13 +14,13 @@ public class FixedXIntervalFunctionParser {
 		this.interval = interval;
 	}
 	
-	public FunctionPoints parse( String name, File file ) throws Exception {
-		FunctionPoints ret = new FunctionPoints(name);
+	public DiscreteFunction parse( String name, File file ) throws Exception {
+		DiscreteFunction ret = new DiscreteFunction(name);
 		parse( file, ret );
 		return ret;
 	}
 	
-	public FunctionPoints parse( File file, FunctionPoints ret ) throws Exception {
+	public DiscreteFunction parse( File file, DiscreteFunction ret ) throws Exception {
 		Gson gson = new Gson();
 		
 		Reader reader = new FileReader( file );
@@ -30,7 +29,7 @@ public class FixedXIntervalFunctionParser {
 		
 		long time = 0;
 		for( double current : data ) {
-			ret.add( new Point( time, current ) );
+			ret.add( time, current );
 			time += interval;
 		}
 		

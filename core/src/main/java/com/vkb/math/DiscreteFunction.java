@@ -2,36 +2,50 @@ package com.vkb.math;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 
-public class FunctionPoints implements Iterable<Point> {
-	public static final String ANONYMOUS = "anonymous";
+public class DiscreteFunction {
+	public static class Point {
+		private double x;
+		private double y;
+		
+		public Point( double x, double y ) {
+			this.x = x;
+			this.y = y;
+		}
+		
+		public double getX() {
+			return x;
+		}
+		
+		public double getY() {
+			return y;
+		}
+		
+		@Override
+		public String toString() {
+			return "(" + x + "," + y + ")";
+		}
+	}
+
+	
 	public static final double DEFAULT_INTERPOLATION_INCREMENT = 1.0d;
 	
 	private String name;
 	private List<Point> points;
 	
-	public FunctionPoints( String name ) {
+	public DiscreteFunction( String name ) {
 		this.points = new ArrayList<Point>();
 		this.name = name;
 	}
 	
-	public FunctionPoints() {
-		this( ANONYMOUS );
-	}
-	
-	public FunctionPoints( String name, Collection<Point> points ) {
+	public DiscreteFunction( String name, Collection<Point> points ) {
 		this.points = new ArrayList<Point>( points );
 		this.name = name;
-	}
-	
-	public FunctionPoints( Collection<Point> points ) {
-		this( ANONYMOUS, points );
 	}
 	
 	public String getName() {
@@ -54,7 +68,7 @@ public class FunctionPoints implements Iterable<Point> {
 		points.addAll( other );
 	}
 	
-	public void addAll( FunctionPoints other ) {
+	public void addAll( DiscreteFunction other ) {
 		points.addAll( other.points );
 	}
 	
@@ -95,11 +109,6 @@ public class FunctionPoints implements Iterable<Point> {
 			ret[i++] =p.getY(); 
 		}
 		return ret;
-	}
-
-	@Override
-	public Iterator<Point> iterator() {
-		return points.iterator();
 	}
 	
 	@Override
