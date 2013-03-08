@@ -13,8 +13,8 @@ import com.vkb.model.CapturedData;
 
 
 public class SignatureValidatorTest {
-	private static final File INPUT_FOLDER1 = new File( "src/resources/jig" );
-	private static final File INPUT_FOLDER2 = new File( "src/resources/sara" );
+	private static final File INPUT_FOLDER1 = new File( "src/main/resources/user1" );
+	private static final File INPUT_FOLDER2 = new File( "src/main/resources/user2" );
 	
 	@Test
 	public void testValidate() throws Exception {
