@@ -2,6 +2,7 @@ package com.vkb.alg.extract;
 
 import org.apache.commons.math3.analysis.differentiation.FiniteDifferencesDifferentiator;
 import org.apache.commons.math3.analysis.differentiation.UnivariateDifferentiableFunction;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import com.vkb.alg.FeaturesExtractor;
 import com.vkb.math.DiscreteFunction;
@@ -10,6 +11,7 @@ import com.vkb.model.CapturedData;
 import com.vkb.model.Feature;
 import com.vkb.model.Features;
 import com.vkb.model.FunctionFeatureData;
+import com.vkb.model.ScalarFeatureData;
 import com.vkb.model.FeatureId;
 import com.vkb.model.Trace;
 
@@ -21,13 +23,16 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 		Trace rawTrace = inputData.getTrace();
 		
 		DiscreteFunction traceX = rawTrace.getXFunction();
+		DiscreteFunction traceY = rawTrace.getYFunction();
 		
-		extractPositionFeatures( features, traceX, rawTrace.getYFunction() );
+		extractPositionFeatures( features, traceX, traceY );
 		
 		FiniteDifferencesDifferentiator differentiator = 
 				new FiniteDifferencesDifferentiator( 6, 0.1d, traceX.getMinX(), traceX.getMaxX() );
 		extractVelocityFeatures( features, differentiator );
 		extractAccelerationFeatures( features, differentiator );
+		
+		extractPositionAvgFeatures( features );
 		
 		return features;
 	}
@@ -53,6 +58,26 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 		features.put( createDerivate( differentiator, FeatureId.ACCELERATION_Y, features.get(FeatureId.VELOCITY_Y) ) );
 	}
 	
+	
+	private void extractPositionAvgFeatures( Features features ) {
+		features.put( createAvg( FeatureId.POSITION_X_AVG, features.get(FeatureId.POSITION_X) ) );
+		features.put( createAvg( FeatureId.POSITION_Y_AVG, features.get(FeatureId.POSITION_Y) ) );
+}
+	
+	private Feature createAvg( FeatureId newFeatureId, Feature originalFeature ) {
+		double avgd=0.0;
+		FunctionFeatureData originalFeatureData = originalFeature.getData();
+		DiscreteFunction dataFunction = originalFeatureData.getSamples();
+		
+		// Entenc que dataFunction.getY() retorna els valors de la serie
+		// ja que a l'eix X hi trobem l'escala de temps.
+		DescriptiveStatistics stats = new DescriptiveStatistics(dataFunction.getY());
+
+		avgd = stats.getMean();
+		
+		ScalarFeatureData data = new ScalarFeatureData(avgd);
+		return new Feature( newFeatureId, data );
+	}
 	
 	private Feature createDerivate( FiniteDifferencesDifferentiator differentiator,
 											FeatureId newFeatureId,
