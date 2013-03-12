@@ -15,7 +15,8 @@ public enum FeatureId {
 	ACCELERATION_Y_AVG( "Y''AVG", FunctionFeatureData.class ),
 	AREA_X( "XAREA", FunctionFeatureData.class ),
 	AREA_Y( "YAREA", FunctionFeatureData.class ),
-	RELATION_X( "X_Y_REL", FunctionFeatureData.class );
+	RELATION_AREA( "X_Y_AREA", FunctionFeatureData.class ),
+	RELATION_X_Y( "X_Y_REL(t)", FunctionFeatureData.class );
 	
 	private String name;
 	private Class<? extends FeatureData> type;
