@@ -28,7 +28,9 @@ public class DiscreteFunction {
 		
 		@Override
 		public String toString() {
-			return "(" + x + "," + y + ")";
+			// Canviat ( per [ per compatibilitat amb Matlab i eliminat index
+			// return "(" + x + "," + y + ")";
+			return ""+y ;
 		}
 	}
 
@@ -115,4 +117,6 @@ public class DiscreteFunction {
 	public String toString() {
 		return name + ": "  + points.toString();
 	}
+		
+
 }

@@ -30,7 +30,7 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 		extractPositionFeatures( features, traceX, traceY );
 		
 		FiniteDifferencesDifferentiator differentiator = 
-				new FiniteDifferencesDifferentiator( 6, 0.1d, traceX.getMinX(), traceX.getMaxX() );
+				new FiniteDifferencesDifferentiator( 5, 0.5d, traceX.getMinX(), traceX.getMaxX() );
 		extractVelocityFeatures( features, differentiator );
 		extractAccelerationFeatures( features, differentiator );
 		
@@ -174,7 +174,11 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 		{
 			for(int i=0;i<puntsX.length;i++)
 			{
-				dataFunction.add(tempsX[i],(puntsX[i]/puntsY[i]));
+				// CHIRRIA!!!
+				if(puntsY[i]>0)
+					dataFunction.add(tempsX[i],(puntsX[i]/puntsY[i]));
+				else
+					dataFunction.add(tempsX[i],0.0d);
 			}
 			
 		}

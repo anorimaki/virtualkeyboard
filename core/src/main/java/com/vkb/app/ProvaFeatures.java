@@ -6,131 +6,106 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
-
 import com.vkb.alg.SignatureBuilder;
 import com.vkb.app.util.DefaultSignatureBuilder;
 import com.vkb.app.util.Environment;
-import com.vkb.app.util.FeaturesStatistics;
-import com.vkb.app.util.SignaturesComparators;
-import com.vkb.io.CapturedDatasParser;
-import com.vkb.model.CapturedData;
-import com.vkb.model.FeatureId;
-import com.vkb.model.Signature;
+import com.vkb.io.CapturedDataParser;
+import com.vkb.model.*;
 
 public class ProvaFeatures {
 	private static final String BLANKS = "                                ";
-	private static final File INPUT_FOLDERS[] = { new File( Environment.RESOURCES_DIR, "user1" ), 
-													new File( Environment.RESOURCES_DIR, "user2" ) };
+	private static final File INPUT_FOLDERS[] = { new File( Environment.RESOURCES_DIR, "user1/A_192.168.7.13_1358442748589.json" )};
 	private static final DecimalFormat doubleFormat = new DecimalFormat("#.#####");
 
 	private File[] inputFolders;
 	
-	public ProvaFeatures (File[] inputFolders ) {
+	public ProvaFeatures ( File[] inputFolders ) {
 		this.inputFolders = inputFolders;
 	}
 
 	private void run() throws Exception {
-		CapturedDatasParser inputDataParser = new CapturedDatasParser();
-		List<List<Signature>> signaturesGroups = new ArrayList<List<Signature>>();
+		CapturedDataParser inputDataParser = new CapturedDataParser();
 		SignatureBuilder signatureBuilder = new DefaultSignatureBuilder();
+		Signature sig=null;
+		
 		for ( File inputFolder : inputFolders ) {
-			List<CapturedData> inputData = inputDataParser.parse(inputFolder);
-			signaturesGroups.add( signatureBuilder.build(inputData) );
+			CapturedData inputData = inputDataParser.parse(inputFolder);
+			sig = signatureBuilder.build(inputData);
+		}
+		if(sig!=null){
+			
+			Feature f = sig.getFeature(FeatureId.POSITION_X);
+			FunctionFeatureData ffd = f.getData();
+			
+			System.out.println(ffd.toString());
+			
+			f = sig.getFeature(FeatureId.POSITION_Y);
+			ffd = f.getData();
+			System.out.println(ffd.toString());
+			
+			f = sig.getFeature(FeatureId.VELOCITY_X);
+			ffd = f.getData();
+			System.out.println(ffd.toString());
+			
+			f = sig.getFeature(FeatureId.VELOCITY_Y);
+			ffd = f.getData();
+			System.out.println(ffd.toString());
+			
+			f = sig.getFeature(FeatureId.ACCELERATION_X);
+			ffd = f.getData();
+			System.out.println(ffd.toString());
+			
+			f = sig.getFeature(FeatureId.ACCELERATION_Y);
+			ffd = f.getData();
+			System.out.println(ffd.toString());
+			
+			f = sig.getFeature(FeatureId.RELATION_X_Y);
+			ffd = f.getData();
+			System.out.println(ffd.toString());
+						
+			f=sig.getFeature(FeatureId.POSITION_X_AVG);
+			ScalarFeatureData sfd = f.getData();
+			System.out.println("AVG_X: "+sfd.toString());
+			
+			f=sig.getFeature(FeatureId.POSITION_Y_AVG);
+			sfd = f.getData();
+			System.out.println("AVG_Y: "+sfd.toString());
+			
+			f=sig.getFeature(FeatureId.VELOCITY_X_AVG);
+			sfd = f.getData();
+			System.out.println("AVG_VEL_X: "+sfd.toString());
+			
+			f=sig.getFeature(FeatureId.VELOCITY_Y_AVG);
+			sfd = f.getData();
+			System.out.println("AVG_VEL_Y: "+sfd.toString());
+
+			f=sig.getFeature(FeatureId.ACCELERATION_X_AVG);
+			sfd = f.getData();
+			System.out.println("AVG_ACC_X: "+sfd.toString());
+			
+			f=sig.getFeature(FeatureId.ACCELERATION_Y_AVG);
+			sfd = f.getData();
+			System.out.println("AVG_ACC_Y: "+sfd.toString());
+			
+			f=sig.getFeature(FeatureId.AREA_X);
+			sfd = f.getData();
+			System.out.println("AREA_X: "+sfd.toString());
+			
+			f=sig.getFeature(FeatureId.AREA_Y);
+			sfd = f.getData();
+			System.out.println("AREA_Y: "+sfd.toString());
+			
+			f=sig.getFeature(FeatureId.RELATION_AREA);
+			sfd = f.getData();
+			System.out.println("REL_AREA: "+sfd.toString());
+			
 		}
 		
-		SignaturesComparators signaturesCompoarators  = new SignaturesComparators();
 		
-		System.out.println( "*********************************************" );
-		System.out.println( "**** Group 0" );
-		System.out.println( "*********************************************" );
-		SignaturesComparators.Result result_0 = signaturesCompoarators.compare( signaturesGroups.get(0) );
-		FeaturesStatistics resultStatistics_0 = dump( result_0 );
-		
-		System.out.println( "*********************************************" );
-		System.out.println( "**** Group 1 vs Group 0" );
-		System.out.println( "*********************************************" );
-		SignaturesComparators.Result result_1_0 = signaturesCompoarators.compare( signaturesGroups.get(1), signaturesGroups.get(0) );
-		FeaturesStatistics resultStatistics_1_0 = dump( result_1_0 );
-		
-		System.out.println( "*********************************************" );
-		System.out.println( "**** Compare result statistics: Group 0 vs Group 0 <-> Group 1 vs Group 0" );
-		System.out.println( "*********************************************" );
-		compare( resultStatistics_0, resultStatistics_1_0 );
-		
-		System.out.println( "*********************************************" );
-		System.out.println( "**** Group 1" );
-		System.out.println( "*********************************************" );
-		SignaturesComparators.Result result_1 = signaturesCompoarators.compare( signaturesGroups.get(1) );
-		FeaturesStatistics resultStatistics_1 = dump( result_1 );
-		
-		System.out.println( "*********************************************" );
-		System.out.println( "**** Group 0 vs Group 1" );
-		System.out.println( "*********************************************" );
-		SignaturesComparators.Result result_0_1 = signaturesCompoarators.compare( signaturesGroups.get(0), signaturesGroups.get(1) );
-		FeaturesStatistics resultStatistics_0_1 = dump( result_0_1 );
-		
-		System.out.println( "*********************************************" );
-		System.out.println( "**** Compare result statistics: Group 1 vs Group 1 <-> Group 0 vs Group 1" );
-		System.out.println( "*********************************************" );
-		compare( resultStatistics_1, resultStatistics_0_1 );
+		System.out.println("\nOK Termination...");
 	}
 	
-	
-	private void compare( FeaturesStatistics inGroupResults, FeaturesStatistics foreingGroupResults ) {
-		for( Map.Entry<FeatureId, ? extends StatisticalSummary> featureStat : inGroupResults.getValues().entrySet() ) {
-			FeatureId feature = featureStat.getKey();
-			StatisticalSummary inGroupSummary = featureStat.getValue();
-			StatisticalSummary foreingGroupSummary = foreingGroupResults.getValues().get(feature);
-			
-			boolean result = inGroupSummary.getMax() < foreingGroupSummary.getMin();
-			System.out.println( feature.getName() + ": " + (result ? "Good" : "Bad") );
-			System.out.println( tab(1) + "In group maximun distance: " + inGroupSummary.getMax());
-			System.out.println( tab(1) + "Foreing group minimun distance: " + foreingGroupSummary.getMin());
-			System.out.println( tab(1) + "Averages score: " + foreingGroupSummary.getMean() / inGroupSummary.getMean() );
-			System.out.println();
-		}
-	}
-	
 		
-	private FeaturesStatistics dump( SignaturesComparators.Result result ) {
-		FeaturesStatistics featuresStatistics = new FeaturesStatistics();
-		for( int i=0; i<result.size(); ++i ) {
-			FeaturesStatistics traceFeaturesStatistics = new FeaturesStatistics( result.trace(i) );
-			System.out.println( "Trace " + i + ": " );
-			dump( 1, traceFeaturesStatistics );
-			
-			featuresStatistics.add(result.trace(i));
-			
-			System.out.println();
-		}
-		
-		System.out.println( "Global: " );
-		dump( 1, featuresStatistics );
-		System.out.println();
-		
-		return featuresStatistics;
-	}
-
-
-	private void dump(int tabN, FeaturesStatistics featuresStatistics) {
-		for( Map.Entry<FeatureId, ? extends StatisticalSummary> featureStat : featuresStatistics.getValues().entrySet() ) {
-			System.out.print( tab(tabN) + featureStat.getKey() + ": " );
-			System.out.print( "min: " + print(featureStat.getValue().getMin()) );
-			System.out.print( " | max: " + print(featureStat.getValue().getMax()) );
-			System.out.print( " | mean: " + print(featureStat.getValue().getMean()) );
-			System.out.println( " | sig2: " + print(featureStat.getValue().getVariance()) );
-		}
-	}
-
-	private static String print( double v ) {
-		return doubleFormat.format( v );
-	}
-
-	private static String tab(int i) {
-		return BLANKS.substring(0, i*2);
-	}
-
 	public static void main(String[] args) {
 		try {
 			ProvaFeatures prueba = new ProvaFeatures( INPUT_FOLDERS );
