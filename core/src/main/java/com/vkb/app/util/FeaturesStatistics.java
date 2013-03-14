@@ -10,6 +10,7 @@ import com.fastdtw.dtw.TimeWarpInfo;
 import com.vkb.model.FeatureId;
 
 public class FeaturesStatistics {
+	
 	private Map<FeatureId, SummaryStatistics> values = new HashMap<FeatureId, SummaryStatistics>();
 	
 	public FeaturesStatistics() {

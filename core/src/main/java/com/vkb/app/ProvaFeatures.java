@@ -14,7 +14,8 @@ import com.vkb.model.*;
 
 public class ProvaFeatures {
 	private static final String BLANKS = "                                ";
-	private static final File INPUT_FOLDERS[] = { new File( Environment.RESOURCES_DIR, "user1/A_192.168.7.13_1358442748589.json" )};
+	//private static final File INPUT_FOLDERS[] = { new File( Environment.RESOURCES_DIR, "user1/A_192.168.7.13_1358442748589.json" )};
+	private static final File INPUT_FOLDERS[] = { new File( Environment.RESOURCES_DIR, "user1/A_192.168.7.13_1358442752195.json" )};
 	private static final DecimalFormat doubleFormat = new DecimalFormat("#.#####");
 
 	private File[] inputFolders;

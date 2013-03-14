@@ -86,12 +86,16 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 	
 	
 	private void extractAreasFeatures( TrapezoidIntegrator integrator, Features features ) {
-		features.put( createInt( integrator, FeatureId.AREA_X, features.get(FeatureId.POSITION_X) ) );
-		features.put( createInt( integrator, FeatureId.AREA_Y, features.get(FeatureId.POSITION_Y) ) );
+		features.put( createIntegrate( integrator, FeatureId.AREA_X, features.get(FeatureId.POSITION_X) ) );
+		features.put( createIntegrate( integrator, FeatureId.AREA_Y, features.get(FeatureId.POSITION_Y) ) );
     }
 	
 	private void extractRelationFeatures( Features features ) {
-		features.put( createRel(FeatureId.RELATION_X_Y, features.get(FeatureId.POSITION_X), features.get(FeatureId.POSITION_Y) ) );
+		// No se si caldria seguir generant l'excepcio o be capturar-la aqui i generar una signatura
+		// sense aquesta dada...
+		try{
+			features.put( createRel(FeatureId.RELATION_X_Y, features.get(FeatureId.POSITION_X), features.get(FeatureId.POSITION_Y) ) );
+		}catch (Exception e) {};
 	}
 	
 	
@@ -117,7 +121,7 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 	}
 
 
-	private Feature createInt(TrapezoidIntegrator integrator,  FeatureId newFeatureId, Feature originalFeature ) {
+	private Feature createIntegrate(TrapezoidIntegrator integrator,  FeatureId newFeatureId, Feature originalFeature ) {
 		double area=0.0;
 		FunctionFeatureData originalFeatureData = originalFeature.getData();
 		UnivariateFunction dataFunction = originalFeatureData.getFunction();
@@ -150,7 +154,7 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 	}
 	
 
-	private Feature createRel( FeatureId newFeatureId, 	Feature originalXFeature, Feature originalYFeature ) {
+	private Feature createRel( FeatureId newFeatureId, 	Feature originalXFeature, Feature originalYFeature ) throws Exception {
 
 		// Caldria tuilitzar la function i no els samples ¿?
 		
@@ -164,24 +168,23 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 		
 		// Entenc que dataFunction.getY() retorna els valors de la serie
 		// ja que a l'eix X hi trobem l'escala de temps.
-		double[] tempsX=dataSamplesX.getX();
-		double[] puntsX=dataSamplesX.getY();
-		double[] puntsY=dataSamplesY.getY();
+		double[] timeX=dataSamplesX.getX();
+		double[] pointsX=dataSamplesX.getY();
+		double[] pointsY=dataSamplesY.getY();
 		
 		// Cal suposar que la signatura tindra els mateixos punts capturats en X i en Y. Aixi com
 		// que han estat "samplejats" amb el mateix interval de temps
-		if(puntsX.length == puntsY.length)
+		if(pointsX.length != pointsY.length)
+			throw new Exception("Error compare length in Feature Extraction X-Y Relation");
+		
+		for(int i=0;i<pointsX.length;i++)
 		{
-			for(int i=0;i<puntsX.length;i++)
-			{
-				// CHIRRIA!!!
-				if(puntsY[i]>0)
-					dataFunction.add(tempsX[i],(puntsX[i]/puntsY[i]));
-				else
-					dataFunction.add(tempsX[i],0.0d);
-			}
-			
+			if(pointsY[i]!=0.0)
+				dataFunction.add(timeX[i],(pointsX[i]/pointsY[i]));
+			else
+				dataFunction.add(timeX[i],0.0d);
 		}
+		
 		
 		FunctionFeatureData data = new FunctionFeatureData(dataFunction);
 		
@@ -191,7 +194,7 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 	
 	private Feature createRelArea( FeatureId newFeatureId, 	Feature originalXFeature, Feature originalYFeature ) 
 	{	
-	    double rel=0.0;
+	    double relation=0.0;
 	    
 	    ScalarFeatureData originalXFeatureData= originalXFeature.getData();
 	    double areaX = originalXFeatureData.getValue();
@@ -199,9 +202,10 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 	    ScalarFeatureData originalYFeatureData= originalYFeature.getData();
 	    double areaY = originalYFeatureData.getValue();
 	    
-	    rel=areaX/areaY;
+	    if (areaY!=0.0)
+	    	relation=areaX/areaY;
 	    
-		ScalarFeatureData data = new ScalarFeatureData(rel);
+		ScalarFeatureData data = new ScalarFeatureData(relation);
 		return new Feature( newFeatureId, data );
 	}
 }
