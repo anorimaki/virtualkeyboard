@@ -12,38 +12,11 @@ import com.vkb.model.FeatureId;
 import com.vkb.model.ScalarFeatureData;
 import com.vkb.model.Signature;
 import com.vkb.model.Feature;
+import com.vkb.model.Statistics;
 
 
 public class PatternsStatistics {
 
-	public class Statistics{
-		private Map<String,Double> statistics= new HashMap<String, Double>();
-		
-		public Map<String, Double> getStatistics(){
-			return statistics;
-		}
-		
-		public double getStatistic(String statisticName){
-			Double aux = statistics.get(statisticName);
-			return aux.doubleValue();
-		}
-		
-		public void setStatistics(Map<String,Double> statistics){
-			this.statistics=statistics;
-		}
-		
-		public void setStatistic(String statisticName, double value){
-			Double aux = new Double(value);
-			statistics.put(statisticName, aux);
-		}
-		
-		@Override
-		public String toString(){
-			return statistics.toString();
-		}
-	}
-	
-	
 	private Map<FeatureId, Statistics> featureStatistics = new HashMap<FeatureId, Statistics>();
 	private List<Signature> signatures;
 	
@@ -78,7 +51,7 @@ public class PatternsStatistics {
 		this.signatures = traces;
 		
 		// Recorrem tota la llista de signatures
-		// Es pot simplificar el codi a costa de fer més recorreguts sobre la llista
+		// Es pot simplificar el codi a costa de fer mes recorreguts sobre la llista
 		for ( int i=0; i<traces.size(); ++i ) {
 			sign = traces.get(i);
 			// Per cada signatura agafem les seves features i les ajuntem
@@ -142,11 +115,11 @@ public class PatternsStatistics {
 	private void CreateStatisticsMeanStdev(FeatureId id, double mean, double stdev){
 		Statistics st = new Statistics();
 			
-		st.setStatistic("Mean", mean);
-		st.setStatistic("Stdev", stdev);
+		st.setStatistic(st.MEAN, mean);
+		st.setStatistic(st.STDEV, stdev);
 		featureStatistics.put(id, st);
 		
-		System.out.println("Afegit estadistic "+id.toString()+": "+st.toString());
+		//System.out.println("Afegit estadistic "+id.toString()+": "+st.toString());
 	}
 	
 }
