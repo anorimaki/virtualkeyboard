@@ -19,7 +19,7 @@ import com.vkb.model.Trace;
 
 public class DefaultFeaturesExtractor implements FeaturesExtractor {
 	@Override
-	public Features extract( CapturedData inputData ) {
+	public Features extract( CapturedData inputData ) throws Exception {
 		Features features = new Features();
 		
 		Trace rawTrace = inputData.getTrace();
@@ -90,12 +90,10 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 		features.put( createIntegrate( integrator, FeatureId.AREA_Y, features.get(FeatureId.POSITION_Y) ) );
     }
 	
-	private void extractRelationFeatures( Features features ) {
+	private void extractRelationFeatures( Features features ) throws Exception {
 		// No se si caldria seguir generant l'excepcio o be capturar-la aqui i generar una signatura
 		// sense aquesta dada...
-		try{
-			features.put( createRel(FeatureId.RELATION_X_Y, features.get(FeatureId.POSITION_X), features.get(FeatureId.POSITION_Y) ) );
-		}catch (Exception e) {};
+		features.put( createRel(FeatureId.RELATION_X_Y, features.get(FeatureId.POSITION_X), features.get(FeatureId.POSITION_Y) ) );
 	}
 	
 	

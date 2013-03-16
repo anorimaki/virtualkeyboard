@@ -12,7 +12,7 @@ public class GenericSignatureValidator {
 	private Determiner determiner;
 	private SignatureBuilder traceBuilder;
 	
-	public GenericSignatureValidator( List<CapturedData> capturedDatas ) {
+	public GenericSignatureValidator( List<CapturedData> capturedDatas ) throws Exception {
 		Preprocessor preprocessor = new EmptyPreprocessor();
 		FeaturesExtractor featuresExtractor = new DefaultFeaturesExtractor();
 		
@@ -23,7 +23,7 @@ public class GenericSignatureValidator {
 		determiner = new OutlierFeatureDeterminer( patternTraces, 0.80d );
 	}
 	
-	public boolean check( CapturedData capturedData ) {
+	public boolean check( CapturedData capturedData ) throws Exception {
 		Signature signature = traceBuilder.build( capturedData );
 		return determiner.check( signature );
 	}

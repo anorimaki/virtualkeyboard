@@ -22,6 +22,12 @@ public class PatternsStatistics {
 		FeatureId.ACCELERATION_X_AVG, FeatureId.ACCELERATION_Y_AVG,
 		FeatureId.AREA_X, FeatureId.AREA_Y, FeatureId.RELATION_AREA
 	};
+	
+	private static final FeatureId[] temporalFeatures = { 
+		FeatureId.POSITION_X, FeatureId.POSITION_Y,
+		FeatureId.VELOCITY_X, FeatureId.VELOCITY_Y,
+		FeatureId.ACCELERATION_X, FeatureId.ACCELERATION_Y, FeatureId.RELATION_X_Y
+	};
 		
 	private Map<FeatureId, Statistics> featureStatistics = new HashMap<FeatureId, Statistics>();
 	private List<Signature> signatures;

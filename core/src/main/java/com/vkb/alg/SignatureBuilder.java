@@ -16,7 +16,7 @@ public class SignatureBuilder {
 		this.featuresExtractor = featuresExtractor;
 	}
 	
-	public Signature build( CapturedData capturedData ) {
+	public Signature build( CapturedData capturedData ) throws Exception {
 		capturedData = preprocessor.preprocess(capturedData);
 		
 		Features features = featuresExtractor.extract( capturedData );
@@ -24,7 +24,7 @@ public class SignatureBuilder {
 		return new Signature( capturedData, features );
 	}
 	
-	public List<Signature> build( List<CapturedData> capturesDatas ) {
+	public List<Signature> build( List<CapturedData> capturesDatas ) throws Exception {
 		ArrayList<Signature> ret = new ArrayList<Signature>();
 		for( CapturedData rawTrace : capturesDatas ) {
 			ret.add( build(rawTrace) );
