@@ -16,7 +16,13 @@ import com.vkb.model.Statistics;
 
 
 public class PatternsStatistics {
-
+	private static final FeatureId[] scalarFeatures = { 
+		FeatureId.POSITION_X_AVG, FeatureId.POSITION_Y_AVG,
+		FeatureId.VELOCITY_X_AVG, FeatureId.VELOCITY_Y_AVG,
+		FeatureId.ACCELERATION_X_AVG, FeatureId.ACCELERATION_Y_AVG,
+		FeatureId.AREA_X, FeatureId.AREA_Y, FeatureId.RELATION_AREA
+	};
+		
 	private Map<FeatureId, Statistics> featureStatistics = new HashMap<FeatureId, Statistics>();
 	private List<Signature> signatures;
 	
@@ -37,79 +43,32 @@ public class PatternsStatistics {
 		Signature sign;
 		Feature f;
 		ScalarFeatureData sfd;
-		
-		DescriptiveStatistics position_x_avg = new DescriptiveStatistics();
-		DescriptiveStatistics position_y_avg = new DescriptiveStatistics();
-		DescriptiveStatistics velocity_x_avg = new DescriptiveStatistics();
-		DescriptiveStatistics velocity_y_avg = new DescriptiveStatistics();
-		DescriptiveStatistics acceleration_x_avg = new DescriptiveStatistics();
-		DescriptiveStatistics acceleration_y_avg = new DescriptiveStatistics();
-		DescriptiveStatistics area_x = new DescriptiveStatistics();
-		DescriptiveStatistics area_y = new DescriptiveStatistics();
-		DescriptiveStatistics relation_area = new DescriptiveStatistics();
-				
+		Map<FeatureId,DescriptiveStatistics> statisticsList = new HashMap<FeatureId,DescriptiveStatistics>();
 		this.signatures = traces;
 		
 		// Recorrem tota la llista de signatures
 		// Es pot simplificar el codi a costa de fer mes recorreguts sobre la llista
 		for ( int i=0; i<traces.size(); ++i ) {
-			sign = traces.get(i);
-			// Per cada signatura agafem les seves features i les ajuntem
-			f=sign.getFeature(FeatureId.POSITION_X_AVG);
-			// Cal revisar si te el feature
-			sfd = f.getData();
-			position_x_avg.addValue(sfd.getValue());
-			
-			f=sign.getFeature(FeatureId.POSITION_Y_AVG);
-			// Cal revisar si te el feature
-			sfd = f.getData();
-			position_y_avg.addValue(sfd.getValue());
-			
-			f=sign.getFeature(FeatureId.VELOCITY_X_AVG);
-			// Cal revisar si te el feature
-			sfd = f.getData();
-			velocity_x_avg.addValue(sfd.getValue());
-			
-			f=sign.getFeature(FeatureId.VELOCITY_Y_AVG);
-			// Cal revisar si te el feature
-			sfd = f.getData();
-			velocity_y_avg.addValue(sfd.getValue());
-
-			f=sign.getFeature(FeatureId.ACCELERATION_X_AVG);
-			// Cal revisar si te el feature
-			sfd = f.getData();
-			acceleration_x_avg.addValue(sfd.getValue());
-			
-			f=sign.getFeature(FeatureId.ACCELERATION_Y_AVG);
-			// Cal revisar si te el feature
-			sfd = f.getData();
-			acceleration_y_avg.addValue(sfd.getValue());
-			
-			f=sign.getFeature(FeatureId.AREA_X);
-			// Cal revisar si te el feature
-			sfd = f.getData();
-			area_x.addValue(sfd.getValue());
-			
-			f=sign.getFeature(FeatureId.AREA_Y);
-			// Cal revisar si te el feature
-			sfd = f.getData();
-			area_y.addValue(sfd.getValue());
-			
-			f=sign.getFeature(FeatureId.RELATION_AREA);
-			// Cal revisar si te el feature
-			sfd = f.getData();
-			relation_area.addValue(sfd.getValue());
+			for( FeatureId feature : scalarFeatures ) {
+				sign = traces.get(i);
+				// Per cada signatura agafem les seves features i les ajuntem
+				f=sign.getFeature(feature);
+				// Cal revisar si te el feature
+				sfd = f.getData();
+				if(statisticsList.containsKey(feature)){
+					DescriptiveStatistics aux = statisticsList.get(feature);
+					aux.addValue(sfd.getValue());
+				}else{
+					DescriptiveStatistics aux = new DescriptiveStatistics();
+					aux.addValue(sfd.getValue());
+					statisticsList.put(feature, aux);
+				}
+			}
 		}
 		
-		CreateStatisticsMeanStdev(FeatureId.POSITION_X_AVG, position_x_avg.getMean(),position_x_avg.getStandardDeviation());
-		CreateStatisticsMeanStdev(FeatureId.POSITION_Y_AVG, position_y_avg.getMean(),position_y_avg.getStandardDeviation());
-		CreateStatisticsMeanStdev(FeatureId.VELOCITY_X_AVG, velocity_x_avg.getMean(),velocity_x_avg.getStandardDeviation());
-		CreateStatisticsMeanStdev(FeatureId.VELOCITY_Y_AVG, velocity_y_avg.getMean(),velocity_y_avg.getStandardDeviation());
-		CreateStatisticsMeanStdev(FeatureId.ACCELERATION_X_AVG, acceleration_x_avg.getMean(),acceleration_x_avg.getStandardDeviation());
-		CreateStatisticsMeanStdev(FeatureId.ACCELERATION_Y_AVG, acceleration_y_avg.getMean(),acceleration_y_avg.getStandardDeviation());
-		CreateStatisticsMeanStdev(FeatureId.AREA_X, area_x.getMean(),area_x.getStandardDeviation());
-		CreateStatisticsMeanStdev(FeatureId.AREA_Y, area_y.getMean(),area_y.getStandardDeviation());
-		CreateStatisticsMeanStdev(FeatureId.RELATION_AREA, relation_area.getMean(),relation_area.getStandardDeviation());
+		for( FeatureId feature : scalarFeatures ) {
+			CreateStatisticsMeanStdev(feature,statisticsList.get(feature).getMean(),statisticsList.get(feature).getStandardDeviation()); 
+		}
 	}
 	
 	private void CreateStatisticsMeanStdev(FeatureId id, double mean, double stdev){

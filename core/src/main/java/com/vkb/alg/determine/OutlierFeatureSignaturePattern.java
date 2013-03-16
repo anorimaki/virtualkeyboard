@@ -11,6 +11,12 @@ import com.vkb.model.Signature;
 import com.vkb.model.Statistics;
 
 public class OutlierFeatureSignaturePattern {
+	private static final FeatureId[] scalarFeatures = { 
+		FeatureId.POSITION_X_AVG, FeatureId.POSITION_Y_AVG,
+		FeatureId.VELOCITY_X_AVG, FeatureId.VELOCITY_Y_AVG,
+		FeatureId.ACCELERATION_X_AVG, FeatureId.ACCELERATION_Y_AVG,
+		FeatureId.AREA_X, FeatureId.AREA_Y, FeatureId.RELATION_AREA
+	};
 	
 	// Guardem els valors del zscore en un hash amb clau (Feature) per si els tresholds
 	// aplicats són diferents en cada cas. Si això no és així, és millor utilitzar un simple
@@ -34,7 +40,10 @@ public class OutlierFeatureSignaturePattern {
 		double insidersRate = 0.0;
 		// Recorrem totes les feature de trace i normalitzem (z-score) per cadascuna
 		// De moment ho farem escollint manualment les feature
-		
+		for( FeatureId feature : scalarFeatures ) {
+			compareScalar(feature, trace);
+		}
+		/*
 		compareScalar(FeatureId.POSITION_X_AVG, trace);
 		compareScalar(FeatureId.POSITION_Y_AVG, trace);
 		compareScalar(FeatureId.VELOCITY_X_AVG, trace);
@@ -44,7 +53,7 @@ public class OutlierFeatureSignaturePattern {
 		compareScalar(FeatureId.AREA_X, trace);
 		compareScalar(FeatureId.AREA_Y, trace);
 		compareScalar(FeatureId.RELATION_AREA, trace);
-		
+		*/
 		System.out.println("Vector de zscores: "+FRVector.toString());
 		
 		insidersRate = insidersRateCompute();
