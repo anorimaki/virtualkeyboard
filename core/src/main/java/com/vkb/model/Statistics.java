@@ -10,6 +10,7 @@ public class Statistics{
 	public static final String STDEV = "Stdev";
 	public static final String MAX = "Max";
 	public static final String MIN = "Min";
+	public static final String DISTANCE = "Distance";
 	
 	public Map<String, Double> getStatistics(){
 		return statistics;

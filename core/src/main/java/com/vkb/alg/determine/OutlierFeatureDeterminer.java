@@ -9,12 +9,12 @@ public class OutlierFeatureDeterminer implements Determiner {
 	private OutlierFeatureSignaturePattern pattern;
 	private double threshold;
 	
-	public OutlierFeatureDeterminer( List<Signature> patternTraces, double threshold ) {
+	public OutlierFeatureDeterminer( List<Signature> patternTraces, double threshold ) throws Exception {
 		pattern = new OutlierFeatureSignaturePattern(patternTraces);
 		this.threshold = threshold;
 	}
 	
-	public boolean check( Signature signature ) {
+	public boolean check( Signature signature ) throws Exception {
 		double insidersRate = pattern.compare(signature);
 		return insidersRate > threshold;
 	}

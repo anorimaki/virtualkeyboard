@@ -70,11 +70,22 @@ public class TemporalFeatureCompareTry {
 		
 		// De moment desestimem el valor retornat perquè encara no està fet el tema de la
 		// comparativa de totes les features.
+		long time_start, time_end;
+		time_start = System.currentTimeMillis();
 		for(int i=0;i<patterns.size();i++){
 				makeDTW(patterns.get(i),forChecking);
 		}
+		time_end = System.currentTimeMillis();
 		
+		long time_startF, time_endF;
+		time_startF = System.currentTimeMillis();
+		for(int i=0;i<patterns.size();i++){
+			makeDTWFast(patterns.get(i),forChecking);
+	    }
+		time_endF = System.currentTimeMillis();
+
 		System.out.println("Patterns: "+patterns.size()+" <- checked: "+signaturesCheckGroups.get(0).size());
+		System.out.println("Time StandardDTW: "+(time_end-time_start)+"\nTimeFastDTW: "+(time_endF-time_startF));
 	}
 	
 	
@@ -102,7 +113,36 @@ public class TemporalFeatureCompareTry {
 		TimeSeries ts2 = DataConvert.getTimeSeries( t2Features );
 		TimeWarpInfo globalResult =  DTW.getWarpInfoBetween(ts1, ts2, new EuclideanDistance());
 		
-		System.out.println("Global: "+globalResult.getDistance());
+		System.out.println("Global: "+globalResult.getDistance()+"\n");
+		
+		return ret;
+	}
+	
+	public double makeDTWFast(Signature t1, Signature t2) throws Exception{
+		double ret = 0.0;
+		Map<FeatureId, Double> partialResults = new HashMap<FeatureId, Double>();
+		
+		List<FunctionFeatureData> t1Features = new ArrayList<FunctionFeatureData>();
+		List<FunctionFeatureData> t2Features = new ArrayList<FunctionFeatureData>();
+		
+		for( FeatureId feature : temporalFeatures ) {
+			FunctionFeatureData f1 = t1.getFeature( feature ).getData();
+			FunctionFeatureData f2 = t2.getFeature( feature ).getData();
+			double result = compareFast( f1, f2 );
+			partialResults.put( feature, new Double(result));
+			
+			System.out.println("Feature (Fast) "+feature.toString()+": "+result);
+			
+			t1Features.add( f1 );
+			t2Features.add( f2 );
+		}
+		
+				
+		TimeSeries ts1 = DataConvert.getTimeSeries( t1Features );
+		TimeSeries ts2 = DataConvert.getTimeSeries( t2Features );
+		double globalResult =  FastDTW.getWarpDistBetween(ts1, ts2, new EuclideanDistance());
+		
+		System.out.println("Global (Fast): "+globalResult+"\n");
 		
 		return ret;
 	}
@@ -112,6 +152,13 @@ public class TemporalFeatureCompareTry {
 		TimeSeries ts2 = DataConvert.getTimeSeries(f2);
 		
 		return DTW.getWarpInfoBetween(ts1, ts2, new EuclideanDistance());
+	}
+	
+	private double compareFast( FunctionFeatureData f1, FunctionFeatureData f2 ) throws Exception {
+		TimeSeries ts1 = DataConvert.getTimeSeries(f1);
+		TimeSeries ts2 = DataConvert.getTimeSeries(f2);
+		
+		return FastDTW.getWarpDistBetween(ts1,ts2,new EuclideanDistance());
 	}
 	
 	
