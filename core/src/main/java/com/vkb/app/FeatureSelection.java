@@ -12,7 +12,7 @@ import com.vkb.alg.SignatureBuilder;
 import com.vkb.app.util.DefaultSignatureBuilder;
 import com.vkb.app.util.Environment;
 import com.vkb.app.util.FeaturesStatistics;
-import com.vkb.app.util.SignaturesComparators;
+import com.vkb.app.util.FunctionFeaturesComparators;
 import com.vkb.io.CapturedDatasParser;
 import com.vkb.model.CapturedData;
 import com.vkb.model.FeatureId;
@@ -39,18 +39,18 @@ public class FeatureSelection {
 			signaturesGroups.add( signatureBuilder.build(inputData) );
 		}
 		
-		SignaturesComparators signaturesCompoarators  = new SignaturesComparators();
+		FunctionFeaturesComparators signaturesCompoarators  = new FunctionFeaturesComparators();
 		
 		System.out.println( "*********************************************" );
 		System.out.println( "**** Group 0" );
 		System.out.println( "*********************************************" );
-		SignaturesComparators.Result result_0 = signaturesCompoarators.compare( signaturesGroups.get(0) );
+		FunctionFeaturesComparators.Result result_0 = signaturesCompoarators.compare( signaturesGroups.get(0) );
 		FeaturesStatistics resultStatistics_0 = dump( result_0 );
 		
 		System.out.println( "*********************************************" );
 		System.out.println( "**** Group 1 vs Group 0" );
 		System.out.println( "*********************************************" );
-		SignaturesComparators.Result result_1_0 = signaturesCompoarators.compare( signaturesGroups.get(1), signaturesGroups.get(0) );
+		FunctionFeaturesComparators.Result result_1_0 = signaturesCompoarators.compare( signaturesGroups.get(1), signaturesGroups.get(0) );
 		FeaturesStatistics resultStatistics_1_0 = dump( result_1_0 );
 		
 		System.out.println( "*********************************************" );
@@ -61,13 +61,13 @@ public class FeatureSelection {
 		System.out.println( "*********************************************" );
 		System.out.println( "**** Group 1" );
 		System.out.println( "*********************************************" );
-		SignaturesComparators.Result result_1 = signaturesCompoarators.compare( signaturesGroups.get(1) );
+		FunctionFeaturesComparators.Result result_1 = signaturesCompoarators.compare( signaturesGroups.get(1) );
 		FeaturesStatistics resultStatistics_1 = dump( result_1 );
 		
 		System.out.println( "*********************************************" );
 		System.out.println( "**** Group 0 vs Group 1" );
 		System.out.println( "*********************************************" );
-		SignaturesComparators.Result result_0_1 = signaturesCompoarators.compare( signaturesGroups.get(0), signaturesGroups.get(1) );
+		FunctionFeaturesComparators.Result result_0_1 = signaturesCompoarators.compare( signaturesGroups.get(0), signaturesGroups.get(1) );
 		FeaturesStatistics resultStatistics_0_1 = dump( result_0_1 );
 		
 		System.out.println( "*********************************************" );
@@ -93,7 +93,7 @@ public class FeatureSelection {
 	}
 	
 		
-	private FeaturesStatistics dump( SignaturesComparators.Result result ) {
+	private FeaturesStatistics dump( FunctionFeaturesComparators.Result result ) {
 		FeaturesStatistics featuresStatistics = new FeaturesStatistics();
 		for( int i=0; i<result.size(); ++i ) {
 			FeaturesStatistics traceFeaturesStatistics = new FeaturesStatistics( result.trace(i) );

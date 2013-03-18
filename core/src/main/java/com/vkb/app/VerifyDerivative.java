@@ -1,6 +1,7 @@
 package com.vkb.app;
 
 import java.io.File;
+import java.util.Arrays;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
@@ -66,8 +67,8 @@ public class VerifyDerivative {
 		XYPlot velocityPlot = generatePlot( "Velocity", v, ds_v, ids_v, fp_v );
 		XYPlot accelerationPlot = generatePlot( "Accelereation", a, ds_a, ids_a, fp_a );
 		
-		Application application = new Application("VerifyInterpolation");
-		application.run( positionPlot, velocityPlot, accelerationPlot );
+		Application application = new Application();
+		application.run( "VerifyInterpolation", Arrays.asList( positionPlot, velocityPlot, accelerationPlot ) );
 	}
 		
 		

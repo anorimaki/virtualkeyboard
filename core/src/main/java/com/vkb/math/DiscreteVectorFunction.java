@@ -12,7 +12,7 @@ import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import com.vkb.math.dtw.InvalidDataException;
 
 public class DiscreteVectorFunction {
-	public class Point {
+	public static class Point {
 		private double x;
 		private double[] values;
 		
@@ -134,6 +134,19 @@ public class DiscreteVectorFunction {
 	
 	public double getMaxX() {
 		return get( size()-1 ).getX();
+	}
+	
+	public void normalizeValues( NormalizationMethod method ) {
+		List<StatisticalSummary> statistics = getValuesStatistics();
+		for( int pointIndex=0; pointIndex<size(); ++pointIndex ) {
+			Point currentPoint = get( pointIndex ) ;
+			double newValues[] = new double[countDimensions()];
+			for( int dimensionIndex=0; dimensionIndex<countDimensions(); ++dimensionIndex ) {
+				newValues[dimensionIndex] = method.normalize( statistics.get(dimensionIndex), 
+																currentPoint.getValue(dimensionIndex) );
+			}
+			points.set( pointIndex , new Point( currentPoint.getX(), newValues ) );
+		}	
 	}
 	
 	
