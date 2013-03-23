@@ -68,8 +68,6 @@ public class TemporalFeatureCompareTry {
 		// Suposem una unica signature al directori de checking (DANGER!)
 		Signature forChecking = signaturesCheckGroups.get(0).get(0);
 		
-		// De moment desestimem el valor retornat perquè encara no està fet el tema de la
-		// comparativa de totes les features.
 		long time_start, time_end;
 		time_start = System.currentTimeMillis();
 		for(int i=0;i<patterns.size();i++){

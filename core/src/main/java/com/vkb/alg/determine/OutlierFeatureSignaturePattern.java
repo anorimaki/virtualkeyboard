@@ -18,6 +18,8 @@ import com.fastdtw.util.EuclideanDistance;
 import com.vkb.math.dtw.DataConvert;
 
 public class OutlierFeatureSignaturePattern {
+	private static final double Magicthreshold =1.96;
+	
 	private static final FeatureId[] scalarFeatures = { 
 		FeatureId.POSITION_X_AVG, FeatureId.POSITION_Y_AVG,
 		FeatureId.VELOCITY_X_AVG, FeatureId.VELOCITY_Y_AVG,
@@ -34,7 +36,9 @@ public class OutlierFeatureSignaturePattern {
 	// Guardem els valors del zscore en un hash amb clau (Feature) per si els tresholds
 	// aplicats són diferents en cada cas. Si això no és així, és millor utilitzar un simple
 	// array de doubles.
-	private Map<FeatureId,Double> FRVector = new HashMap<FeatureId,Double>();
+	private Map<FeatureId,Double> FRVectorValues = new HashMap<FeatureId,Double>();
+	private Map<FeatureId,Boolean> FRVector = new HashMap<FeatureId,Boolean>();
+	private Map<FeatureId,Double> FeatureWeight = new HashMap<FeatureId,Double>();
 	private PatternsStatistics pS;
 	
 	public OutlierFeatureSignaturePattern( List<Signature> traces ) throws Exception {
@@ -43,6 +47,9 @@ public class OutlierFeatureSignaturePattern {
 	
 	public double compare( Signature trace ) throws Exception {
 		double insidersRate = 0.0;
+		
+		FeatureWeightConstruct();
+		
 		// Recorrem totes les feature de trace i normalitzem (z-score) per cadascuna
 		for( FeatureId feature : scalarFeatures ) {
 			compareScalar(feature, trace);
@@ -52,11 +59,28 @@ public class OutlierFeatureSignaturePattern {
 			compareFunction(feature, trace);
 		}
 		
-		System.out.println("Vector de zscores: "+FRVector.toString());
-		
 		insidersRate = insidersRateCompute();
 		
+		System.out.println("Vector de zscores: "+FRVectorValues.toString());
+		System.out.println("Vector de resultats: "+FRVector.toString());
+		System.out.println("Resultat final: "+insidersRate);
+		
+		
 		return insidersRate;
+	}
+	
+	private void FeatureWeightConstruct()	{
+		// Construccio del vector de ponderacio per feature, caldra veure com es fa...
+		double weight=1.0;
+		
+		for( FeatureId feature : scalarFeatures ) {
+			FeatureWeight.put(feature, new Double(weight));
+		}
+
+		for( FeatureId feature : temporalFeatures ) {
+			FeatureWeight.put(feature, new Double(weight));
+		}
+		
 	}
 	
 	private void compareScalar(FeatureId id, Signature trace){
@@ -67,7 +91,12 @@ public class OutlierFeatureSignaturePattern {
 		f=trace.getFeature(id);
 		sfd = f.getData();
 		zscore = ScalarZScore(sfd.getValue(),pS.getFeatureStatistic(id, Statistics.MEAN),pS.getFeatureStatistic(id, Statistics.STDEV));
-		FRVector.put(id,new Double(zscore));
+		FRVectorValues.put(id,new Double(zscore));
+		
+		if(zscore < Magicthreshold)
+			FRVector.put(id, new Boolean(true));
+		else
+			FRVector.put(id, new Boolean(false));
 	
 		//System.out.println("Feature "+id.toString()+": "+sfd.getValue());
 	}
@@ -95,14 +124,38 @@ public class OutlierFeatureSignaturePattern {
 		// Cal calcular DTW de ffd amb tots els patterns per cada feature i fer la mitja
 		d=pS.compareFunctions(id, ffd);
 		
-		FRVector.put(id,new Double(d));
+		FRVectorValues.put(id,new Double(d));
 	
 		// Per acabar cal comparar amb la D(i) emmagatzemada a pS
+		if(d < pS.getFeatureStatistic(id, Statistics.DISTANCE))
+			FRVector.put(id, new Boolean(true));
+		else
+			FRVector.put(id, new Boolean(false));
 	}
 	
 	private double insidersRateCompute(){
 		// A partir del vector de ratios calcula un ratio global, per comparar amb treshold
+		// FALTA PONDERAR LES CARACTERISTIQUES!!! (p)
+		double p=0.0;
+		double sum=0.0;
+		double res=0.0;
 		
-		return 0.0;
+		for( FeatureId feature : scalarFeatures ) {
+			p = FeatureWeight.get(feature).doubleValue();
+			sum=sum+p;
+			if(FRVector.get(feature))
+				res = res+p;
+		}
+
+		for( FeatureId feature : temporalFeatures ) {
+			p = FeatureWeight.get(feature).doubleValue();
+			sum=sum+p;
+			if(FRVector.get(feature))
+				res = res+p;
+		}
+		
+		res = res/sum;
+					
+		return res;
 	}
 }
