@@ -2,6 +2,7 @@ package com.vkb.app;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.jfree.chart.axis.NumberAxis;
@@ -51,8 +52,8 @@ public class VerifyInterpolation {
 		XYPlot componentsPlot = generateComponentsPlot( signature, jigInterpolatedX, jigInterpolatedY );
 		XYPlot tracesPlot = generateTracePlot( signature, jigInterpolatedX, jigInterpolatedY );
         
-        Application application = new Application("VerifyInterpolation");
-		application.run(componentsPlot, tracesPlot );
+        Application application = new Application();
+		application.run( "VerifyInterpolation", Arrays.asList( componentsPlot, tracesPlot ) );
 	}
 
 	

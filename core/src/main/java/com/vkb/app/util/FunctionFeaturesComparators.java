@@ -5,15 +5,15 @@ import java.util.List;
 
 import com.vkb.model.Signature;
 
-public class SignaturesComparators {
+public class FunctionFeaturesComparators {
 	public static class Result {
-		private SignatureComparator.Result[][] data;
+		private FunctionFeatureComparator.Result[][] data;
 		
-		Result( SignatureComparator.Result[][] data ) {
+		Result( FunctionFeatureComparator.Result[][] data ) {
 			this.data = data;
 		}
 		
-		public SignatureComparator.Result[] trace( int index ) {
+		public FunctionFeatureComparator.Result[] trace( int index ) {
 			return data[index];	
 		}
 		
@@ -36,17 +36,17 @@ public class SignaturesComparators {
 		}
 	}
 	
-	private SignatureComparator traceComparator = new SignatureComparator();
+	private FunctionFeatureComparator traceComparator = new FunctionFeatureComparator();
 	
 	public Result compare( Signature trace, List<Signature> traces ) throws Exception {
 		return compare( Arrays.asList( trace), traces );
 	}
 
 	public Result compare( List<Signature> traces1, List<Signature> traces2 ) throws Exception {
-		SignatureComparator.Result[][] results = new SignatureComparator.Result[traces1.size()][];
+		FunctionFeatureComparator.Result[][] results = new FunctionFeatureComparator.Result[traces1.size()][];
 		
 		for ( int i=0; i<traces1.size(); ++i ) {
-			SignatureComparator.Result[] result = internalCompare( traces1.get(i), traces2 );
+			FunctionFeatureComparator.Result[] result = internalCompare( traces1.get(i), traces2 );
 			results[i] = result;
 		}
 		
@@ -54,10 +54,10 @@ public class SignaturesComparators {
 	}
 	
 	public Result compare( List<Signature> traces ) throws Exception {
-		SignatureComparator.Result[][] results = new SignatureComparator.Result[traces.size()][traces.size()];
+		FunctionFeatureComparator.Result[][] results = new FunctionFeatureComparator.Result[traces.size()][traces.size()];
 		for ( int i=0; i<traces.size(); ++i ) {
 			for( int j=i+1; j<traces.size(); ++j ) {
-				SignatureComparator.Result result = traceComparator.compare( traces.get(i), traces.get(j) );
+				FunctionFeatureComparator.Result result = traceComparator.compare( traces.get(i), traces.get(j) );
 				results[i][j] = result;
 				results[j][i] = result;
 			}
@@ -66,11 +66,11 @@ public class SignaturesComparators {
 		return new Result( results );
 	}
 	
-	private SignatureComparator.Result[] internalCompare( Signature trace, List<Signature> traces ) throws Exception {
-		SignatureComparator.Result[] results = new SignatureComparator.Result[traces.size()];
+	private FunctionFeatureComparator.Result[] internalCompare( Signature trace, List<Signature> traces ) throws Exception {
+		FunctionFeatureComparator.Result[] results = new FunctionFeatureComparator.Result[traces.size()];
 		
 		for ( int i=0; i<traces.size(); ++i ) {
-			SignatureComparator.Result result = traceComparator.compare( trace, traces.get(i) );
+			FunctionFeatureComparator.Result result = traceComparator.compare( trace, traces.get(i) );
 			results[i] = result;
 		}
 		

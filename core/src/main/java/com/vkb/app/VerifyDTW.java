@@ -12,12 +12,11 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import com.fastdtw.dtw.TimeWarpInfo;
 import com.vkb.alg.SignatureBuilder;
 import com.vkb.app.util.DefaultSignatureBuilder;
 import com.vkb.app.util.Environment;
-import com.vkb.app.util.SignatureComparator;
-import com.vkb.app.util.SignaturesComparators;
+import com.vkb.app.util.FunctionFeatureComparator;
+import com.vkb.app.util.FunctionFeaturesComparators;
 import com.vkb.gui.Application;
 import com.vkb.gui.DataConvert;
 import com.vkb.io.CapturedDatasParser;
@@ -44,8 +43,8 @@ public class VerifyDTW {
 		SignatureBuilder traceBuilder = new DefaultSignatureBuilder();
 		List<Signature> traces = traceBuilder.build(rawTraces);
 		
-		SignaturesComparators tracesComparator  = new SignaturesComparators();
-		SignaturesComparators.Result result = tracesComparator.compare(traces);
+		FunctionFeaturesComparators tracesComparator  = new FunctionFeaturesComparators();
+		FunctionFeaturesComparators.Result result = tracesComparator.compare(traces);
 		
 		for( int i=0; i<traces.size(); ++i ) {
 			System.out.println( "Trace " + i + ": " );
@@ -56,19 +55,18 @@ public class VerifyDTW {
 	}
 	
 	
-	private void print( SignatureComparator.Result[] results ) {
+	private void print( FunctionFeatureComparator.Result[] results ) {
 		for( int i=0; i<results.length; ++i ) {
-			SignatureComparator.Result result = results[i];
+			FunctionFeatureComparator.Result result = results[i];
 			if ( result != null ) {
 				System.out.println( tab(1) + "- With trace " + i );
 				
-				for( Map.Entry<FeatureId, TimeWarpInfo> featureResult : result.getPartialResults().entrySet() ) {
+				for( Map.Entry<FeatureId, Double> featureResult : result.getPartialResults().entrySet() ) {
 					System.out.println( tab(2) + featureResult.getKey() + ": " + 
-							featureResult.getValue().getDistance() );
+							featureResult.getValue() );
 				}
 				
-				System.out.println( tab(2) + "Global: " +
-									result.getGlobalResult().getDistance() );
+				System.out.println( tab(2) + "Global: " + result.getGlobalResult() );
 								
 				System.out.println();
 			}
@@ -116,8 +114,8 @@ public class VerifyDTW {
 			++featureIndex;
 		}
         
-        Application application = new Application("VerifyDWT");
-		application.run(plot);
+        Application application = new Application();
+		application.run( "VerifyDWT", plot );
 	}
 		
 

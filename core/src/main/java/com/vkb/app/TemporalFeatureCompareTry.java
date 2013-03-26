@@ -18,7 +18,6 @@ import com.vkb.alg.SignatureBuilder;
 import com.vkb.app.util.DefaultSignatureBuilder;
 import com.vkb.app.util.Environment;
 import com.vkb.app.util.FeaturesStatistics;
-import com.vkb.app.util.SignaturesComparators;
 import com.vkb.io.CapturedDatasParser;
 import com.vkb.math.dtw.DataConvert;
 import com.vkb.model.CapturedData;
