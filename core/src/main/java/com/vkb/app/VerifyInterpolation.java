@@ -138,7 +138,7 @@ public class VerifyInterpolation {
 
 	public static void main(String[] args) {
 		try {
-			File inputFile = new File( Environment.RESOURCES_DIR, "user1/A_192.168.7.13_1358442748589.json" );
+			File inputFile = new File( Environment.RESOURCES_DIR, "old/user1/A_192.168.7.13_1358442748589.json" );
 			VerifyInterpolation prueba = new VerifyInterpolation( inputFile );
 			prueba.run();
 		} 
