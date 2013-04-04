@@ -19,7 +19,7 @@ public class MultidimensionalFunctionFeatureAligment {
 	
 	private MultidimensionalFunctionFeatureAligment( File inputFolder1, File inputFolder2 ) {
 		impl = new FunctionFeatureAligment( inputFolder1, inputFolder2,
-																FeatureId.VELOCITY_X );
+																FeatureId.POSITION_X);
 		
 	}
 	
@@ -30,11 +30,11 @@ public class MultidimensionalFunctionFeatureAligment {
 		items.add( new Pair<String, FunctionFeatureAligmentMode>(
 						"MultidimensionalFunctionFeatureAligment - euclidean", 
 						new MultidimensionalFunctionFeatureAligmentMode( new EuclideanCellCostFunction() ) ) );
-		items.add( new Pair<String, FunctionFeatureAligmentMode>(
+		/* items.add( new Pair<String, FunctionFeatureAligmentMode>(
 						"MultidimensionalFunctionFeatureAligment - derivate", 
 						new MultidimensionalFunctionFeatureAligmentMode(
 								new DerivativeCellCostFunction( new EuclideanCellCostFunction() ) ) ) );
-		
+		*/
 		impl.run( items );
 	}
 	

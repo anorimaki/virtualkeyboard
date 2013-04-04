@@ -59,10 +59,10 @@ public class FunctionFeatureAligment {
 		Application application = new Application();
 		for( Pair<String,FunctionFeatureAligmentMode> aligmentMode : modes ) {
 			List<XYPlot> plots = new ArrayList<XYPlot>();
-	//		plots.add( apply( aligmentMode.getSecond(), traces1.get(0), traces1.get(1) ) );		//Same user
-	//		plots.add( apply( aligmentMode.getSecond(), traces1.get(0), traces2.get(0) ) );		//Different user
-			plots.add( apply( aligmentMode.getSecond(), traces2.get(1), traces2.get(2) ) );		//Same user
-			plots.add( apply( aligmentMode.getSecond(), traces1.get(2), traces2.get(2) ) );		//Different user
+			plots.add( apply( aligmentMode.getSecond(), traces1.get(0), traces1.get(1) ) );		//Same user
+			plots.add( apply( aligmentMode.getSecond(), traces1.get(0), traces2.get(0) ) );		//Different user
+			//plots.add( apply( aligmentMode.getSecond(), traces2.get(1), traces2.get(2) ) );		//Same user
+			//plots.add( apply( aligmentMode.getSecond(), traces1.get(2), traces2.get(2) ) );		//Different user
 
 			application.start( aligmentMode.getFirst(), plots );
 		}

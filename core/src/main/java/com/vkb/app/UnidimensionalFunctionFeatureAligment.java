@@ -18,7 +18,7 @@ public class UnidimensionalFunctionFeatureAligment {
 	private FunctionFeatureAligment impl;
 	
 	private UnidimensionalFunctionFeatureAligment( File inputFolder1, File inputFolder2 ) {
-		impl = new FunctionFeatureAligment( inputFolder1, inputFolder2, FeatureId.VELOCITY_X );
+		impl = new FunctionFeatureAligment( inputFolder1, inputFolder2, FeatureId.POSITION_X );
 	}
 	
 
@@ -26,13 +26,13 @@ public class UnidimensionalFunctionFeatureAligment {
 		List<Pair<String, FunctionFeatureAligmentMode>> items = 
 					new ArrayList<Pair<String, FunctionFeatureAligmentMode>>();
 		items.add( new Pair<String, FunctionFeatureAligmentMode>(
-						"MultidimensionalFunctionFeatureAligment - euclidean", 
-						new UnidimensionalFunctionFeatureAligmentMode( FeatureId.VELOCITY_X, new EuclideanCellCostFunction() ) ) );
-		items.add( new Pair<String, FunctionFeatureAligmentMode>(
-						"MultidimensionalFunctionFeatureAligment - derivate", 
-						new UnidimensionalFunctionFeatureAligmentMode( FeatureId.VELOCITY_X,
+						"UnidimensionalFunctionFeatureAligment - euclidean", 
+						new UnidimensionalFunctionFeatureAligmentMode( FeatureId.POSITION_X, new EuclideanCellCostFunction() ) ) );
+		/*items.add( new Pair<String, FunctionFeatureAligmentMode>(
+						"UnidimensionalFunctionFeatureAligment - derivate", 
+						new UnidimensionalFunctionFeatureAligmentMode( FeatureId.POSITION_X,
 								new DerivativeCellCostFunction( new EuclideanCellCostFunction() ) ) ) );
-		
+		*/
 		impl.run( items );
 	}
 	
