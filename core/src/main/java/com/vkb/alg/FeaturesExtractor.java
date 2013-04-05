@@ -4,5 +4,5 @@ import com.vkb.model.CapturedData;
 import com.vkb.model.Features;
 
 public interface FeaturesExtractor {
-	public Features extract( CapturedData inputData );
+	public Features extract( CapturedData inputData ) throws Exception;
 }

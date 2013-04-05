@@ -26,10 +26,10 @@ public class UnidimensionalFunctionFeatureAligment {
 		List<Pair<String, FunctionFeatureAligmentMode>> items = 
 					new ArrayList<Pair<String, FunctionFeatureAligmentMode>>();
 		items.add( new Pair<String, FunctionFeatureAligmentMode>(
-						"MultidimensionalFunctionFeatureAligment - euclidean", 
+						"UnidimensionalFunctionFeatureAligment - euclidean", 
 						new UnidimensionalFunctionFeatureAligmentMode( FeatureId.VELOCITY_X, new EuclideanCellCostFunction() ) ) );
 		items.add( new Pair<String, FunctionFeatureAligmentMode>(
-						"MultidimensionalFunctionFeatureAligment - derivate", 
+						"UnidimensionalFunctionFeatureAligment - derivate", 
 						new UnidimensionalFunctionFeatureAligmentMode( FeatureId.VELOCITY_X,
 								new DerivativeCellCostFunction( new EuclideanCellCostFunction() ) ) ) );
 		
