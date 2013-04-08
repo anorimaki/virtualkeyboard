@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.math3.analysis.function.Constant;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -72,15 +73,21 @@ public class VerifyInterpolation {
         plot.setRenderer( renderer );
         
         Trace originalTrace = signature.getCapturedData().getTrace();
+        DiscreteFunction originalPositionFunction = originalTrace.getPositionFunction();
+        originalPositionFunction = originalPositionFunction.multiply( new Constant(-1) );
+        
         FunctionFeatureData xFeatureData = signature.getFeature( FeatureId.POSITION_X ).getData();
         DiscreteFunction interpolatedX = xFeatureData.getSamples();
         FunctionFeatureData yFeatureData = signature.getFeature( FeatureId.POSITION_Y ).getData();
         DiscreteFunction interpolatedY = yFeatureData.getSamples();
+        interpolatedY = interpolatedY.multiply( new Constant(-1) );
         List<DiscreteFunction.Point> interpolatedTrace = composeXY( interpolatedX, interpolatedY );
+        
+        jigInterpolatedY = jigInterpolatedY.multiply( new Constant(-1) );
         List<DiscreteFunction.Point> jigInterpolatedTrace = composeXY( jigInterpolatedX, jigInterpolatedY );
         
         XYSeriesCollection compleTraces = new XYSeriesCollection();
-        compleTraces.addSeries( DataConvert.getXYSeries( "Original", originalTrace.getPositionFunction().getPoints() ) );
+        compleTraces.addSeries( DataConvert.getXYSeries( "Original", originalPositionFunction.getPoints() ) );
         compleTraces.addSeries( DataConvert.getXYSeries( "JIG Interpolated", jigInterpolatedTrace ) );
         compleTraces.addSeries( DataConvert.getXYSeries( "Interpolated", interpolatedTrace ) );		
         plot.setDataset( 0, compleTraces );

@@ -160,7 +160,7 @@ public class VerifyDerivative {
 
 	public static void main(String[] args) {
 		try {
-			File inputFile = new File( Environment.RESOURCES_DIR, "user1/A_192.168.7.13_1358442748589.json" );
+			File inputFile = new File( Environment.RESOURCES_DIR, "user1/A_192.168.7.13_1364983437708.json" );
 			VerifyDerivative prueba = new VerifyDerivative( inputFile );
 			prueba.run();
 		} 

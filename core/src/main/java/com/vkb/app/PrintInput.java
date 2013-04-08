@@ -3,6 +3,7 @@ package com.vkb.app;
 import java.io.File;
 import java.util.List;
 
+import org.apache.commons.math3.analysis.function.Constant;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -32,6 +33,8 @@ public class PrintInput {
 		int i = 0;
 		for( CapturedData capturedData : capturedDatas ) {
 			DiscreteFunction positionFunction = capturedData.getTrace().getPositionFunction();
+			positionFunction = positionFunction.multiply( new Constant(-1) );
+			
 			compleTraces.addSeries( DataConvert.getXYSeries( String.valueOf(i++), positionFunction.getPoints() ) );
 		}
 		tracesPlot.setDataset( 0, compleTraces );

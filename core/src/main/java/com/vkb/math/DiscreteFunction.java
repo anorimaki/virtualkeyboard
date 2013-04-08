@@ -95,6 +95,16 @@ public class DiscreteFunction {
 		return interpolator.interpolate(getX(), getY());
 	}
 	
+	public DiscreteFunction multiply( UnivariateFunction f ) {
+		DiscreteFunction ret = new DiscreteFunction( getName() );
+		for ( Point p : points ) {
+			double value = f.value( p.getX() ) * p.getY();
+			Point newPoint = new Point( p.getX(), value );
+			ret.add(newPoint);
+		}
+		return ret;
+	}
+	
 	public double[] getX() {
 		double[] ret = new double[size()];
 		int i=0;
