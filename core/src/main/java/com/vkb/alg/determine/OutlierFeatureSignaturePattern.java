@@ -18,7 +18,7 @@ import com.fastdtw.util.EuclideanDistance;
 import com.vkb.math.dtw.DataConvert;
 
 public class OutlierFeatureSignaturePattern {
-	private static final double Magicthreshold =1.96;
+	private static final double MAGICTHRESHOLD =1.96;
 	
 	private static final FeatureId[] scalarFeatures = { 
 		FeatureId.POSITION_X_AVG, FeatureId.POSITION_Y_AVG,
@@ -93,7 +93,7 @@ public class OutlierFeatureSignaturePattern {
 		zscore = ScalarZScore(sfd.getValue(),pS.getFeatureStatistic(id, Statistics.MEAN),pS.getFeatureStatistic(id, Statistics.STDEV));
 		FRVectorValues.put(id,new Double(zscore));
 		
-		if(zscore < Magicthreshold)
+		if(zscore < MAGICTHRESHOLD)
 			FRVector.put(id, new Boolean(true));
 		else
 			FRVector.put(id, new Boolean(false));
