@@ -9,6 +9,10 @@ import java.util.Map;
 
 import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 
+import org.jfree.chart.plot.PiePlot;
+import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.data.general.PieDataset;
+
 import com.vkb.alg.FeaturesExtractor;
 import com.vkb.alg.GenericSignatureValidator;
 import com.vkb.alg.Preprocessor;
@@ -21,6 +25,7 @@ import com.vkb.app.util.DefaultSignatureBuilder;
 import com.vkb.app.util.Environment;
 import com.vkb.app.util.FeaturesStatistics;
 import com.vkb.app.quality.*;
+import com.vkb.gui.Application;
 import com.vkb.io.CapturedDatasParser;
 import com.vkb.model.CapturedData;
 import com.vkb.model.FeatureId;
@@ -32,12 +37,15 @@ public class ScalarFeatureQuality {
 		new File( Environment.RESOURCES_DIR, "user6" ),new File( Environment.RESOURCES_DIR, "user7" )};
 			
 	private File[] inputFolders;
-	private int K;
-	private int N;
+	private Map<FeatureId,Double> results= new HashMap<FeatureId, Double>();
 	
-	private Map<String,UsersStatistics> statistics= new HashMap<String, UsersStatistics>();
-	
-		
+	private static final FeatureId[] scalarFeatures = { 
+		FeatureId.POSITION_X_AVG, FeatureId.POSITION_Y_AVG,
+		FeatureId.VELOCITY_X_AVG, FeatureId.VELOCITY_Y_AVG,
+		FeatureId.ACCELERATION_X_AVG, FeatureId.ACCELERATION_Y_AVG,
+		FeatureId.AREA_X, FeatureId.AREA_Y, FeatureId.RELATION_AREA
+	};
+			
 	public ScalarFeatureQuality( File[] inputFolders) {
 		this.inputFolders = inputFolders;
 	}
@@ -50,24 +58,54 @@ public class ScalarFeatureQuality {
 		SignatureBuilder traceBuilder = new SignatureBuilder( preprocessor, featuresExtractor );
 		List<Signature> patternTraces;
 		UsersStatistics aux;
+		FeatureQuality fQ=new FeatureQuality();
 		
 		// Cal crear un hash <usuari,UsersStatistics> per cada lectura de directori
-		K=inputFolders.length;
-		N=0;
+		
 		for ( File inputFolder : inputFolders ) {
 			inputData = inputDataParser.parse(inputFolder);
-			N=N+inputData.size();
 			System.out.println("Fitxers llegits a "+inputFolder.getAbsolutePath()+": "+inputData.size());
 			patternTraces = traceBuilder.build( inputData );
 			aux=new UsersStatistics(inputFolder.getName(),patternTraces);
-			statistics.put(inputFolder.getName(), aux);
+			fQ.setUser(inputFolder.getName(), aux);
 		}
 		
-		System.out.println("K:"+K+", N:"+N);
+		double f=0.0;
+		for( FeatureId feature : scalarFeatures ) {
+			f=fQ.calculateAnova2(feature);
+			results.put(feature, new Double(f));
+			System.out.println("Feature Quality "+feature+": "+f);
+		}
 		
-
+		PiePlot featuresPlot = generateFeaturesPlot();
+		Application application = new Application();
+		application.run( "Feature Quality", featuresPlot,"Feature Quality Compare" );
+		
 	}
 	
+	
+	private PiePlot generateFeaturesPlot() throws Exception {
+		
+		PiePlot plot = new PiePlot();
+		PieDataset pD = createDataset(); 
+
+		plot.setDataset(pD);
+		//plot.setLabelFont(new Font("SansSerif", Font.PLAIN, 12));
+        plot.setNoDataMessage("No data available");
+        plot.setCircular(false);
+        plot.setLabelGap(0.02);
+		return plot;
+	}
+
+    private PieDataset createDataset() {
+        DefaultPieDataset dataset = new DefaultPieDataset();
+        for( FeatureId feature : scalarFeatures ) {
+        	dataset.setValue(feature.toString(), results.get(feature));	
+        }
+ 
+        return dataset;        
+    }
+
 	
 	public static void main(String[] args) {
 		try {

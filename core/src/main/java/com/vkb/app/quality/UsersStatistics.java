@@ -30,6 +30,7 @@ public class UsersStatistics{
 		
 		for( FeatureId feature : scalarFeatures ) {
 			aux=new UserStatistic(user,traces,feature);
+			statistics.put(feature,aux);
 		}
 	}
 

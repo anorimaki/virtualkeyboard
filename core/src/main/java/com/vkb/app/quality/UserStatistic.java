@@ -73,7 +73,7 @@ public class UserStatistic {
 		return samples;
 	}
 	
-	public double getDesviation(){
+	public double getInternalDev(){
 		double res=0.0;
 		
 		for(int i=0;i<samples.size();i++){

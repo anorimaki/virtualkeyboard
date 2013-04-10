@@ -10,6 +10,7 @@ import javax.swing.JPanel;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.plot.PiePlot;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 
@@ -66,6 +67,24 @@ public class Application {
 		
 	public void run( String title, XYPlot plot ) {
 		run( title, Arrays.asList(plot) );
+	}
+	
+	public void run( String title, PiePlot plot, String titleGraph ) {
+		ApplicationFrame mainFrame = new ApplicationFrame(title);
+		
+		GridLayout layout = new GridLayout(0,1);
+		mainFrame.setLayout(layout);
+		
+		JFreeChart chart =
+					new JFreeChart( titleGraph, JFreeChart.DEFAULT_TITLE_FONT,
+									plot, true );
+		
+		JPanel chartPanel = new ChartPanel(chart);
+		mainFrame.add( chartPanel );
+				
+		mainFrame.pack();
+	    RefineryUtilities.centerFrameOnScreen(mainFrame);
+	    mainFrame.setVisible(true);
 	}
 	
 	public void run( String title, Iterable<XYPlot> plots ) {
