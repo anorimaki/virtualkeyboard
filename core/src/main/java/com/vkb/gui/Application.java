@@ -9,6 +9,7 @@ import javax.swing.JPanel;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.ui.ApplicationFrame;
@@ -23,7 +24,7 @@ public class Application {
 			this.title = title ;
 			this.plots = plots ;
 		}
-		
+	
 
 		@Override
 		public void run() {
@@ -32,7 +33,7 @@ public class Application {
 			GridLayout layout = new GridLayout(0,1);
 			mainFrame.setLayout(layout);
 			
-			for( XYPlot plot : plots ) {
+			for( Plot plot : plots ) {
 				JFreeChart chart =
 						new JFreeChart( "demo", JFreeChart.DEFAULT_TITLE_FONT,
 										plot, true );
@@ -64,7 +65,10 @@ public class Application {
 		}
 	}
 	
-		
+	public void run( String title, Iterable<XYPlot> plots ) {
+		new Window( title, plots ).run();
+	}
+	
 	public void run( String title, XYPlot plot ) {
 		run( title, Arrays.asList(plot) );
 	}
@@ -75,19 +79,40 @@ public class Application {
 		GridLayout layout = new GridLayout(0,1);
 		mainFrame.setLayout(layout);
 		
+
 		JFreeChart chart =
 					new JFreeChart( titleGraph, JFreeChart.DEFAULT_TITLE_FONT,
 									plot, true );
 		
 		JPanel chartPanel = new ChartPanel(chart);
 		mainFrame.add( chartPanel );
-				
+			
 		mainFrame.pack();
 	    RefineryUtilities.centerFrameOnScreen(mainFrame);
 	    mainFrame.setVisible(true);
 	}
 	
-	public void run( String title, Iterable<XYPlot> plots ) {
-		new Window( title, plots ).run();
+	public void run( String title, Iterable<PiePlot> plots, String[] titleGraph ) {
+		int i=0;
+		ApplicationFrame mainFrame = new ApplicationFrame(title);
+		
+		GridLayout layout = new GridLayout(0,1);
+		mainFrame.setLayout(layout);
+		
+		for( PiePlot plot : plots ) {
+		JFreeChart chart =
+					new JFreeChart( titleGraph[i], JFreeChart.DEFAULT_TITLE_FONT,
+									plot, true );
+		
+		JPanel chartPanel = new ChartPanel(chart);
+		mainFrame.add( chartPanel );
+		i++;
+		}
+		
+		mainFrame.pack();
+	    RefineryUtilities.centerFrameOnScreen(mainFrame);
+	    mainFrame.setVisible(true);
 	}
+	
+		
 }

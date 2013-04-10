@@ -16,7 +16,6 @@ import com.vkb.model.Feature;
 
 public class FeatureQuality{
 
-	
 	private Map<String,UsersStatistics> statistics= new HashMap<String, UsersStatistics>();
 		
 	public void setUser(String user,UsersStatistics us){
@@ -24,7 +23,12 @@ public class FeatureQuality{
 		//System.out.println("Afegit usuari: "+user);
 	}
 
-	public double calculateAnova2(FeatureId id){
+	/* Multivariate ANOVA , sols per a funcions lineals 
+	   f=(N-K)/K-1)*VARIANÇA_ENTRE_USUARIS / VARIANÇA_ENTRE_MOSTRES
+	   Quanta mes variança entre mostres pitjor qualitat.
+	   Quanta mes variança entre usauris millor qualitat (discriminacio major).
+	 */
+	public double calculateManova(FeatureId id){
 		// Caldria optimitzar tot i ser offline
 		double f=0.0;
 		double globalMean=0.0;
@@ -38,7 +42,7 @@ public class FeatureQuality{
 		
 		// Busquem mitja global del feature id
 		DescriptiveStatistics aux = new DescriptiveStatistics();
-		Iterator it=statistics.keySet().iterator();
+		Iterator<String> it=statistics.keySet().iterator();
 		while (it.hasNext()){
 		    uS=statistics.get(it.next()).getStatistic(id);
 			aux.addValue(uS.getMeanK());
@@ -57,7 +61,7 @@ public class FeatureQuality{
 		while (it.hasNext()){
 		  uS=statistics.get(it.next()).getStatistic(id);
 		  globalDev+=uS.getNK()*Math.pow((uS.getMeanK()-globalMean),2);
-		  sumInternalDev+=uS.getInternalDev();
+		  sumInternalDev+=uS.getInternalVar();
 		}
 		
 		f=(factor1*globalDev)/(factor2*sumInternalDev);

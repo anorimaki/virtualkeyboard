@@ -72,14 +72,14 @@ public class ScalarFeatureQuality {
 		
 		double f=0.0;
 		for( FeatureId feature : scalarFeatures ) {
-			f=fQ.calculateAnova2(feature);
+			f=fQ.calculateManova(feature);
 			results.put(feature, new Double(f));
 			System.out.println("Feature Quality "+feature+": "+f);
 		}
 		
 		PiePlot featuresPlot = generateFeaturesPlot();
 		Application application = new Application();
-		application.run( "Feature Quality", featuresPlot,"Feature Quality Compare" );
+		application.run( "Feature Quality", featuresPlot,"MANOVA Feature Quality Compare" );
 		
 	}
 	
