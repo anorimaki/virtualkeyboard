@@ -15,6 +15,8 @@ import com.vkb.model.Feature;
 public class UserStatistic {
 	private double Nk=0.0;
 	private double meanK=0.0;
+	private double min=0.0;
+	private double max=0.0;
 	private String user;
 	private FeatureId featureId;
 	private ArrayList<Double> samples = new ArrayList<Double>();
@@ -46,6 +48,8 @@ public class UserStatistic {
 		
 		// Calculem u(k) [meanK]
 		meanK=aux.getMean();
+		max=aux.getMax();
+		min=aux.getMin();
 		//System.out.println("Mitja calculada per "+this.user+" feature:"+this.featureId+"->"+meanK);
 	}
 	
@@ -63,6 +67,14 @@ public class UserStatistic {
 	
 	public double getNK(){
 		return Nk;
+	}
+	
+	public double getMax(){
+		return max;
+	}
+	
+	public double getMin(){
+		return min;
 	}
 	
 	public double getNumberOfSamples(){

@@ -38,6 +38,7 @@ public class ScalarFeatureQuality {
 			
 	private File[] inputFolders;
 	private Map<FeatureId,Double> results= new HashMap<FeatureId, Double>();
+	private Map<FeatureId,Double> resultsE= new HashMap<FeatureId, Double>();
 	
 	private static final FeatureId[] scalarFeatures = { 
 		FeatureId.POSITION_X_AVG, FeatureId.POSITION_Y_AVG,
@@ -77,17 +78,26 @@ public class ScalarFeatureQuality {
 			System.out.println("Feature Quality "+feature+": "+f);
 		}
 		
-		PiePlot featuresPlot = generateFeaturesPlot();
+		double r=0.0;
+		for( FeatureId feature : scalarFeatures ) {
+			r=fQ.calculateEntropy(feature);
+			resultsE.put(feature, new Double(Math.abs(r)));
+			System.out.println("Feature Entropy "+feature+": "+r);
+		}
+	
+		PiePlot featuresPlot = generateFeaturesPlot(results);
 		Application application = new Application();
 		application.run( "Feature Quality", featuresPlot,"MANOVA Feature Quality Compare" );
+	
+		
 		
 	}
 	
 	
-	private PiePlot generateFeaturesPlot() throws Exception {
+	private PiePlot generateFeaturesPlot(Map<FeatureId, Double> resultsP) throws Exception {
 		
 		PiePlot plot = new PiePlot();
-		PieDataset pD = createDataset(); 
+		PieDataset pD = createDataset(resultsP); 
 
 		plot.setDataset(pD);
 		//plot.setLabelFont(new Font("SansSerif", Font.PLAIN, 12));
@@ -97,10 +107,10 @@ public class ScalarFeatureQuality {
 		return plot;
 	}
 
-    private PieDataset createDataset() {
+    private PieDataset createDataset(Map<FeatureId, Double> resultsP) {
         DefaultPieDataset dataset = new DefaultPieDataset();
         for( FeatureId feature : scalarFeatures ) {
-        	dataset.setValue(feature.toString(), results.get(feature));	
+        	dataset.setValue(feature.toString(), resultsP.get(feature));	
         }
  
         return dataset;        
