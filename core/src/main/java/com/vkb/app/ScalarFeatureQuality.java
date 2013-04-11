@@ -86,11 +86,18 @@ public class ScalarFeatureQuality {
 		}
 	
 		PiePlot featuresPlot = generateFeaturesPlot(results);
+		PiePlot entropyPlot = generateFeaturesPlot(resultsE);
 		Application application = new Application();
-		application.run( "Feature Quality", featuresPlot,"MANOVA Feature Quality Compare" );
+		//application.run( "Feature Quality", featuresPlot,"MANOVA Feature Quality Compare" );
+		
+		String[] titles={"MANOVA Feature Quality Compare","ENTROPY  FeatureQuality Compare"};
+		ArrayList<PiePlot> plots=new ArrayList<PiePlot>();
+		
+		plots.add(featuresPlot);
+		plots.add(entropyPlot);
+				
+		application.run( "Feature Quality", plots,titles);		
 	
-		
-		
 	}
 	
 	
