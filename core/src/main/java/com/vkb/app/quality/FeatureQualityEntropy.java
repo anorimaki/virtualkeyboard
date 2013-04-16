@@ -50,6 +50,7 @@ public class FeatureQualityEntropy implements FeatureQualityCalculator{
 		return R;
 	}
 	
+	// NO ES POT APROFITAR EL HISTO DE uS JA QUE AQUEST ES CALCULA SOBRE MAX/MIN GLOBAL!
 	private ArrayList<Double> constructH(UserStatistic uS, double min, double max){
 		// CAL VEURE SI EL NOMBRE DE DADES ES UN ELEMENT DE PONDERACIO (quan mes mostres
 		// major sera el valor de columna), O SI CAL DIVIDIR ENTRE EL NOMBRE DE MOSTRES!
@@ -85,7 +86,7 @@ public class FeatureQualityEntropy implements FeatureQualityCalculator{
 		
 		// NORMALITZACIO
 		for(int i=0;i<Nh;i++)
-			tF.set(i, new Double(tF.get(i).doubleValue()/((double)samples.size())));
+			tF.set(i, new Double(tF.get(i).doubleValue()/(uS.getNumberOfSamples())));
 					
 		//System.out.println("TF H("+uS.getUser()+"): "+tF.toString());
 		return tF;

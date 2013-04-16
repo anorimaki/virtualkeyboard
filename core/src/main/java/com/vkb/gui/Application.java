@@ -66,6 +66,14 @@ public class Application {
 		windowThreads.add( newThread );
 	}
 	
+	public void start( String title, Iterable plots ) {
+		String[] strV={};
+		
+		Thread newThread = new Thread( new Window(title, strV, plots) );
+		newThread.start();
+		windowThreads.add( newThread );
+	}
+	
 	
 	public void join() throws InterruptedException {
 		for( Thread th : windowThreads ) {
@@ -82,8 +90,8 @@ public class Application {
 		run( title, Arrays.asList(plot) );
 	}
 	
-	public void run( String title, Iterable<PiePlot> plots, String[] subtitles ) {
+	public void run( String title, Iterable plots, String[] subtitles ) {
 		new Window( title, subtitles, plots ).run();
 	}
-		
+	
 }
