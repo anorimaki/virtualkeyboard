@@ -13,8 +13,7 @@ import com.vkb.model.Feature;
 
 
 public class UserStatistic {
-	private double Nk=0.0;
-	private double meanK=0.0;
+	private double mean=0.0;
 	private double min=0.0;
 	private double max=0.0;
 	private String user;
@@ -43,11 +42,10 @@ public class UserStatistic {
 			// Afegim al vector de samples
 			samples.add(new Double(sfd.getValue()));
 			// Incrementem nombre de mostres per usuari
-			Nk++;
 		}
 		
 		// Calculem u(k) [meanK]
-		meanK=aux.getMean();
+		mean=aux.getMean();
 		max=aux.getMax();
 		min=aux.getMin();
 		//System.out.println("Mitja calculada per "+this.user+" feature:"+this.featureId+"->"+meanK);
@@ -61,12 +59,8 @@ public class UserStatistic {
 		return featureId;
 	}
 	
-	public double getMeanK(){
-		return meanK;
-	}
-	
-	public double getNK(){
-		return Nk;
+	public double getMean(){
+		return mean;
 	}
 	
 	public double getMax(){
@@ -78,7 +72,7 @@ public class UserStatistic {
 	}
 	
 	public double getNumberOfSamples(){
-		return Nk;
+		return samples.size();
 	}
 	
 	public ArrayList<Double> getSamples(){
@@ -89,7 +83,7 @@ public class UserStatistic {
 		double res=0.0;
 		
 		for(int i=0;i<samples.size();i++){
-			res+=Math.pow((samples.get(i)-meanK), 2.0);
+			res+=Math.pow((samples.get(i)-mean), 2.0);
 		}
 		
 		return res;

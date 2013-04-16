@@ -14,65 +14,17 @@ import com.vkb.model.FunctionFeatureData;
 import com.vkb.model.Signature;
 import com.vkb.model.Feature;
 
-public class FeatureQuality{
+public class FeatureQualityEntropy implements FeatureQualityCalculator{
 	
 	private static int Nh=10; // Disretitzacio histograma per Entropia
-	private Map<String,UsersStatistics> statistics= new HashMap<String, UsersStatistics>();
+	private Map<String,FeatureStatistics> statistics= new HashMap<String, FeatureStatistics>();
 		
-	public void setUser(String user,UsersStatistics us){
+	public void setUser(String user,FeatureStatistics us){
 		statistics.put(user, us);
 		//System.out.println("Afegit usuari: "+user);
 	}
 
-	/* Multivariate ANOVA , sols per a funcions lineals 
-	   f=(N-K)/K-1)*VARIAN�A_ENTRE_USUARIS / VARIAN�A_ENTRE_MOSTRES
-	   Quanta mes varian�a entre mostres pitjor qualitat.
-	   Quanta mes varian�a entre usauris millor qualitat (discriminacio major).
-	 */
-	public double calculateManova(FeatureId id){
-		// Caldria optimitzar tot i ser offline
-		double f=0.0;
-		double globalMean=0.0;
-		UserStatistic uS;
-		double K=0.0;
-		double N=0.0;
-		double factor1=0.0;
-		double factor2=0.0;
-		double globalVar=0.0;
-		double sumInternalVar=0.0;
-		
-		// Busquem mitja global del feature id
-		DescriptiveStatistics aux = new DescriptiveStatistics();
-		Iterator<String> it=statistics.keySet().iterator();
-		while (it.hasNext()){
-		    uS=statistics.get(it.next()).getStatistic(id);
-			aux.addValue(uS.getMeanK());
-			K++;
-			N+=uS.getNK();
-		}
-		globalMean=aux.getMean();
-		//System.out.println("N:"+N+" K:"+K+" Global Mean:"+globalMean);
-		
-		// Pel significat dels factors no es pot donar divisio entre 0
-		factor1=1.0/(K-1);
-		factor2=1.0/(N-K);
-		
-		// Repetim iteracio, optimitzar-ho implica refer la formulacio ANOVA2
-		it=statistics.keySet().iterator();
-		while (it.hasNext()){
-		  uS=statistics.get(it.next()).getStatistic(id);
-		  globalVar+=uS.getNK()*Math.pow((uS.getMeanK()-globalMean),2);
-		  sumInternalVar+=uS.getInternalVar();
-		}
-		
-		f=(factor1*globalVar)/(factor2*sumInternalVar);
-		//System.out.println("Feature Quality "+id+": "+f);
-		return f;
-	}
-	
-	
-	
-	public double calculateEntropy(FeatureId id){
+	public double calculate(FeatureId id){
 		double R=0.0;
 		double sum;
 		double[] globalMaxMin;//MIN | MAX

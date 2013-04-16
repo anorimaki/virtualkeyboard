@@ -58,8 +58,9 @@ public class ScalarFeatureQuality {
 		FeaturesExtractor featuresExtractor = new DefaultFeaturesExtractor();
 		SignatureBuilder traceBuilder = new SignatureBuilder( preprocessor, featuresExtractor );
 		List<Signature> patternTraces;
-		UsersStatistics aux;
-		FeatureQuality fQ=new FeatureQuality();
+		FeatureStatistics aux;
+		FeatureQualityManova fQM=new FeatureQualityManova();
+		FeatureQualityEntropy fQE=new FeatureQualityEntropy();
 		
 		// Cal crear un hash <usuari,UsersStatistics> per cada lectura de directori
 		
@@ -67,20 +68,21 @@ public class ScalarFeatureQuality {
 			inputData = inputDataParser.parse(inputFolder);
 			System.out.println("Fitxers llegits a "+inputFolder.getAbsolutePath()+": "+inputData.size());
 			patternTraces = traceBuilder.build( inputData );
-			aux=new UsersStatistics(inputFolder.getName(),patternTraces);
-			fQ.setUser(inputFolder.getName(), aux);
+			aux=new FeatureStatistics(inputFolder.getName(),patternTraces);
+			fQM.setUser(inputFolder.getName(), aux);
+			fQE.setUser(inputFolder.getName(), aux);
 		}
 		
 		double f=0.0;
 		for( FeatureId feature : scalarFeatures ) {
-			f=fQ.calculateManova(feature);
+			f=fQM.calculate(feature);
 			results.put(feature, new Double(f));
 			System.out.println("Feature Quality "+feature+": "+f);
 		}
 		
 		double r=0.0;
 		for( FeatureId feature : scalarFeatures ) {
-			r=fQ.calculateEntropy(feature);
+			r=fQE.calculate(feature);
 			resultsE.put(feature, new Double(Math.abs(r)));
 			System.out.println("Feature Entropy "+feature+": "+r);
 		}
