@@ -63,7 +63,7 @@ public class PrintInput {
 	
 	public static void main(String[] args) {
 		try {
-			File inputFile = new File( Environment.RESOURCES_DIR, "user1" );
+			File inputFile = new File( Environment.RESOURCES_DIR, "user7" );
 			PrintInput prueba = new PrintInput( inputFile );
 			prueba.run();
 		} 
