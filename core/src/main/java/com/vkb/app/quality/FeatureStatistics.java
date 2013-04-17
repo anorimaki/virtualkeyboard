@@ -11,7 +11,7 @@ import com.vkb.model.FunctionFeatureData;
 import com.vkb.model.Signature;
 import com.vkb.model.Feature;
 
-public class UsersStatistics{
+public class FeatureStatistics{
 	private static final FeatureId[] scalarFeatures = { 
 		FeatureId.POSITION_X_AVG, FeatureId.POSITION_Y_AVG,
 		FeatureId.VELOCITY_X_AVG, FeatureId.VELOCITY_Y_AVG,
@@ -22,17 +22,14 @@ public class UsersStatistics{
 	private Map<FeatureId,UserStatistic> statistics= new HashMap<FeatureId, UserStatistic>();
 	private String user;
 	
-	public UsersStatistics(String user, List<Signature> traces){
-		// Per cada ScalarFeature creem un UserStatistic i el posem a statistics
+	
+	public FeatureStatistics(String user, List traces){
 		this.user=user;
-		
-		UserStatistic aux;
-		
 		for( FeatureId feature : scalarFeatures ) {
-			aux=new UserStatistic(user,traces,feature);
+			UserStatistic aux = new UserStatistic( user, traces, feature );
 			statistics.put(feature,aux);
 		}
-	}
+	}	
 
 	
 	public Map<FeatureId,UserStatistic> getStatistics(){

@@ -17,29 +17,37 @@ import org.jfree.ui.RefineryUtilities;
 
 public class Application {
 	private class Window implements Runnable {
-		private Iterable<XYPlot> plots;
+		private Iterable plots;
 		private String title;
-		
-		public Window( String title, Iterable<XYPlot> plots ) {
+		private String[] subtitles;
+
+		public Window( String title, String[] subtitles, Iterable plots ) {
 			this.title = title ;
+			this.subtitles = subtitles;
 			this.plots = plots ;
 		}
+		
 	
 
 		@Override
 		public void run() {
+			int i;
+			JFreeChart chart;
 			ApplicationFrame mainFrame = new ApplicationFrame(title);
 			
 			GridLayout layout = new GridLayout(0,1);
 			mainFrame.setLayout(layout);
 			
-			for( Plot plot : plots ) {
-				JFreeChart chart =
-						new JFreeChart( "demo", JFreeChart.DEFAULT_TITLE_FONT,
-										plot, true );
+			i=0;
+			for( Plot plot : (Iterable<Plot>)plots ) {
+				if(subtitles.length<=0)
+					chart = new JFreeChart( title, JFreeChart.DEFAULT_TITLE_FONT,plot, true );
+				else
+					chart = new JFreeChart( subtitles[i], JFreeChart.DEFAULT_TITLE_FONT,plot, true );
 			
 				JPanel chartPanel = new ChartPanel(chart);
 				mainFrame.add( chartPanel );
+				i++;
 			}
 				
 			mainFrame.pack();
@@ -52,8 +60,16 @@ public class Application {
 	private List<Thread> windowThreads = new ArrayList<Thread>();
 	
 	
-	public void start( String title, Iterable<XYPlot> plots ) {
-		Thread newThread = new Thread( new Window(title, plots) );
+	public void start( String title, String[] subtitles, Iterable plots ) {
+		Thread newThread = new Thread( new Window(title, subtitles, plots) );
+		newThread.start();
+		windowThreads.add( newThread );
+	}
+	
+	public void start( String title, Iterable plots ) {
+		String[] strV={};
+		
+		Thread newThread = new Thread( new Window(title, strV, plots) );
 		newThread.start();
 		windowThreads.add( newThread );
 	}
@@ -66,53 +82,16 @@ public class Application {
 	}
 	
 	public void run( String title, Iterable<XYPlot> plots ) {
-		new Window( title, plots ).run();
+		String[] strV={};
+		new Window( title, strV, plots ).run();
 	}
 	
 	public void run( String title, XYPlot plot ) {
 		run( title, Arrays.asList(plot) );
 	}
 	
-	public void run( String title, PiePlot plot, String titleGraph ) {
-		ApplicationFrame mainFrame = new ApplicationFrame(title);
-		
-		GridLayout layout = new GridLayout(0,1);
-		mainFrame.setLayout(layout);
-		
-
-		JFreeChart chart =
-					new JFreeChart( titleGraph, JFreeChart.DEFAULT_TITLE_FONT,
-									plot, true );
-		
-		JPanel chartPanel = new ChartPanel(chart);
-		mainFrame.add( chartPanel );
-			
-		mainFrame.pack();
-	    RefineryUtilities.centerFrameOnScreen(mainFrame);
-	    mainFrame.setVisible(true);
+	public void run( String title, Iterable plots, String[] subtitles ) {
+		new Window( title, subtitles, plots ).run();
 	}
 	
-	public void run( String title, Iterable<PiePlot> plots, String[] titleGraph ) {
-		int i=0;
-		ApplicationFrame mainFrame = new ApplicationFrame(title);
-		
-		GridLayout layout = new GridLayout(0,1);
-		mainFrame.setLayout(layout);
-		
-		for( PiePlot plot : plots ) {
-		JFreeChart chart =
-					new JFreeChart( titleGraph[i], JFreeChart.DEFAULT_TITLE_FONT,
-									plot, true );
-		
-		JPanel chartPanel = new ChartPanel(chart);
-		mainFrame.add( chartPanel );
-		i++;
-		}
-		
-		mainFrame.pack();
-	    RefineryUtilities.centerFrameOnScreen(mainFrame);
-	    mainFrame.setVisible(true);
-	}
-	
-		
 }

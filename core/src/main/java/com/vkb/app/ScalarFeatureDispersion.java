@@ -4,12 +4,16 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 
-import org.jfree.chart.plot.PiePlot;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.FastScatterPlot;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.data.general.PieDataset;
 
@@ -31,23 +35,16 @@ import com.vkb.model.CapturedData;
 import com.vkb.model.FeatureId;
 import com.vkb.model.Signature;
 
-public class ScalarFeatureQuality {
+public class ScalarFeatureDispersion {
 	private static final File INPUT_FOLDERS[] = { new File( Environment.RESOURCES_DIR, "user1" ),new File( Environment.RESOURCES_DIR, "user2" ),
 		new File( Environment.RESOURCES_DIR, "user3" ),new File( Environment.RESOURCES_DIR, "user4" ),new File( Environment.RESOURCES_DIR, "user5" ),
 		new File( Environment.RESOURCES_DIR, "user6" ),new File( Environment.RESOURCES_DIR, "user7" )};
 			
 	private File[] inputFolders;
-	private Map<FeatureId,Double> results= new HashMap<FeatureId, Double>();
-	private Map<FeatureId,Double> resultsE= new HashMap<FeatureId, Double>();
-	
-	private static final FeatureId[] scalarFeatures = { 
-		FeatureId.POSITION_X_AVG, FeatureId.POSITION_Y_AVG,
-		FeatureId.VELOCITY_X_AVG, FeatureId.VELOCITY_Y_AVG,
-		FeatureId.ACCELERATION_X_AVG, FeatureId.ACCELERATION_Y_AVG,
-		FeatureId.AREA_X, FeatureId.AREA_Y, FeatureId.RELATION_AREA
-	};
-			
-	public ScalarFeatureQuality( File[] inputFolders) {
+	private Map<String,UserStatistic> results= new HashMap<String, UserStatistic>();
+	private final int Nh = 10;
+
+	public ScalarFeatureDispersion( File[] inputFolders) {
 		this.inputFolders = inputFolders;
 	}
 
@@ -58,75 +55,79 @@ public class ScalarFeatureQuality {
 		FeaturesExtractor featuresExtractor = new DefaultFeaturesExtractor();
 		SignatureBuilder traceBuilder = new SignatureBuilder( preprocessor, featuresExtractor );
 		List<Signature> patternTraces;
-		UsersStatistics aux;
-		FeatureQuality fQ=new FeatureQuality();
+		FeatureStatistics aux;
 		
-		// Cal crear un hash <usuari,UsersStatistics> per cada lectura de directori
-		
+				
 		for ( File inputFolder : inputFolders ) {
 			inputData = inputDataParser.parse(inputFolder);
 			System.out.println("Fitxers llegits a "+inputFolder.getAbsolutePath()+": "+inputData.size());
 			patternTraces = traceBuilder.build( inputData );
-			aux=new UsersStatistics(inputFolder.getName(),patternTraces);
-			fQ.setUser(inputFolder.getName(), aux);
+			aux=new FeatureStatistics(inputFolder.getName(),patternTraces);
+			results.put(inputFolder.getName(), aux.getStatistic(FeatureId.VELOCITY_Y_AVG));
 		}
 		
-		double f=0.0;
-		for( FeatureId feature : scalarFeatures ) {
-			f=fQ.calculateManova(feature);
-			results.put(feature, new Double(f));
-			System.out.println("Feature Quality "+feature+": "+f);
-		}
 		
-		double r=0.0;
-		for( FeatureId feature : scalarFeatures ) {
-			r=fQ.calculateEntropy(feature);
-			resultsE.put(feature, new Double(r));
-			System.out.println("Feature Entropy "+feature+": "+r);
-		}
-	
+		
+		FastScatterPlot dispPlot = generateDispersionPlot("user3");
+		/*
 		PiePlot featuresPlot = generateFeaturesPlot(results);
 		PiePlot entropyPlot = generateFeaturesPlot(resultsE);
 		Application application = new Application();
 		//application.run( "Feature Quality", featuresPlot,"MANOVA Feature Quality Compare" );
+		*/
+		String[] titles={"Dispersion Y'_AVG"};
+		ArrayList<FastScatterPlot> plots=new ArrayList<FastScatterPlot>();
 		
-		String[] titles={"MANOVA Feature Quality Compare","ENTROPY  FeatureQuality Compare"};
-		ArrayList<PiePlot> plots=new ArrayList<PiePlot>();
-		
-		plots.add(featuresPlot);
-		plots.add(entropyPlot);
-				
+		plots.add(dispPlot);
+		Application application = new Application();
 		application.run( "Feature Quality", plots,titles);		
 	
 	}
 	
-	
-	private PiePlot generateFeaturesPlot(Map<FeatureId, Double> resultsP) throws Exception {
+	private FastScatterPlot generateDispersionPlot(String userId) throws Exception {
+		// http://www.java2s.com/Code/Java/Chart/JFreeChartFastScatterPlotDemo.htm
 		
-		PiePlot plot = new PiePlot();
-		PieDataset pD = createDataset(resultsP); 
+		NumberAxis xAxis = new NumberAxis("X");
+		xAxis.setAutoRangeIncludesZero(false);
+		
+		NumberAxis yAxis = new NumberAxis("Y");
+		
+		float[][] ds = createDataset(userId);
 
-		plot.setDataset(pD);
-		//plot.setLabelFont(new Font("SansSerif", Font.PLAIN, 12));
-        plot.setNoDataMessage("No data available");
-        plot.setCircular(false);
-        plot.setLabelGap(0.02);
+		FastScatterPlot plot = new FastScatterPlot(ds,xAxis,yAxis);
+		
+		//XYItemRenderer renderer = new XYLineAndShapeRenderer(true, false);
+		//plot.setRenderer( renderer );
+		
 		return plot;
 	}
-
-    private PieDataset createDataset(Map<FeatureId, Double> resultsP) {
-        DefaultPieDataset dataset = new DefaultPieDataset();
-        for( FeatureId feature : scalarFeatures ) {
-        	dataset.setValue(feature.toString(), resultsP.get(feature));	
-        }
- 
-        return dataset;        
-    }
+	
+	 private float[][] createDataset(String userId){
+	        float[][] ds= new float[2][Nh];
+	        
+	        UserStatistic uS;
+			FeatureStatistics aux;
+			ArrayList<Double> h;
+	        
+	        uS=results.get(userId);
+			double min=uS.getMin();
+			double inc=uS.getHistogramInc(Nh);
+			h=uS.getHistogram(Nh);
+			//System.out.println("H("+usuari+" | "+inc+"): "+h.toString());
+			for(int i=0;i<h.size();i++){
+			  	ds[0][i]=(float)min;
+			   	min+=inc;
+			   	ds[1][i]=h.get(i).floatValue();
+			 }
+				        
+	        return ds;
+	    }
 
 	
+
 	public static void main(String[] args) {
 		try {
-			ScalarFeatureQuality prueba = new ScalarFeatureQuality( INPUT_FOLDERS);
+			ScalarFeatureDispersion prueba = new ScalarFeatureDispersion( INPUT_FOLDERS);
 			prueba.run();
 		} 
 		catch (Exception e) {
