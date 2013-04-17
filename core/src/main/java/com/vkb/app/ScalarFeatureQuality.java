@@ -81,7 +81,7 @@ public class ScalarFeatureQuality {
 		double r=0.0;
 		for( FeatureId feature : scalarFeatures ) {
 			r=fQ.calculateEntropy(feature);
-			resultsE.put(feature, new Double(Math.abs(r)));
+			resultsE.put(feature, new Double(r));
 			System.out.println("Feature Entropy "+feature+": "+r);
 		}
 	
