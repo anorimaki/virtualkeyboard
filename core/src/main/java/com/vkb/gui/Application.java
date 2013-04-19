@@ -11,22 +11,20 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.plot.PiePlot;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 
 public class Application {
 	private class Window implements Runnable {
-		private Iterable plots;
+		private Iterable<? extends Plot> plots;
 		private String title;
 		private String[] subtitles;
 
-		public Window( String title, String[] subtitles, Iterable plots ) {
+		public Window( String title, String[] subtitles, Iterable<? extends Plot> plots ) {
 			this.title = title ;
 			this.subtitles = subtitles;
 			this.plots = plots ;
 		}
-		
 	
 
 		@Override
@@ -39,7 +37,7 @@ public class Application {
 			mainFrame.setLayout(layout);
 			
 			i=0;
-			for( Plot plot : (Iterable<Plot>)plots ) {
+			for( Plot plot : plots ) {
 				if(subtitles.length<=0)
 					chart = new JFreeChart( title, JFreeChart.DEFAULT_TITLE_FONT,plot, true );
 				else
@@ -60,13 +58,13 @@ public class Application {
 	private List<Thread> windowThreads = new ArrayList<Thread>();
 	
 	
-	public void start( String title, String[] subtitles, Iterable plots ) {
+	public void start( String title, String[] subtitles, Iterable<? extends Plot> plots ) {
 		Thread newThread = new Thread( new Window(title, subtitles, plots) );
 		newThread.start();
 		windowThreads.add( newThread );
 	}
 	
-	public void start( String title, Iterable plots ) {
+	public void start( String title, Iterable<? extends Plot> plots ) {
 		String[] strV={};
 		
 		Thread newThread = new Thread( new Window(title, strV, plots) );
@@ -81,7 +79,7 @@ public class Application {
 		}
 	}
 	
-	public void run( String title, Iterable<XYPlot> plots ) {
+	public void run( String title, Iterable<? extends Plot> plots ) {
 		String[] strV={};
 		new Window( title, strV, plots ).run();
 	}
@@ -90,7 +88,7 @@ public class Application {
 		run( title, Arrays.asList(plot) );
 	}
 	
-	public void run( String title, Iterable plots, String[] subtitles ) {
+	public void run( String title, Iterable<? extends Plot> plots, String[] subtitles ) {
 		new Window( title, subtitles, plots ).run();
 	}
 	
