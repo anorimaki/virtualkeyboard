@@ -1,26 +1,18 @@
 package com.vkb.app.quality;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Iterator;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import com.vkb.model.FeatureId;
-import com.vkb.model.ScalarFeatureData;
-import com.vkb.model.FunctionFeatureData;
-import com.vkb.model.Signature;
-import com.vkb.model.Feature;
 
 public class FeatureQualityManova implements FeatureQualityCalculator {
 	
-	private Map<String,FeatureStatistics> statistics= new HashMap<String, FeatureStatistics>();
+	private Map<String,ScalarFeaturesStatistics> statistics= new HashMap<String, ScalarFeaturesStatistics>();
 		
-	public void setUser(String user,FeatureStatistics us){
+	public void add( String user,ScalarFeaturesStatistics us ){
 		statistics.put(user, us);
-		//System.out.println("Afegit usuari: "+user);
 	}
 
 	/* Multivariate ANOVA , sols per a funcions lineals 
@@ -29,44 +21,38 @@ public class FeatureQualityManova implements FeatureQualityCalculator {
 	   Quanta mes varian�a entre usauris millor qualitat (discriminacio major).
 	 */
 	public double calculate(FeatureId id){
-		// Caldria optimitzar tot i ser offline
-		double f=0.0;
-		double globalMean=0.0;
-		UserStatistic uS;
+		// Busquem mitja global del feature id
 		double K=0.0;
 		double N=0.0;
-		double factor1=0.0;
-		double factor2=0.0;
-		double globalVar=0.0;
-		double sumInternalVar=0.0;
-		
-		// Busquem mitja global del feature id
 		DescriptiveStatistics aux = new DescriptiveStatistics();
-		Iterator<String> it=statistics.keySet().iterator();
-		while (it.hasNext()){
-		    uS=statistics.get(it.next()).getStatistic(id);
+		for( Map.Entry<String, ScalarFeaturesStatistics> entry : statistics.entrySet() ) {
+			DescriptiveStatistics uS = entry.getValue().get(id);
 			aux.addValue(uS.getMean());
 			K++;
-			N+=uS.getNumberOfSamples();
+			N+=uS.getN();
 		}
-		globalMean=aux.getMean();
-		//System.out.println("N:"+N+" K:"+K+" Global Mean:"+globalMean);
+		double globalMean=aux.getMean();
 		
 		// Pel significat dels factors no es pot donar divisio entre 0
-		factor1=1.0/(K-1);
-		factor2=1.0/(N-K);
-		
-		// Repetim iteracio, optimitzar-ho implica refer la formulacio ANOVA2
-		it=statistics.keySet().iterator();
-		while (it.hasNext()){
-		  uS=statistics.get(it.next()).getStatistic(id);
-		  globalVar+=uS.getNumberOfSamples()*Math.pow((uS.getMean()-globalMean),2);
-		  sumInternalVar+=uS.getInternalVar();
+		double factor1=1.0/(K-1);
+		double factor2=1.0/(N-K);
+		double globalVar=0.0;
+		double sumInternalVar=0.0;
+		for( Map.Entry<String, ScalarFeaturesStatistics> entry : statistics.entrySet() ) {
+			DescriptiveStatistics uS = entry.getValue().get(id);
+			globalVar += uS.getN() * Math.pow((uS.getMean()-globalMean),2);
+			sumInternalVar += pseudoVariance( uS.getValues(), uS.getMean() );
 		}
 		
-		f=(factor1*globalVar)/(factor2*sumInternalVar);
-		//System.out.println("Feature Quality "+id+": "+f);
-		return f;
+		return (factor1*globalVar)/(factor2*sumInternalVar);
+	}
+	
+	private static double pseudoVariance( double[] values, double mean ){
+		double res=0.0;
+		for( double value : values ){
+			res+=Math.pow(value-mean, 2.0);
+		}
+		return res;
 	}
 		
 	@Override
