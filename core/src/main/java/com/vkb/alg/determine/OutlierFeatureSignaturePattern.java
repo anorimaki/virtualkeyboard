@@ -55,6 +55,10 @@ public class OutlierFeatureSignaturePattern {
 			compareScalar(feature, trace);
 		}
 
+		/* ********************************************** */
+		/* PER DESACTIVAR LES COMPARATIVES DE FUNCIONS	  */
+		/* ********************************************** */
+		
 		for( FeatureId feature : temporalFeatures ) {
 			compareFunction(feature, trace);
 		}
@@ -78,7 +82,7 @@ public class OutlierFeatureSignaturePattern {
 		}
 
 		for( FeatureId feature : temporalFeatures ) {
-			FeatureWeight.put(feature, new Double(weight));
+			FeatureWeight.put(feature, new Double(0));
 		}
 		
 	}
@@ -139,22 +143,30 @@ public class OutlierFeatureSignaturePattern {
 		double p=0.0;
 		double sum=0.0;
 		double res=0.0;
+		boolean aux;
 		
 		for( FeatureId feature : scalarFeatures ) {
-			p = FeatureWeight.get(feature).doubleValue();
-			sum=sum+p;
-			if(FRVector.get(feature))
-				res = res+p;
+			aux=FRVector.containsKey(feature);
+			if(aux){
+				p = FeatureWeight.get(feature).doubleValue();
+				sum=sum+p;
+				if(FRVector.get(feature))
+					res = res+p;
+			}
 		}
 
 		for( FeatureId feature : temporalFeatures ) {
-			p = FeatureWeight.get(feature).doubleValue();
-			sum=sum+p;
-			if(FRVector.get(feature))
-				res = res+p;
+			aux=FRVector.containsKey(feature);
+			if(aux){
+				p = FeatureWeight.get(feature).doubleValue();
+				sum=sum+p;
+				if(FRVector.get(feature))
+					res = res+p;
+			}
 		}
 		
-		res = res/sum;
+		if(sum>0.0)
+			res = res/sum;
 					
 		return res;
 	}

@@ -11,6 +11,7 @@ import com.vkb.model.Signature;
 public class GenericSignatureValidator {
 	private Determiner determiner;
 	private SignatureBuilder traceBuilder;
+	private final double Th = 0.8;
 	
 	public GenericSignatureValidator( List<CapturedData> capturedDatas ) throws Exception {
 		Preprocessor preprocessor = new EmptyPreprocessor();
@@ -20,11 +21,27 @@ public class GenericSignatureValidator {
 		
 		List<Signature> patternTraces = traceBuilder.build( capturedDatas );
 		
-		determiner = new OutlierFeatureDeterminer( patternTraces, 0.80d );
+		determiner = new OutlierFeatureDeterminer( patternTraces, this.Th );
+	}
+	
+	public GenericSignatureValidator( List<CapturedData> capturedDatas, double Th ) throws Exception {
+		Preprocessor preprocessor = new EmptyPreprocessor();
+		FeaturesExtractor featuresExtractor = new DefaultFeaturesExtractor();
+		
+		traceBuilder = new SignatureBuilder( preprocessor, featuresExtractor );
+		
+		List<Signature> patternTraces = traceBuilder.build( capturedDatas );
+		
+		determiner = new OutlierFeatureDeterminer( patternTraces, Th );
 	}
 	
 	public boolean check( CapturedData capturedData ) throws Exception {
 		Signature signature = traceBuilder.build( capturedData );
 		return determiner.check( signature );
+	}
+	
+	public double checkRate( CapturedData capturedData ) throws Exception {
+		Signature signature = traceBuilder.build( capturedData );
+		return determiner.checkRate( signature );
 	}
 }

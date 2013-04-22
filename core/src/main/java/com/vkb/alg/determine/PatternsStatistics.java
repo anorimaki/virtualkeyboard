@@ -82,6 +82,11 @@ public class PatternsStatistics {
 			CreateStatisticsMeanStdev(feature,statisticsList.get(feature).getMean(),statisticsList.get(feature).getStandardDeviation()); 
 		}
 		
+		/*
+		 * PER DESACTIVAR FUNCIONS TEMPORALS!!
+		 * 
+		 * 
+		 * */
 		// Acte seguit hauriem de calcular D per a les funcions temporals (donada la complexitat
 		// i la poca variabilitat, seria millor tenir-ho emmagatzemat en un fitxer!!
 		// DTW es commutativa DTW(A,B) == DTW (B,A)

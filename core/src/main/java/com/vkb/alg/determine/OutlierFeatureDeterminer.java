@@ -18,4 +18,9 @@ public class OutlierFeatureDeterminer implements Determiner {
 		double insidersRate = pattern.compare(signature);
 		return insidersRate > threshold;
 	}
+	
+	public double checkRate( Signature signature ) throws Exception {
+		double insidersRate = pattern.compare(signature);
+		return insidersRate;
+	}
 }
