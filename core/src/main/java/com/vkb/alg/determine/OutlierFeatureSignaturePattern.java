@@ -39,20 +39,16 @@ public class OutlierFeatureSignaturePattern {
 	private Map<FeatureId,Double> FRVectorValues = new HashMap<FeatureId,Double>();
 	private Map<FeatureId,Boolean> FRVector = new HashMap<FeatureId,Boolean>();
 	private Map<FeatureId,Double> FeatureWeight = new HashMap<FeatureId,Double>();
-	private PatternsStatistics pS;
+
 	
-	public OutlierFeatureSignaturePattern( List<Signature> traces ) throws Exception {
-		pS = new PatternsStatistics(traces);
-	}
-	
-	public double compare( Signature trace ) throws Exception {
+	public double compare( Signature trace, PatternsStatistics pS ) throws Exception {
 		double insidersRate = 0.0;
 		
 		FeatureWeightConstruct();
 		
 		// Recorrem totes les feature de trace i normalitzem (z-score) per cadascuna
 		for( FeatureId feature : scalarFeatures ) {
-			compareScalar(feature, trace);
+			compareScalar(feature, trace, pS);
 		}
 
 		/* ********************************************** */
@@ -60,7 +56,7 @@ public class OutlierFeatureSignaturePattern {
 		/* ********************************************** */
 		
 		for( FeatureId feature : temporalFeatures ) {
-			compareFunction(feature, trace);
+			compareFunction(feature, trace, pS);
 		}
 		
 		insidersRate = insidersRateCompute();
@@ -87,7 +83,7 @@ public class OutlierFeatureSignaturePattern {
 		
 	}
 	
-	private void compareScalar(FeatureId id, Signature trace){
+	private void compareScalar(FeatureId id, Signature trace, PatternsStatistics pS){
 		Feature f;
 		ScalarFeatureData sfd;
 		double zscore;
@@ -117,7 +113,7 @@ public class OutlierFeatureSignaturePattern {
 		return res;
 	}
 	
-	private void compareFunction(FeatureId id, Signature trace) throws Exception{
+	private void compareFunction(FeatureId id, Signature trace, PatternsStatistics pS) throws Exception{
 		Feature f;
 		FunctionFeatureData ffd;
 		double d=0.0;

@@ -3,13 +3,16 @@ package com.vkb.app;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 import java.util.Map;
+import java.util.Iterator;
 
 import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 
 import com.vkb.alg.GenericSignatureValidator;
+import com.vkb.alg.CreatePatterns;
 import com.vkb.app.util.DefaultSignatureBuilder;
 import com.vkb.app.util.Environment;
 import com.vkb.app.util.FeaturesStatistics;
@@ -17,6 +20,7 @@ import com.vkb.io.CapturedDatasParser;
 import com.vkb.model.CapturedData;
 import com.vkb.model.FeatureId;
 import com.vkb.model.Signature;
+import com.vkb.alg.determine.PatternsStatistics;
 
 public class AppEvaluation {
 	private static final double MAX_LIMIT_TH = 1.0;
@@ -37,6 +41,7 @@ public class AppEvaluation {
 	private File[] inputFolders;
 	
 	private Vector<boolean[][]> results = new Vector<boolean[][]>();
+	private Vector<PatternsStatistics> pSVector = new Vector<PatternsStatistics>();
 		
 	public AppEvaluation( File[] inputFolders ) {
 		this.inputFolders = inputFolders;
@@ -56,28 +61,45 @@ public class AppEvaluation {
 		List<CapturedData> checkData=null;
 		CapturedDatasParser inputDataParser = new CapturedDatasParser();
 		GenericSignatureValidator gsv;
+		String user;
 	
 		/* ********************************************** */
 		/* PER DESACTIVAR LES COMPARATIVES DE FUNCIONS	  */
 		/* determine.OutlierFeatureSignaturePattern		  */
-		/* determina.PatternsStatistics					  */
+		/* determine.PatternsStatistics					  */
 		/* ********************************************** */
+		
+		// Creem un vector amb el patro de cada usuari
+		CreatePatterns cP = new CreatePatterns();
+		
+		for (int k=0;k<inputFolders.length;k++){
+			user = inputFolders[k].getName();
+			inputFolder=inputFolders[k];
+			inputData = inputDataParser.parse(inputFolder);
+			
+			System.out.println("Creant patrons de l'usuari: "+user);
+		    PatternsStatistics pS = cP.createPatterns(inputData);	
+		    pSVector.add(k, pS);
+		}
+		
+		System.out.println("Inici calcul FAR/FRR");
+		System.out.println("---------------------");
 		
 		while (Th<MAX_LIMIT_TH){
 			acceptMatrix = new boolean[INPUT_FOLDERS.length][INPUT_FOLDERS.length];
+			gsv = new GenericSignatureValidator(Th);
+			
 			// Recorregut per tots els directoris per escollir la signatura a fer el check (0)	
 			for (int i=0;i<inputFolders.length;i++){
 				checkData = inputDataParser.parse(inputFolders[i]);
-				// Recorregut per la BD que formen les mostres de tots els directoris
-				for (int k=0;k<inputFolders.length;k++){
+				// Recorregut per la BD que formen les mostres de tots els directoris -> Vector pSVector (no pot ser hash per ordre)
+				
+				for(int k=0;k<pSVector.size();k++){
 					System.out.println("\nUsuari "+inputFolders[i].getName()+" vs. "+inputFolders[k].getName());
 					System.out.println("---------------------------------------");
-				
-					inputFolder=inputFolders[k];
-					inputData = inputDataParser.parse(inputFolder);
-					gsv = new GenericSignatureValidator(inputData, Th);
+			
 					// Agafem la primera signatura de cada directori
-					acceptMatrix[i][k] = gsv.check(checkData.get(0));
+					acceptMatrix[i][k] = gsv.check(checkData.get(0),pSVector.elementAt(k));
 				}
 			}
 		
