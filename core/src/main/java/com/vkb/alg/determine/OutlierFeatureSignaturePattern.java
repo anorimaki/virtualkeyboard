@@ -82,7 +82,8 @@ public class OutlierFeatureSignaturePattern {
 		}
 
 		for( FeatureId feature : temporalFeatures ) {
-			FeatureWeight.put(feature, new Double(0));
+			//FeatureWeight.put(feature, new Double(0));
+			FeatureWeight.put(feature, new Double(weight));
 		}
 		
 	}
