@@ -1,6 +1,8 @@
 package com.vkb.app;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,6 +25,9 @@ import com.vkb.model.Signature;
 import com.vkb.alg.determine.PatternsStatistics;
 
 public class AppEvaluation {
+	private static boolean FILE_OUT = true;
+	private static final String OUTPUT_FILE = "src/main/resources/quality.txt";
+	
 	private static final double MAX_LIMIT_TH = 1.0;
 	private static final double INC_TH = 0.1;
 	private static final double AUTHENTICATED_USERS = 7.0;
@@ -38,13 +43,24 @@ public class AppEvaluation {
 		new File( Environment.RESOURCES_DIR, "user6" ),
 		new File( Environment.RESOURCES_DIR, "user7" ) };
 	
+	private static final File CHECK_FOLDERS[] = { 
+		new File( Environment.RESOURCES_DIR, "CapturaUser1" ),
+		new File( Environment.RESOURCES_DIR, "CapturaUser2" ),
+		new File( Environment.RESOURCES_DIR, "CapturaUser3" ),
+		new File( Environment.RESOURCES_DIR, "CapturaUser4" ),
+		new File( Environment.RESOURCES_DIR, "CapturaUser5" ),
+		new File( Environment.RESOURCES_DIR, "CapturaUser6" ),
+		new File( Environment.RESOURCES_DIR, "CapturaUser7" ) };
+	
 	private File[] inputFolders;
+	private File[] checkFolders;
 	
 	private Vector<boolean[][]> results = new Vector<boolean[][]>();
-	private Vector<PatternsStatistics> pSVector = new Vector<PatternsStatistics>();
+	private Vector<PatternsStatistics> patternsVector = new Vector<PatternsStatistics>();
 		
-	public AppEvaluation( File[] inputFolders ) {
+	public AppEvaluation( File[] inputFolders, File[] checkFolders ) {
 		this.inputFolders = inputFolders;
+		this.checkFolders = checkFolders;
 	}
 
 	// La idea es generar una matriu on cada usuari es validi contra 
@@ -52,11 +68,13 @@ public class AppEvaluation {
 	// el primer fitxer del seu directori de signatures...
 	private void run() throws Exception {
 		boolean acceptMatrix[][];
+		long startedTime = System.currentTimeMillis();
 		
 		double Th=0.0;
 		int index=0;
 
 		File inputFolder;
+		File checkFolder;
 		List<CapturedData> inputData=null;
 		List<CapturedData> checkData=null;
 		CapturedDatasParser inputDataParser = new CapturedDatasParser();
@@ -79,27 +97,27 @@ public class AppEvaluation {
 			
 			System.out.println("Creant patrons de l'usuari: "+user);
 		    PatternsStatistics pS = cP.createPatterns(inputData);	
-		    pSVector.add(k, pS);
+		    patternsVector.add(k, pS);
 		}
 		
 		System.out.println("Inici calcul FAR/FRR");
 		System.out.println("---------------------");
 		
 		while (Th<MAX_LIMIT_TH){
-			acceptMatrix = new boolean[INPUT_FOLDERS.length][INPUT_FOLDERS.length];
+			acceptMatrix = new boolean[checkFolders.length][inputFolders.length];
 			gsv = new GenericSignatureValidator(Th);
 			
 			// Recorregut per tots els directoris per escollir la signatura a fer el check (0)	
-			for (int i=0;i<inputFolders.length;i++){
-				checkData = inputDataParser.parse(inputFolders[i]);
+			for (int i=0;i<checkFolders.length;i++){
+				checkData = inputDataParser.parse(checkFolders[i]);
 				// Recorregut per la BD que formen les mostres de tots els directoris -> Vector pSVector (no pot ser hash per ordre)
 				
-				for(int k=0;k<pSVector.size();k++){
-					System.out.println("\nUsuari "+inputFolders[i].getName()+" vs. "+inputFolders[k].getName());
+				for(int k=0;k<patternsVector.size();k++){
+					System.out.println("\nUsuari "+checkFolders[i].getName()+" vs. "+inputFolders[k].getName()+" amb Th:"+Th);
 					System.out.println("---------------------------------------");
 			
 					// Agafem la primera signatura de cada directori
-					acceptMatrix[i][k] = gsv.check(checkData.get(0),pSVector.elementAt(k));
+					acceptMatrix[i][k] = gsv.check(checkData.get(0),patternsVector.elementAt(k));
 				}
 			}
 		
@@ -109,39 +127,75 @@ public class AppEvaluation {
 		}
 		
 		calculateFarFrr();
+		
+		long executionTime = System.currentTimeMillis() - startedTime;
+		System.out.println("Tiempo de ejecición: "+executionTime);
 	}
 	
 	
-	private void matrixDisplay(boolean[][] acceptMatrix, double Th){
+	private void matrixDisplay(boolean[][] acceptMatrix, double Th, double far, double frr) throws Exception {
+		FileWriter fw = null;
+		BufferedWriter bw= null;
+		
+		if(FILE_OUT)
+		{
+			fw = new FileWriter(OUTPUT_FILE);
+			bw = new BufferedWriter(fw);
+		}
+		
 		// Matriu quadrada
 		int N=acceptMatrix.length;
 		
-		System.out.println("\nMatriu identificacions Th:"+Th);
-		System.out.println("-------------------------------");
+		if(FILE_OUT){
+			bw.write("\nMatriu identificacions Th:"+Th+"\n");
+			bw.write("-------------------------------\n");
+		}else{
+			System.out.println("\nMatriu identificacions Th:"+Th);
+			System.out.println("-------------------------------");
+		}
+		
 		for (int i=0;i<N;i++){
 			for (int k=0;k<N;k++){
-				if(acceptMatrix[i][k])
-					System.out.print("1  ");
-				else
-					System.out.print("0  ");
+				if(acceptMatrix[i][k]){
+					if(FILE_OUT)
+						bw.write("1  ");
+					else
+					    System.out.print("1  ");
+				}
+				else{
+					if(FILE_OUT)
+						bw.write("0  ");
+					else
+						System.out.print("0  ");
+				}
 			}
-			System.out.print("\n");
+			if(FILE_OUT)
+				bw.write("\n");
+			else
+				System.out.print("\n");
 		}
+		
+		if(FILE_OUT){
+			bw.write("-> FRR:"+frr+"   FAR:"+far+"\n");
+			bw.flush();
+			bw.close();
+		}else{
+			System.out.println("-> FRR:"+frr+"   FAR:"+far);
+		}
+		
 	}
 	
-	private void calculateFarFrr(){
+	private void calculateFarFrr() throws Exception{
 		boolean[][] matrix;
 		double Th=0.0;
 		double far, frr;
 		
 		for(int i=0;i<results.size();i++){
 			matrix = results.elementAt(i);
-			matrixDisplay(matrix, Th);
 			far=calculateFar(matrix);
 			frr=calculateFrr(matrix);
-						
-			System.out.println("-> FRR:"+frr+"   FAR:"+far);
-			
+			matrixDisplay(matrix, Th, far, frr);
+									
 			Th=Th+INC_TH;
 		}
 		
@@ -181,7 +235,7 @@ public class AppEvaluation {
 		
 	public static void main(String[] args) {
 		try {
-			AppEvaluation prueba = new AppEvaluation( INPUT_FOLDERS);
+			AppEvaluation prueba = new AppEvaluation( INPUT_FOLDERS, CHECK_FOLDERS);
 			prueba.run();
 		} 
 		catch (Exception e) {
