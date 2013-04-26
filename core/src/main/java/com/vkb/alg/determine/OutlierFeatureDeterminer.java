@@ -6,21 +6,22 @@ import com.vkb.alg.Determiner;
 import com.vkb.model.Signature;
 
 public class OutlierFeatureDeterminer implements Determiner {
-	private OutlierFeatureSignaturePattern pattern;
+	private OutlierFeatureSignaturePattern patternComparator;
 	private double threshold;
 	
-	public OutlierFeatureDeterminer( List<Signature> patternTraces, double threshold ) throws Exception {
-		pattern = new OutlierFeatureSignaturePattern(patternTraces);
+	// Arreglada per l'optimitzacio!
+	public OutlierFeatureDeterminer(double threshold ) throws Exception {
+		patternComparator = new OutlierFeatureSignaturePattern();
 		this.threshold = threshold;
 	}
 	
-	public boolean check( Signature signature ) throws Exception {
-		double insidersRate = pattern.compare(signature);
+	public boolean check( Signature signature, PatternsStatistics pS  ) throws Exception {
+		double insidersRate = checkRate(signature, pS);
 		return insidersRate > threshold;
 	}
 	
-	public double checkRate( Signature signature ) throws Exception {
-		double insidersRate = pattern.compare(signature);
+	public double checkRate( Signature signature, PatternsStatistics pS ) throws Exception {
+		double insidersRate = patternComparator.compare(signature, pS);
 		return insidersRate;
 	}
 }
