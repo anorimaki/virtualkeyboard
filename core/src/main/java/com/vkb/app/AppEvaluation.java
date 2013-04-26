@@ -54,6 +54,10 @@ public class AppEvaluation {
 	
 	private File[] inputFolders;
 	private File[] checkFolders;
+	private FileWriter fw = null;
+	private BufferedWriter bw= null;
+	
+	
 	
 	private Vector<boolean[][]> results = new Vector<boolean[][]>();
 	private Vector<PatternsStatistics> patternsVector = new Vector<PatternsStatistics>();
@@ -80,6 +84,12 @@ public class AppEvaluation {
 		CapturedDatasParser inputDataParser = new CapturedDatasParser();
 		GenericSignatureValidator gsv;
 		String user;
+		
+		if(FILE_OUT)
+		{
+			fw = new FileWriter(OUTPUT_FILE);
+			bw = new BufferedWriter(fw);
+		}
 	
 		/* ********************************************** */
 		/* PER DESACTIVAR LES COMPARATIVES DE FUNCIONS	  */
@@ -128,21 +138,18 @@ public class AppEvaluation {
 		
 		calculateFarFrr();
 		
+		if(FILE_OUT){
+			bw.flush();
+			bw.close();
+			fw.close();
+		}
+		
 		long executionTime = System.currentTimeMillis() - startedTime;
 		System.out.println("Tiempo de ejecición: "+executionTime);
 	}
 	
 	
 	private void matrixDisplay(boolean[][] acceptMatrix, double Th, double far, double frr) throws Exception {
-		FileWriter fw = null;
-		BufferedWriter bw= null;
-		
-		if(FILE_OUT)
-		{
-			fw = new FileWriter(OUTPUT_FILE);
-			bw = new BufferedWriter(fw);
-		}
-		
 		// Matriu quadrada
 		int N=acceptMatrix.length;
 		
