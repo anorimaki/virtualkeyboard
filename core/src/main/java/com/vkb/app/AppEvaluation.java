@@ -12,13 +12,21 @@ import java.util.Map;
 import java.util.Iterator;
 
 import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 import com.vkb.alg.GenericSignatureValidator;
 import com.vkb.alg.CreatePatterns;
 import com.vkb.app.util.DefaultSignatureBuilder;
 import com.vkb.app.util.Environment;
 import com.vkb.app.util.FeaturesStatistics;
+import com.vkb.gui.Application;
 import com.vkb.io.CapturedDatasParser;
+import com.vkb.math.DiscreteFunction;
 import com.vkb.model.CapturedData;
 import com.vkb.model.FeatureId;
 import com.vkb.model.Signature;
@@ -61,6 +69,8 @@ public class AppEvaluation {
 	
 	private Vector<boolean[][]> results = new Vector<boolean[][]>();
 	private Vector<PatternsStatistics> patternsVector = new Vector<PatternsStatistics>();
+	private double farVector[];
+	private double frrVector[];
 		
 	public AppEvaluation( File[] inputFolders, File[] checkFolders ) {
 		this.inputFolders = inputFolders;
@@ -136,6 +146,9 @@ public class AppEvaluation {
 			index++;
 		}
 		
+		farVector=new double[results.size()];
+		frrVector=new double[results.size()];
+		
 		calculateFarFrr();
 		
 		if(FILE_OUT){
@@ -145,8 +158,116 @@ public class AppEvaluation {
 		}
 		
 		long executionTime = System.currentTimeMillis() - startedTime;
-		System.out.println("Tiempo de ejecición: "+executionTime);
+		System.out.println("Tiempo de ejecicion: "+executionTime);
+		
+		// Generacio de les grafiques
+		XYPlot tracesPlot = generatePlot();
+		Application application = new Application();
+		application.run( "FAR/FRR Graphics", tracesPlot );
+		
 	}
+	
+		
+	
+	private void calculateFarFrr() throws Exception{
+		boolean[][] matrix;
+		double Th=0.0;
+
+		for(int i=0;i<results.size();i++){
+			matrix = results.elementAt(i);
+			farVector[i]=calculateFar(matrix);
+			frrVector[i]=calculateFrr(matrix);
+
+			matrixDisplay(matrix, Th, farVector[i], frrVector[i]);
+									
+			Th=Th+INC_TH;
+		}
+		
+		if(FILE_OUT){
+			Th=0.0;
+			bw.write("\n\ngraph=[");
+			for(int i=0;i<farVector.length;i++){
+				// Format MATLAB
+				bw.write(Th+","+farVector[i]+","+frrVector[i]+";");
+				Th=Th+INC_TH;
+			}
+			bw.write("]\n\n");
+		}
+	}
+	
+	private double calculateFar(boolean[][] matrix){
+		double far=0.0;
+		
+		// Evitem la diagonal ja que son usuaris autentics -> (i!=k)
+		for(int i=0;i<matrix.length;i++){
+			for (int k=0;k<matrix.length;k++){
+				if (i!=k && matrix[i][k]){
+					far++;
+				}
+			}
+		}
+		// Matriu triangular
+		far=far/FALSE_USERS;
+		
+		return far;
+	}
+	
+	private double calculateFrr(boolean[][] matrix){
+		double frr=0.0;
+		
+		// Simplement mirem si en alguna posicio de la diagonal no s'ha identificat
+		// un usuari correcte
+		for (int i=0;i<matrix.length;i++)
+			if(!matrix[i][i])
+				frr++;
+		
+		frr=frr/AUTHENTICATED_USERS;
+		
+		return frr;
+	}
+	
+	
+	private XYPlot generateBasePlot() throws Exception {
+		NumberAxis xAxis = new NumberAxis("X");
+		xAxis.setAutoRangeIncludesZero(false);
+		
+		NumberAxis yAxis = new NumberAxis("Y");
+		
+		XYPlot plot = new XYPlot();
+		plot.setDomainAxis(xAxis);
+		plot.setRangeAxis(yAxis);
+		
+		// Linies i punts visibles
+		XYItemRenderer renderer = new XYLineAndShapeRenderer(true, true);
+		plot.setRenderer( renderer );
+		
+		return plot;
+	}
+
+	
+	private XYPlot generatePlot() throws Exception{
+		XYPlot tracesPlot = generateBasePlot();
+		XYSeriesCollection compleTraces = new XYSeriesCollection();
+		// Series no ordenades
+		XYSeries xySeriesFar = new XYSeries("FAR", false);
+		XYSeries xySeriesFrr = new XYSeries("FRR", false);
+		double Th=0.0;
+		
+		int i=0;
+		while (Th<MAX_LIMIT_TH){
+			xySeriesFar.add(Th,farVector[i]);
+			xySeriesFrr.add(Th,frrVector[i]);
+			i++;
+			Th = Th+INC_TH;
+		}
+		
+		compleTraces.addSeries(xySeriesFar);
+		compleTraces.addSeries(xySeriesFrr);
+		tracesPlot.setDataset( 0, compleTraces );
+		
+		return tracesPlot;
+	}
+
 	
 	
 	private void matrixDisplay(boolean[][] acceptMatrix, double Th, double far, double frr) throws Exception {
@@ -184,60 +305,14 @@ public class AppEvaluation {
 		
 		if(FILE_OUT){
 			bw.write("-> FRR:"+frr+"   FAR:"+far+"\n");
-			bw.flush();
-			bw.close();
 		}else{
 			System.out.println("-> FRR:"+frr+"   FAR:"+far);
 		}
 		
-	}
+	}	
 	
-	private void calculateFarFrr() throws Exception{
-		boolean[][] matrix;
-		double Th=0.0;
-		double far, frr;
-		
-		for(int i=0;i<results.size();i++){
-			matrix = results.elementAt(i);
-			far=calculateFar(matrix);
-			frr=calculateFrr(matrix);
-			matrixDisplay(matrix, Th, far, frr);
-									
-			Th=Th+INC_TH;
-		}
-		
-	}
 	
-	private double calculateFar(boolean[][] matrix){
-		double far=0.0;
-		
-		// Evitem la diagonal ja que son usuaris autentics -> (i!=k)
-		for(int i=0;i<matrix.length;i++){
-			for (int k=0;k<matrix.length;k++){
-				if (i!=k && matrix[i][k]){
-					far++;
-				}
-			}
-		}
-		// Matriu triangular
-		far=far/FALSE_USERS;
-		
-		return far;
-	}
 	
-	private double calculateFrr(boolean[][] matrix){
-		double frr=0.0;
-		
-		// Simplement mirem si en alguna posicio de la diagonal no s'ha identificat
-		// un usuari correcte
-		for (int i=0;i<matrix.length;i++)
-			if(!matrix[i][i])
-				frr++;
-		
-		frr=frr/AUTHENTICATED_USERS;
-		
-		return frr;
-	}
 	
 		
 	public static void main(String[] args) {
