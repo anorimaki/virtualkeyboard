@@ -37,7 +37,7 @@ public class AppEvaluation {
 	private static final String OUTPUT_FILE = "src/main/resources/quality.txt";
 	
 	private static final double MAX_LIMIT_TH = 1.0;
-	private static final double INC_TH = 0.1;
+	private static final double INC_TH = 0.05;
 	private static final double AUTHENTICATED_USERS = 7.0;
 	private static final double FALSE_USERS = (7.0 * 7.0)-AUTHENTICATED_USERS;
 	

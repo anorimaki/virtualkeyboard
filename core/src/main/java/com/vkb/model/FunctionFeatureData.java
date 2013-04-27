@@ -9,6 +9,7 @@ public class FunctionFeatureData implements FeatureData {
 	private static final double DEFAULT_STEP = 1.0d;
 	private UnivariateFunction function;
 	private DiscreteFunction samples;
+	private double weight;
 	
 	public FunctionFeatureData( DiscreteFunction functionPoints ) {
 		this.function = functionPoints.interpolate();
@@ -42,6 +43,14 @@ public class FunctionFeatureData implements FeatureData {
 	
 	public UnivariateFunction getFunction() {
 		return function;
+	}
+	
+	public void setWeight(double w){
+		this.weight=w;
+	}
+	
+	public double getWirght(){
+		return this.weight;
 	}
 	
 	@Override
