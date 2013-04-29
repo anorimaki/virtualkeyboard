@@ -91,7 +91,10 @@ public class ScalarFeatureQuality {
 		
 		String[] titles={"MANOVA Feature Quality Compare","ENTROPY  FeatureQuality Compare"};
 		Application application = new Application();
-		application.run( "Feature Quality", plots,titles);		
+		application.run( "Feature Quality", plots,titles);	
+		
+		generateWeightVector(results);
+		generateWeightVector(resultsE);
 	}
 	
 	
@@ -114,7 +117,30 @@ public class ScalarFeatureQuality {
         }
         return dataset;        
     }
-
+    
+    
+    private void generateWeightVector(Map<FeatureId, Double> resultsP){
+    	// scalarFeatures.length es el maxim que pot valdre la suma de les features
+    	// si totes tenen el pes 1. Cal repartir aquest valor de forma proporcional al
+    	// seu ratio d'importancia.
+    	
+    	// NO CAL FER TOT AIXO PERQUE LA FORMULA DEL ZScore FINAL JA HO CONTEMPLA!
+    	// SOLS SERVEIX PER SI LES TemporalFeatures SEGUEIXEN TENINT PES 1.0!!
+    	
+    	double fN=(double)scalarFeatures.length;
+    	double sum=0.0;
+    	for( FeatureId feature : scalarFeatures ) {
+    		sum=sum+resultsP.get(feature);
+    	}
+    	
+    	// Pes(fN) = (ratio*fN)/sum
+    	// FINS AQUI ES PODRA ELIMINAR!  	
+    	System.out.print("\nVector escalars:[");
+    	for( FeatureId feature : scalarFeatures ) {
+        		System.out.print("{"+feature.toString()+","+(resultsP.get(feature)*fN)/sum+"},");
+        }
+    	System.out.print("]\n\n");
+    }
 	
 	public static void main(String[] args) {
 		try {

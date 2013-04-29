@@ -44,6 +44,8 @@ public class OutlierFeatureSignaturePattern {
 	public double compare( Signature trace, PatternsStatistics pS ) throws Exception {
 		double insidersRate = 0.0;
 		
+		// Metode cutre que dona pes a les features
+		// NO SE ON HAURIA D'ANAR!!
 		FeatureWeightConstruct();
 		
 		// Recorrem totes les feature de trace i normalitzem (z-score) per cadascuna
@@ -69,20 +71,163 @@ public class OutlierFeatureSignaturePattern {
 		return insidersRate;
 	}
 	
+	
+	
+	/*
+	 * Vector escalars FeatureEntropy:[
+	 * {XAVG,0.8349410056742863},{YAVG,0.9131320183317968},
+	 * {X'AVG,1.2139466477499392},{Y'AVG,1.198957799511142},
+	 * {X''AVG,0.969685781326788},{Y''AVG,0.8367402193097967},
+	 * {XAREA,1.110382116310794},{YAREA,0.9133431709359657},{X_Y_AREA,1.0088712408494909}]
+	 */
+
 	private void FeatureWeightConstruct()	{
 		// Construccio del vector de ponderacio per feature, caldra veure com es fa...
 		double weight=1.0;
 		
 		for( FeatureId feature : scalarFeatures ) {
-			FeatureWeight.put(feature, new Double(weight));
+			switch(feature){
+			case ACCELERATION_X_AVG:
+				FeatureWeight.put(feature, new Double(0.969685781326788d));
+				break;
+			case ACCELERATION_Y_AVG:
+				FeatureWeight.put(feature, new Double(0.8367402193097967d));
+				break;
+			case POSITION_X_AVG:
+				FeatureWeight.put(feature, new Double(0.8349410056742863d));
+				break;
+			case POSITION_Y_AVG:
+				FeatureWeight.put(feature, new Double(0.9131320183317968d));
+				break;
+			case VELOCITY_X_AVG:
+				FeatureWeight.put(feature, new Double(1.2139466477499392d));
+				break;
+			case VELOCITY_Y_AVG:
+				FeatureWeight.put(feature, new Double(1.198957799511142d));
+				break;
+			case AREA_X:
+				FeatureWeight.put(feature, new Double(1.110382116310794d));
+				break;
+			case AREA_Y:
+				FeatureWeight.put(feature, new Double(0.9133431709359657d));
+				break;
+			case RELATION_AREA:
+				FeatureWeight.put(feature, new Double(1.0088712408494909d));
+				break;
+			}
+			
 		}
-
+		
+		
 		for( FeatureId feature : temporalFeatures ) {
 			FeatureWeight.put(feature, new Double(weight));
 		}
 		
 	}
 	
+	/*
+	 * Vector escalars FeatureQuality:[
+	 * {XAVG,0.3768048447466019},{YAVG,0.2729715216542056},
+	 * {X'AVG,0.6924663770832848},{Y'AVG,5.743944338705075},
+	 * {X''AVG,0.06676699868539843},{Y''AVG,0.12548844928140834},
+	 * {XAREA,0.45904199520094613},{YAREA,0.671843784861471},{X_Y_AREA,0.5906716897816078}]
+	 */
+
+	/*
+	private void FeatureWeightConstruct()	{
+		// Construccio del vector de ponderacio per feature, caldra veure com es fa...
+		double weight=1.0;
+		
+		for( FeatureId feature : scalarFeatures ) {
+			switch(feature){
+			case ACCELERATION_X_AVG:
+				FeatureWeight.put(feature, new Double(0.06676699868539843d));
+				break;
+			case ACCELERATION_Y_AVG:
+				FeatureWeight.put(feature, new Double(0.12548844928140834d));
+				break;
+			case POSITION_X_AVG:
+				FeatureWeight.put(feature, new Double(0.3768048447466019d));
+				break;
+			case POSITION_Y_AVG:
+				FeatureWeight.put(feature, new Double(0.2729715216542056d));
+				break;
+			case VELOCITY_X_AVG:
+				FeatureWeight.put(feature, new Double(0.6924663770832848d));
+				break;
+			case VELOCITY_Y_AVG:
+				FeatureWeight.put(feature, new Double(5.743944338705075d));
+				break;
+			case AREA_X:
+				FeatureWeight.put(feature, new Double(0.45904199520094613d));
+				break;
+			case AREA_Y:
+				FeatureWeight.put(feature, new Double(0.671843784861471d));
+				break;
+			case RELATION_AREA:
+				FeatureWeight.put(feature, new Double(0.5906716897816078d));
+				break;
+			}
+			
+		}
+		
+		
+		for( FeatureId feature : temporalFeatures ) {
+			FeatureWeight.put(feature, new Double(weight));
+		}
+		
+	}
+*/
+	
+	
+	/*
+	
+	// SENSE PONDERACIO
+	 
+	private void FeatureWeightConstruct()	{
+		// Construccio del vector de ponderacio per feature, caldra veure com es fa...
+		double weight=1.0;
+		
+		for( FeatureId feature : scalarFeatures ) {
+			switch(feature){
+			case ACCELERATION_X_AVG:
+				FeatureWeight.put(feature, 1.0d);
+				break;
+			case ACCELERATION_Y_AVG:
+				FeatureWeight.put(feature, 1.0d);
+				break;
+			case POSITION_X_AVG:
+				FeatureWeight.put(feature, 1.0d);
+				break;
+			case POSITION_Y_AVG:
+				FeatureWeight.put(feature, 1.0d);
+				break;
+			case VELOCITY_X_AVG:
+				FeatureWeight.put(feature, 1.0d);
+				break;
+			case VELOCITY_Y_AVG:
+				FeatureWeight.put(feature, 1.0d);
+				break;
+			case AREA_X:
+				FeatureWeight.put(feature, 1.0d);
+				break;
+			case AREA_Y:
+				FeatureWeight.put(feature, 1.0d);
+				break;
+			case RELATION_AREA:
+				FeatureWeight.put(feature, 1.0d);
+				break;
+			}
+			
+		}
+		
+		
+		for( FeatureId feature : temporalFeatures ) {
+			FeatureWeight.put(feature, new Double(weight));
+		}
+		
+	}
+	*/
 	private void compareScalar(FeatureId id, Signature trace, PatternsStatistics pS){
 		Feature f;
 		ScalarFeatureData sfd;
@@ -135,7 +280,6 @@ public class OutlierFeatureSignaturePattern {
 	
 	private double insidersRateCompute(){
 		// A partir del vector de ratios calcula un ratio global, per comparar amb treshold
-		// FALTA PONDERAR LES CARACTERISTIQUES!!! (p)
 		double p=0.0;
 		double sum=0.0;
 		double res=0.0;
