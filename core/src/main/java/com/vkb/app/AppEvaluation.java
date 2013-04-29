@@ -184,8 +184,6 @@ public class AppEvaluation {
 		
 		if(FILE_OUT){
 			bw.write("-> FRR:"+frr+"   FAR:"+far+"\n");
-			bw.flush();
-			bw.close();
 		}else{
 			System.out.println("-> FRR:"+frr+"   FAR:"+far);
 		}
