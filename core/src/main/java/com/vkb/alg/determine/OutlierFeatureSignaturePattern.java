@@ -1,253 +1,89 @@
 ﻿package com.vkb.alg.determine;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.Set;
 
-import com.vkb.model.FeatureId;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
+
+import com.vkb.math.dtw.FunctionFeatureComparator;
 import com.vkb.model.Feature;
-import com.vkb.model.ScalarFeatureData;
+import com.vkb.model.FeatureId;
 import com.vkb.model.FunctionFeatureData;
+import com.vkb.model.ScalarFeatureData;
 import com.vkb.model.Signature;
-import com.vkb.model.Statistics;
-
-import com.fastdtw.dtw.FastDTW;
-import com.fastdtw.dtw.TimeWarpInfo;
-import com.fastdtw.timeseries.TimeSeries;
-import com.fastdtw.util.EuclideanDistance;
-import com.vkb.math.dtw.DataConvert;
 
 public class OutlierFeatureSignaturePattern {
 	private static final double MAGICTHRESHOLD =1.96;
 	
-	private static final FeatureId[] scalarFeatures = { 
-		FeatureId.POSITION_X_AVG, FeatureId.POSITION_Y_AVG,
-		FeatureId.VELOCITY_X_AVG, FeatureId.VELOCITY_Y_AVG,
-		FeatureId.ACCELERATION_X_AVG, FeatureId.ACCELERATION_Y_AVG,
-		FeatureId.AREA_X, FeatureId.AREA_Y, FeatureId.RELATION_AREA
-	};
+	private static Map<FeatureId,Double> featureWeight = featureWeightConstruct();
+	private PatternsStatistics patternsStatistics;
+	private Set<FeatureId> scalarFeatues;		//Pre computed set for performance
+	private Set<FeatureId> functionFeatues;		//Pre computed set for performance
 	
-	private static final FeatureId[] temporalFeatures = { 
-		FeatureId.POSITION_X, FeatureId.POSITION_Y,
-		FeatureId.VELOCITY_X, FeatureId.VELOCITY_Y,
-		FeatureId.ACCELERATION_X, FeatureId.ACCELERATION_Y, FeatureId.RELATION_X_Y
-	};
-	
-	// Guardem els valors del zscore en un hash amb clau (Feature) per si els tresholds
-	// aplicats són diferents en cada cas. Si això no és així, és millor utilitzar un simple
-	// array de doubles.
-	private Map<FeatureId,Double> FRVectorValues = new HashMap<FeatureId,Double>();
-	private Map<FeatureId,Boolean> FRVector = new HashMap<FeatureId,Boolean>();
-	private Map<FeatureId,Double> FeatureWeight = new HashMap<FeatureId,Double>();
-
-	
-	public double compare( Signature trace, PatternsStatistics pS ) throws Exception {
-		double insidersRate = 0.0;
+	public OutlierFeatureSignaturePattern( List<Signature> traces ) throws Exception {
+		patternsStatistics = new PatternsStatistics(traces);
+		scalarFeatues = patternsStatistics.getScalarFeatures();
+		functionFeatues = patternsStatistics.getFunctionFeatures();
 		
-		// Metode cutre que dona pes a les features
-		// NO SE ON HAURIA D'ANAR!!
-		FeatureWeightConstruct();
+		featureWeightConstruct();
+	}
+	
+	
+	public double compare( Signature trace ) throws Exception {
+		Map<FeatureId,Boolean> featureCheckResults = new HashMap<FeatureId,Boolean>();
 		
 		// Recorrem totes les feature de trace i normalitzem (z-score) per cadascuna
-		for( FeatureId feature : scalarFeatures ) {
-			compareScalar(feature, trace, pS);
+		for( FeatureId feature : scalarFeatues ) {
+			compareScalar( feature, trace, featureCheckResults );
 		}
 
-		/* ********************************************** */
-		/* PER DESACTIVAR LES COMPARATIVES DE FUNCIONS	  */
-		/* ********************************************** */
-		
-		for( FeatureId feature : temporalFeatures ) {
-			compareFunction(feature, trace, pS);
+		for( FeatureId feature : functionFeatues ) {
+			compareFunction( feature, trace, featureCheckResults );
 		}
 		
-		insidersRate = insidersRateCompute();
-		
-		System.out.println("Vector de zscores: "+FRVectorValues.toString());
-		System.out.println("Vector de resultats: "+FRVector.toString());
-		System.out.println("Resultat final: "+insidersRate);
-		
-		
-		return insidersRate;
+		return insidersRateCompute( featureCheckResults );
 	}
 	
-	
-	
-	/*
-	 * Vector escalars FeatureEntropy:[
-	 * {XAVG,0.8349410056742863},{YAVG,0.9131320183317968},
-	 * {X'AVG,1.2139466477499392},{Y'AVG,1.198957799511142},
-	 * {X''AVG,0.969685781326788},{Y''AVG,0.8367402193097967},
-	 * {XAREA,1.110382116310794},{YAREA,0.9133431709359657},{X_Y_AREA,1.0088712408494909}]
-	 */
 
-	private void FeatureWeightConstruct()	{
-		// Construccio del vector de ponderacio per feature, caldra veure com es fa...
-		double weight=1.0;
+	private static Map<FeatureId,Double> featureWeightConstruct() {
+		Map<FeatureId,Double> featureWeight = new HashMap<FeatureId,Double>();
 		
-		for( FeatureId feature : scalarFeatures ) {
-			switch(feature){
-			case ACCELERATION_X_AVG:
-				FeatureWeight.put(feature, new Double(0.969685781326788d));
-				break;
-			case ACCELERATION_Y_AVG:
-				FeatureWeight.put(feature, new Double(0.8367402193097967d));
-				break;
-			case POSITION_X_AVG:
-				FeatureWeight.put(feature, new Double(0.8349410056742863d));
-				break;
-			case POSITION_Y_AVG:
-				FeatureWeight.put(feature, new Double(0.9131320183317968d));
-				break;
-			case VELOCITY_X_AVG:
-				FeatureWeight.put(feature, new Double(1.2139466477499392d));
-				break;
-			case VELOCITY_Y_AVG:
-				FeatureWeight.put(feature, new Double(1.198957799511142d));
-				break;
-			case AREA_X:
-				FeatureWeight.put(feature, new Double(1.110382116310794d));
-				break;
-			case AREA_Y:
-				FeatureWeight.put(feature, new Double(0.9133431709359657d));
-				break;
-			case RELATION_AREA:
-				FeatureWeight.put(feature, new Double(1.0088712408494909d));
-				break;
-			}
-			
-		}
-		
-		
-		for( FeatureId feature : temporalFeatures ) {
-			FeatureWeight.put(feature, new Double(weight));
-		}
-		
-	}
-	
-	/*
-	 * Vector escalars FeatureQuality:[
-	 * {XAVG,0.3768048447466019},{YAVG,0.2729715216542056},
-	 * {X'AVG,0.6924663770832848},{Y'AVG,5.743944338705075},
-	 * {X''AVG,0.06676699868539843},{Y''AVG,0.12548844928140834},
-	 * {XAREA,0.45904199520094613},{YAREA,0.671843784861471},{X_Y_AREA,0.5906716897816078}]
-	 */
+		featureWeight.put( FeatureId.ACCELERATION_X_AVG, 0.969685781326788d );
+		featureWeight.put( FeatureId.ACCELERATION_Y_AVG, 0.8367402193097967d );
+		featureWeight.put( FeatureId.POSITION_X_AVG, 0.8349410056742863d );
+		featureWeight.put( FeatureId.POSITION_Y_AVG, 0.9131320183317968d );
+		featureWeight.put( FeatureId.VELOCITY_X_AVG, 1.2139466477499392d );
+		featureWeight.put( FeatureId.VELOCITY_Y_AVG, 1.198957799511142d );
+		featureWeight.put( FeatureId.AREA_X, 1.110382116310794d );
+		featureWeight.put( FeatureId.AREA_Y, 0.9133431709359657d );
+		featureWeight.put( FeatureId.RELATION_AREA, 1.0088712408494909d );
 
-	/*
-	private void FeatureWeightConstruct()	{
-		// Construccio del vector de ponderacio per feature, caldra veure com es fa...
-		double weight=1.0;
-		
-		for( FeatureId feature : scalarFeatures ) {
-			switch(feature){
-			case ACCELERATION_X_AVG:
-				FeatureWeight.put(feature, new Double(0.06676699868539843d));
-				break;
-			case ACCELERATION_Y_AVG:
-				FeatureWeight.put(feature, new Double(0.12548844928140834d));
-				break;
-			case POSITION_X_AVG:
-				FeatureWeight.put(feature, new Double(0.3768048447466019d));
-				break;
-			case POSITION_Y_AVG:
-				FeatureWeight.put(feature, new Double(0.2729715216542056d));
-				break;
-			case VELOCITY_X_AVG:
-				FeatureWeight.put(feature, new Double(0.6924663770832848d));
-				break;
-			case VELOCITY_Y_AVG:
-				FeatureWeight.put(feature, new Double(5.743944338705075d));
-				break;
-			case AREA_X:
-				FeatureWeight.put(feature, new Double(0.45904199520094613d));
-				break;
-			case AREA_Y:
-				FeatureWeight.put(feature, new Double(0.671843784861471d));
-				break;
-			case RELATION_AREA:
-				FeatureWeight.put(feature, new Double(0.5906716897816078d));
-				break;
-			}
-			
+		for( FeatureId feature : FeatureId.getByModel( FunctionFeatureData.class ) ) {
+			featureWeight.put( feature, 1.0d );
 		}
 		
-		
-		for( FeatureId feature : temporalFeatures ) {
-			FeatureWeight.put(feature, new Double(weight));
-		}
-		
-	}
-*/
-	
-	
-	/*
-	
-	// SENSE PONDERACIO
-	 
-	private void FeatureWeightConstruct()	{
-		// Construccio del vector de ponderacio per feature, caldra veure com es fa...
-		double weight=1.0;
-		
-		for( FeatureId feature : scalarFeatures ) {
-			switch(feature){
-			case ACCELERATION_X_AVG:
-				FeatureWeight.put(feature, 1.0d);
-				break;
-			case ACCELERATION_Y_AVG:
-				FeatureWeight.put(feature, 1.0d);
-				break;
-			case POSITION_X_AVG:
-				FeatureWeight.put(feature, 1.0d);
-				break;
-			case POSITION_Y_AVG:
-				FeatureWeight.put(feature, 1.0d);
-				break;
-			case VELOCITY_X_AVG:
-				FeatureWeight.put(feature, 1.0d);
-				break;
-			case VELOCITY_Y_AVG:
-				FeatureWeight.put(feature, 1.0d);
-				break;
-			case AREA_X:
-				FeatureWeight.put(feature, 1.0d);
-				break;
-			case AREA_Y:
-				FeatureWeight.put(feature, 1.0d);
-				break;
-			case RELATION_AREA:
-				FeatureWeight.put(feature, 1.0d);
-				break;
-			}
-			
-		}
-		
-		
-		for( FeatureId feature : temporalFeatures ) {
-			FeatureWeight.put(feature, new Double(weight));
-		}
-		
-	}
-	*/
-	private void compareScalar(FeatureId id, Signature trace, PatternsStatistics pS){
-		Feature f;
-		ScalarFeatureData sfd;
-		double zscore;
-
-		f=trace.getFeature(id);
-		sfd = f.getData();
-		zscore = ScalarZScore(sfd.getValue(),pS.getFeatureStatistic(id, Statistics.MEAN),pS.getFeatureStatistic(id, Statistics.STDEV));
-		FRVectorValues.put(id,new Double(zscore));
-		
-		if(zscore < MAGICTHRESHOLD)
-			FRVector.put(id, new Boolean(true));
-		else
-			FRVector.put(id, new Boolean(false));
-	
-		//System.out.println("Feature "+id.toString()+": "+sfd.getValue());
+		return featureWeight;
 	}
 
 	
-	private double ScalarZScore(double value, double mean, double stdev){
+	private void compareScalar( FeatureId featureId, Signature trace, 
+								Map<FeatureId,Boolean> featureCheckResults ){
+		Feature feature = trace.getFeature(featureId);
+		ScalarFeatureData featureData = feature.getData();
+		
+		StatisticalSummary statistics = patternsStatistics.getScalarFeatureStatistics( featureId );
+		
+		double zscore = calculateZScore( featureData.getValue(), 
+								statistics.getMean(), statistics.getStandardDeviation() );
+		
+		featureCheckResults.put( featureId, zscore < MAGICTHRESHOLD );
+	}
+
+	
+	private double calculateZScore(double value, double mean, double stdev){
 		double res;
 		
 		if(stdev!=0)
@@ -258,50 +94,36 @@ public class OutlierFeatureSignaturePattern {
 		return res;
 	}
 	
-	private void compareFunction(FeatureId id, Signature trace, PatternsStatistics pS) throws Exception{
-		Feature f;
-		FunctionFeatureData ffd;
-		double d=0.0;
+	private void compareFunction( FeatureId featureId, Signature trace,
+								Map<FeatureId,Boolean> featureCheckResults ) throws Exception{
 
-		f=trace.getFeature(id);
-		ffd = f.getData();
+		Feature feature = trace.getFeature(featureId);
+		FunctionFeatureData featureData = feature.getData();
 		
 		// Cal calcular DTW de ffd amb tots els patterns per cada feature i fer la mitja
-		d=pS.compareFunctions(id, ffd);
+		FunctionFeatureComparator comparator = new FunctionFeatureComparator();
+		DescriptiveStatistics statistics = new DescriptiveStatistics();
+		List<FunctionFeatureData> patternDatas = patternsStatistics.getFunctionFeatureDatas( featureId );
+		for( FunctionFeatureData patternData : patternDatas ) {
+			double distance = comparator.distance( patternData, featureData );
+			statistics.addValue( distance );
+		}
 		
-		FRVectorValues.put(id,new Double(d));
-	
-		// Per acabar cal comparar amb la D(i) emmagatzemada a pS
-		if(d < pS.getFeatureStatistic(id, Statistics.DISTANCE))
-			FRVector.put(id, new Boolean(true));
-		else
-			FRVector.put(id, new Boolean(false));
+		StatisticalSummary patternStatistics = patternsStatistics.getFunctionFeatureStatistics( featureId );
+		featureCheckResults.put( featureId, statistics.getMean() < patternStatistics.getMean() );
 	}
 	
-	private double insidersRateCompute(){
+	
+	private double insidersRateCompute( Map<FeatureId,Boolean> featureCheckResults ){
 		// A partir del vector de ratios calcula un ratio global, per comparar amb treshold
-		double p=0.0;
 		double sum=0.0;
 		double res=0.0;
-		boolean aux;
-		
-		for( FeatureId feature : scalarFeatures ) {
-			aux=FRVector.containsKey(feature);
-			if(aux){
-				p = FeatureWeight.get(feature).doubleValue();
-				sum=sum+p;
-				if(FRVector.get(feature))
-					res = res+p;
-			}
-		}
 
-		for( FeatureId feature : temporalFeatures ) {
-			aux=FRVector.containsKey(feature);
-			if(aux){
-				p = FeatureWeight.get(feature).doubleValue();
-				sum=sum+p;
-				if(FRVector.get(feature))
-					res = res+p;
+		for( Map.Entry<FeatureId,Boolean> featureCheckResult : featureCheckResults.entrySet() ) {
+			double weight = featureWeight.get( featureCheckResult.getKey() );
+			sum += weight;
+			if ( featureCheckResults.get( featureCheckResult.getKey() ) ) {
+				res += weight;
 			}
 		}
 		

@@ -2,49 +2,30 @@ package com.vkb.alg;
 
 import java.util.List;
 
-import com.vkb.alg.determine.OutlierFeatureDeterminer;
-import com.vkb.alg.extract.DefaultFeaturesExtractor;
-import com.vkb.alg.preprocess.EmptyPreprocessor;
 import com.vkb.model.CapturedData;
 import com.vkb.model.Signature;
-import com.vkb.alg.determine.PatternsStatistics;
 
 public class GenericSignatureValidator {
 	private Determiner determiner;
-	private final double Th = 0.8;
+	private SignatureBuilder signatureBuilder;
 	
-	
-	public GenericSignatureValidator() throws Exception {
-		determiner = new OutlierFeatureDeterminer( this.Th );
-	}
-
-	
-	public GenericSignatureValidator( double Th ) throws Exception {
-		determiner = new OutlierFeatureDeterminer( Th );
-	}
-	
-	
-	public boolean check( CapturedData capturedData, PatternsStatistics pS ) throws Exception {
-
-		Preprocessor preprocessor = new EmptyPreprocessor();
-		FeaturesExtractor featuresExtractor = new DefaultFeaturesExtractor();
+	public GenericSignatureValidator( Preprocessor preprocessor, 
+							FeaturesExtractor featuresExtractor, Determiner determiner,
+							List<CapturedData> capturedDatas ) throws Exception {
+		signatureBuilder = new SignatureBuilder( preprocessor, featuresExtractor );
 		
-		SignatureBuilder traceBuilder = new SignatureBuilder( preprocessor, featuresExtractor );
+		List<Signature> patternTraces = signatureBuilder.build( capturedDatas );
 		
-		
-		Signature signature = traceBuilder.build( capturedData );
-		return determiner.check( signature, pS );
+		this.determiner = determiner;
+		determiner.setPattern(patternTraces);
 	}
 	
+	public boolean check( CapturedData capturedData ) throws Exception {
+		Signature signature = signatureBuilder.build( capturedData );
+		return check( signature );
+	}
 	
-	public double checkRate( CapturedData capturedData, PatternsStatistics pS  ) throws Exception {
-
-		Preprocessor preprocessor = new EmptyPreprocessor();
-		FeaturesExtractor featuresExtractor = new DefaultFeaturesExtractor();
-		
-		SignatureBuilder traceBuilder = new SignatureBuilder( preprocessor, featuresExtractor );
-		
-		Signature signature = traceBuilder.build( capturedData );
-		return determiner.checkRate( signature, pS );
+	public boolean check( Signature signature ) throws Exception {
+		return determiner.check( signature );
 	}
 }

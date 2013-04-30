@@ -22,7 +22,7 @@ public class SignatureValidatorTest {
 		List<CapturedData> datas1 = parser.parse( INPUT_FOLDER1 ) ;
 		List<CapturedData> datas2 = parser.parse( INPUT_FOLDER2 ) ;
 		
-		GenericSignatureValidator validationAlgorithm = new GenericSignatureValidator( datas1 );
+		OutlierFeatureSignatureValidator validationAlgorithm = new OutlierFeatureSignatureValidator( datas1 );
 		assertTrue( validationAlgorithm.check(datas1.get(0)) );
 		assertFalse( validationAlgorithm.check(datas2.get(0)) );
 	}

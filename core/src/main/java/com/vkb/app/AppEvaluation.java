@@ -3,15 +3,10 @@ package com.vkb.app;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
-import java.util.Map;
-import java.util.Iterator;
 
-import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -19,18 +14,17 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import com.vkb.alg.GenericSignatureValidator;
-import com.vkb.alg.CreatePatterns;
-import com.vkb.app.util.DefaultSignatureBuilder;
+import com.vkb.alg.FeaturesExtractor;
+import com.vkb.alg.OutlierFeatureSignatureValidator;
+import com.vkb.alg.Preprocessor;
+import com.vkb.alg.SignatureBuilder;
+import com.vkb.alg.extract.DefaultFeaturesExtractor;
+import com.vkb.alg.preprocess.EmptyPreprocessor;
 import com.vkb.app.util.Environment;
-import com.vkb.app.util.FeaturesStatistics;
 import com.vkb.gui.Application;
 import com.vkb.io.CapturedDatasParser;
-import com.vkb.math.DiscreteFunction;
 import com.vkb.model.CapturedData;
-import com.vkb.model.FeatureId;
 import com.vkb.model.Signature;
-import com.vkb.alg.determine.PatternsStatistics;
 
 public class AppEvaluation {
 	private static boolean FILE_OUT = true;
@@ -65,38 +59,29 @@ public class AppEvaluation {
 	private FileWriter fw = null;
 	private BufferedWriter bw= null;
 	
-	
-	
 	private Vector<boolean[][]> results = new Vector<boolean[][]>();
-	private Vector<PatternsStatistics> patternsVector = new Vector<PatternsStatistics>();
 	private double farVector[];
 	private double frrVector[];
+	
+	private SignatureBuilder signatureBuilder;
 		
 	public AppEvaluation( File[] inputFolders, File[] checkFolders ) {
 		this.inputFolders = inputFolders;
 		this.checkFolders = checkFolders;
+		
+		Preprocessor preprocessor = new EmptyPreprocessor();
+		FeaturesExtractor featuresExtractor = new DefaultFeaturesExtractor();
+		signatureBuilder = new SignatureBuilder( preprocessor, featuresExtractor );
+		
 	}
 
 	// La idea es generar una matriu on cada usuari es validi contra 
 	// totes les signatures. Per cada usuari suposarem un intent que sera
 	// el primer fitxer del seu directori de signatures...
 	private void run() throws Exception {
-		boolean acceptMatrix[][];
 		long startedTime = System.currentTimeMillis();
 		
-		double Th=0.0;
-		int index=0;
-
-		File inputFolder;
-		File checkFolder;
-		List<CapturedData> inputData=null;
-		List<CapturedData> checkData=null;
-		CapturedDatasParser inputDataParser = new CapturedDatasParser();
-		GenericSignatureValidator gsv;
-		String user;
-		
-		if(FILE_OUT)
-		{
+		if( FILE_OUT ) {
 			fw = new FileWriter(OUTPUT_FILE);
 			bw = new BufferedWriter(fw);
 		}
@@ -107,43 +92,37 @@ public class AppEvaluation {
 		/* determine.PatternsStatistics					  */
 		/* ********************************************** */
 		
-		// Creem un vector amb el patro de cada usuari
-		CreatePatterns cP = new CreatePatterns();
+		List<OutlierFeatureSignatureValidator> validators = generateValidators();
+		List<Signature> signaturesToCheck = generateSignaturesToCheck();
 		
-		for (int k=0;k<inputFolders.length;k++){
-			user = inputFolders[k].getName();
-			inputFolder=inputFolders[k];
-			inputData = inputDataParser.parse(inputFolder);
-			
-			System.out.println("Creant patrons de l'usuari: "+user);
-		    PatternsStatistics pS = cP.createPatterns(inputData);	
-		    patternsVector.add(k, pS);
-		}
 		
 		System.out.println("Inici calcul FAR/FRR");
 		System.out.println("---------------------");
 		
-		while (Th<MAX_LIMIT_TH){
-			acceptMatrix = new boolean[checkFolders.length][inputFolders.length];
-			gsv = new GenericSignatureValidator(Th);
-			
-			// Recorregut per tots els directoris per escollir la signatura a fer el check (0)	
-			for (int i=0;i<checkFolders.length;i++){
-				checkData = inputDataParser.parse(checkFolders[i]);
-				// Recorregut per la BD que formen les mostres de tots els directoris -> Vector pSVector (no pot ser hash per ordre)
+		int index = 0;
+		double threshold = 0.0;
+		while ( threshold < MAX_LIMIT_TH ){
+			boolean acceptMatrix[][] = new boolean[checkFolders.length][inputFolders.length];
+
+			for ( int i=0; i<signaturesToCheck.size(); i++ ){
 				
-				for(int k=0;k<patternsVector.size();k++){
-					System.out.println("\nUsuari "+checkFolders[i].getName()+" vs. "+inputFolders[k].getName()+" amb Th:"+Th);
+				Signature signatureToCheck = signaturesToCheck.get(i);
+				
+				for( int k=0; k<validators.size(); k++){
+					System.out.println( "\nUsuari " + checkFolders[i].getName() + " vs. "+ 
+									inputFolders[k].getName() + " amb Th:" + threshold );
 					System.out.println("---------------------------------------");
 			
+					OutlierFeatureSignatureValidator validator = validators.get( k );
+					validator.setThreshold(threshold);
+					
 					// Agafem la primera signatura de cada directori
-					acceptMatrix[i][k] = gsv.check(checkData.get(0),patternsVector.elementAt(k));
+					acceptMatrix[i][k] = validator.check( signatureToCheck );
 				}
 			}
 		
-			results.add(index, acceptMatrix);
-			Th = Th+INC_TH;
-			index++;
+			results.add( index++, acceptMatrix );
+			threshold = threshold+INC_TH;
 		}
 		
 		farVector=new double[results.size()];
@@ -166,8 +145,39 @@ public class AppEvaluation {
 		application.run( "FAR/FRR Graphics", tracesPlot );
 		
 	}
-	
+
+
+	private List<OutlierFeatureSignatureValidator> generateValidators() throws Exception {
+		CapturedDatasParser inputDataParser = new CapturedDatasParser();
 		
+		List<OutlierFeatureSignatureValidator> ret = new ArrayList<OutlierFeatureSignatureValidator>();
+		for (int i=0; i<inputFolders.length; i++){
+			String user = inputFolders[i].getName();
+			File folder=inputFolders[i];
+			List<CapturedData> inputData = inputDataParser.parse(folder);
+			
+			System.out.println("Creant patrons de l'usuari: "+user);
+			OutlierFeatureSignatureValidator validator = new OutlierFeatureSignatureValidator(inputData);
+		    ret.add( validator );
+		}
+		return ret;
+	}
+	
+	
+	private List<Signature> generateSignaturesToCheck() throws Exception {
+		CapturedDatasParser inputDataParser = new CapturedDatasParser();
+		
+		List<Signature> ret = new ArrayList<Signature>();
+		for (int i=0; i<checkFolders.length; i++){
+			File folder=checkFolders[i];
+			List<CapturedData> checkData = inputDataParser.parse(folder);
+			
+			Signature signature = signatureBuilder.build( checkData.get(0) );
+			ret.add( signature );
+		}
+		return ret;
+	}
+	
 	
 	private void calculateFarFrr() throws Exception{
 		boolean[][] matrix;

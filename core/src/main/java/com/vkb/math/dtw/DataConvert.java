@@ -6,6 +6,7 @@ import java.util.List;
 import com.fastdtw.timeseries.TimeSeries;
 import com.fastdtw.timeseries.TimeSeriesPoint;
 import com.vkb.math.DiscreteFunction;
+import com.vkb.math.DiscreteVectorFunction;
 import com.vkb.model.FunctionFeatureData;
 
 // Use com.vkb.math.dtw.FunctionWarper
@@ -15,6 +16,7 @@ public class DataConvert {
 	public static TimeSeries getTimeSeries( FunctionFeatureData... functions ) throws Exception {
 		return getTimeSeries( Arrays.asList( functions) );
 	}
+	
 	
 	public static TimeSeries getTimeSeries( List<FunctionFeatureData> functions ) throws Exception {
 		TimeSeries ret = new TimeSeries( functions.size() );
@@ -29,6 +31,15 @@ public class DataConvert {
 			ret.addLast( time, new TimeSeriesPoint( values ) );
 		}
 		
+		return ret;
+	}
+	
+	
+	public static TimeSeries getTimeSeries( DiscreteVectorFunction function ) throws Exception {
+		TimeSeries ret = new TimeSeries( function.countDimensions() );
+		for( DiscreteVectorFunction.Point p : function.getPoints() ) {
+			ret.addLast( p.getX(), new TimeSeriesPoint( p.getValues() ) );
+		}
 		return ret;
 	}
 	
