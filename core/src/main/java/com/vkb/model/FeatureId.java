@@ -1,5 +1,10 @@
 package com.vkb.model;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 public enum FeatureId {
 	POSITION_X( "X(t)", FunctionFeatureData.class ), 
 	POSITION_Y( "Y(t)", FunctionFeatureData.class ),
@@ -18,6 +23,20 @@ public enum FeatureId {
 	RELATION_AREA( "X_Y_AREA", ScalarFeatureData.class ),
 	RELATION_X_Y( "X_Y_REL(t)", FunctionFeatureData.class );
 	
+	private static Map<Class<? extends FeatureData>, Set<FeatureId>> indexByModel;
+	
+	static {
+		indexByModel = new HashMap<Class<? extends FeatureData>, Set<FeatureId>>();
+		for ( FeatureId feature : FeatureId.values() ) {
+			Set<FeatureId> set = indexByModel.get( feature.getModel() );
+			if ( set == null ) {
+				set = new HashSet<FeatureId>();
+				indexByModel.put( feature.getModel(), set );
+			}
+			set.add( feature );
+		}
+	}
+	
 	private String name;
 	private Class<? extends FeatureData> type;
 	
@@ -32,6 +51,10 @@ public enum FeatureId {
 	
 	public Class<? extends FeatureData> getModel() {
 		return type;
+	}
+	
+	public static Set<FeatureId> getByModel( Class<? extends FeatureData> modelClass ) {
+		return indexByModel.get( modelClass );
 	}
 	
 	@Override

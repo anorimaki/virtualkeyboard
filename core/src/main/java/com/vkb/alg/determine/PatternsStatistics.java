@@ -1,179 +1,149 @@
 package com.vkb.alg.determine;
 
-
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 
-import com.fastdtw.dtw.FastDTW;
-import com.fastdtw.dtw.TimeWarpInfo;
-import com.fastdtw.timeseries.TimeSeries;
-import com.fastdtw.util.EuclideanDistance;
-import com.vkb.math.dtw.DataConvert;
-import com.vkb.model.FeatureId;
-import com.vkb.model.ScalarFeatureData;
-import com.vkb.model.FunctionFeatureData;
-import com.vkb.model.Signature;
+import com.vkb.math.dtw.FunctionFeatureComparator;
 import com.vkb.model.Feature;
-import com.vkb.model.Statistics;
+import com.vkb.model.FeatureId;
+import com.vkb.model.FunctionFeatureData;
+import com.vkb.model.ScalarFeatureData;
+import com.vkb.model.Signature;
 
 
 public class PatternsStatistics {
-	private static final FeatureId[] scalarFeatures = { 
-		FeatureId.POSITION_X_AVG, FeatureId.POSITION_Y_AVG,
-		FeatureId.VELOCITY_X_AVG, FeatureId.VELOCITY_Y_AVG,
-		FeatureId.ACCELERATION_X_AVG, FeatureId.ACCELERATION_Y_AVG,
-		FeatureId.AREA_X, FeatureId.AREA_Y, FeatureId.RELATION_AREA
-	};
+	private Map<FeatureId, DescriptiveStatistics> scalarFeaturesStatistics;
+	private Map<FeatureId, DescriptiveStatistics> functionFeaturesStatistics;
+	private Map<FeatureId, List<FunctionFeatureData>> functionFeaturesDatas;
 	
-	private static final FeatureId[] temporalFeatures = { 
-		FeatureId.POSITION_X, FeatureId.POSITION_Y,
-		FeatureId.VELOCITY_X, FeatureId.VELOCITY_Y,
-		FeatureId.ACCELERATION_X, FeatureId.ACCELERATION_Y, FeatureId.RELATION_X_Y
-	};
+	public PatternsStatistics( List<Signature> signatures ) throws Exception {
+		scalarFeaturesStatistics = new HashMap<FeatureId, DescriptiveStatistics>();
+		functionFeaturesDatas = new HashMap<FeatureId, List<FunctionFeatureData>>();
 		
-	private Map<FeatureId, Statistics> featureStatistics = new HashMap<FeatureId, Statistics>();
-	private List<Signature> traces;
-	
-	public List<Signature> getSignatures(){
-		return traces;
-	}
-	
-	public Statistics getFeatureStatistics(FeatureId id){
-		return featureStatistics.get(id);
-	}
-	
-	public double getFeatureStatistic(FeatureId id, String statisticName){
-		return featureStatistics.get(id).getStatistic(statisticName);
-	}
-	
-	public PatternsStatistics (List<Signature> traces) throws Exception{
-		Statistics statisticValue;
-		Signature sign;
-		Feature f;
-		ScalarFeatureData sfd;
-		FunctionFeatureData ffd,ffd2;
-		Map<FeatureId,DescriptiveStatistics> statisticsList = new HashMap<FeatureId,DescriptiveStatistics>();
+		Signature signature0 = signatures.get(0);
+		Set<Feature> scalarFeatures0 = signature0.getFeatures().getAllByModel( ScalarFeatureData.class );
+		processSignature0ScalarFeatures( scalarFeatures0 );
+			
+		Set<Feature> functionFeatures0 = signature0.getFeatures().getAllByModel( FunctionFeatureData.class );
+		processSignature0FunctionFeatures( functionFeatures0, functionFeaturesDatas );
 		
-		this.traces = traces;
-		
-		// Recorrem tota la llista de signatures
-		// Es pot simplificar el codi a costa de fer mes recorreguts sobre la llista
-		for ( int i=0; i<traces.size(); ++i ) {
-			for( FeatureId feature : scalarFeatures ) {
-				sign = traces.get(i);
-				f=sign.getFeature(feature);
-				// Cal revisar si te el feature
-				sfd = f.getData();
-				if(statisticsList.containsKey(feature)){
-					DescriptiveStatistics aux = statisticsList.get(feature);
-					aux.addValue(sfd.getValue());
-				}else{
-					DescriptiveStatistics aux = new DescriptiveStatistics();
-					aux.addValue(sfd.getValue());
-					statisticsList.put(feature, aux);
-				}
-			}
+		for ( int i=1; i<signatures.size(); ++i ) {
+			Signature signature = signatures.get(i);
+			
+			Set<Feature> scalarFeatures = signature.getFeatures().getAllByModel( ScalarFeatureData.class );
+			processScalarFeatures( scalarFeatures );
+			
+			Set<Feature> functionFeatures = signature.getFeatures().getAllByModel( FunctionFeatureData.class );
+			processFunctionFeatures( functionFeatures, functionFeaturesDatas );
 		}
 		
-		for( FeatureId feature : scalarFeatures ) {
-			CreateStatisticsMeanStdev(feature,statisticsList.get(feature).getMean(),statisticsList.get(feature).getStandardDeviation()); 
-		}
-		
-		/*
-		 * PER DESACTIVAR FUNCIONS TEMPORALS!!
-		 * 
-		 * 
-		 * */
-		// Acte seguit hauriem de calcular D per a les funcions temporals (donada la complexitat
-		// i la poca variabilitat, seria millor tenir-ho emmagatzemat en un fitxer!!
-		// DTW es commutativa DTW(A,B) == DTW (B,A)
-		for( FeatureId feature : temporalFeatures ) {
-			for (int i=0;i<traces.size();i++){
-				sign = traces.get(i);
-				f=sign.getFeature(feature);
-				ffd=f.getData();
-				for (int x=(i+1);x<traces.size();x++){
-					sign = traces.get(x);
-					f=sign.getFeature(feature);
-					ffd2=f.getData();
-					double distance = compareFast(ffd,ffd2);
-					
-					// System.out.print(feature.toString()+"("+i+","+x+")");
-					
-					if(statisticsList.containsKey(feature)){
-						DescriptiveStatistics aux = statisticsList.get(feature);
-						aux.addValue(distance);
-						// System.out.println("Existeix estadistic");
-					}else{
-						DescriptiveStatistics aux = new DescriptiveStatistics();
-						aux.addValue(distance);
-						statisticsList.put(feature, aux);
-						// System.out.println("No existeix estadistic");
-					}
-				}
-			}
-		}
-		
-		for( FeatureId feature : temporalFeatures ) {
-			CreateStatisticsDistance(feature,statisticsList.get(feature).getMean()); 
-		}
-		
-		
+		functionFeaturesStatistics = new HashMap<FeatureId, DescriptiveStatistics>();
+		calculateFunctionFeaturesStatistics( functionFeaturesDatas );
 	}
 	
+	public Set<FeatureId> getScalarFeatures() {
+		return scalarFeaturesStatistics.keySet();
+	}
 	
-	public double compareFunctions(FeatureId feature, FunctionFeatureData f1) throws Exception {
-		TimeSeries ts2;
-		FunctionFeatureData ffd;
-		Signature sign;
+	public Set<FeatureId> getFunctionFeatures() {
+		return functionFeaturesStatistics.keySet();
+	}
+	
+	public StatisticalSummary getScalarFeatureStatistics( FeatureId featureId ) {
+		return scalarFeaturesStatistics.get( featureId );
+	}
+	
+	public StatisticalSummary getFunctionFeatureStatistics( FeatureId featureId ) {
+		return functionFeaturesStatistics.get( featureId );
+	}
+	
+	public List<FunctionFeatureData> getFunctionFeatureDatas( FeatureId featureId ) {
+		return functionFeaturesDatas.get( featureId );
+	}
+	
+	private void calculateFunctionFeaturesStatistics(
+						Map<FeatureId, List<FunctionFeatureData>> functionFeaturesDatas) throws Exception {
 		
-		TimeSeries ts1 = DataConvert.getTimeSeries(f1);
-		DescriptiveStatistics sta = new DescriptiveStatistics();
+		for( Map.Entry<FeatureId, List<FunctionFeatureData>> functionFeatureDatas : functionFeaturesDatas.entrySet() ) {
+			DescriptiveStatistics statistics = calculateFunctionsStatistics( functionFeatureDatas.getValue() );
+			functionFeaturesStatistics.put( functionFeatureDatas.getKey(), statistics );
+		}
+	}
 
-		for (int i=0;i<traces.size();i++){
-			sign = traces.get(i);
-			ffd=sign.getFeature(feature).getData();
-			ts2=DataConvert.getTimeSeries(ffd);
-		    double distance = FastDTW.getWarpDistBetween(ts1,ts2,new EuclideanDistance());
-		    
-		    sta.addValue(distance);
-		    
-		    //System.out.println("Comparativa("+i+") de la feature "+feature.toString());
+	
+	private DescriptiveStatistics calculateFunctionsStatistics( List<FunctionFeatureData> datas ) throws Exception {
+		FunctionFeatureComparator comparator = new FunctionFeatureComparator();
+		
+		DescriptiveStatistics ret = new DescriptiveStatistics();
+		
+		for ( int i=0; i<datas.size(); i++ ){
+			for ( int j=i+1; i<datas.size(); i++ ){
+				double distance = comparator.distance( datas.get(i), datas.get(j) );
+				ret.addValue( distance );
+			}
+		}
+		return ret;
+	}
+
+
+	private void processSignature0ScalarFeatures( Set<Feature> features ) {
+		for( Feature feature : features ) {
+			ScalarFeatureData data = feature.getData();
+			
+			DescriptiveStatistics featureStatistics = new DescriptiveStatistics();
+			featureStatistics.addValue( data.getValue() );
+			scalarFeaturesStatistics.put( feature.getId(), featureStatistics );
+		}
+	}
+	
+	private void processScalarFeatures( Set<Feature> features ) throws Exception {
+		if ( features.size() != scalarFeaturesStatistics.size() ) {
+			throw new Exception( "Error generating pattern. Signatures have different features" );
 		}
 		
-		return sta.getMean();
-	}
-	
-	
-	private void CreateStatisticsMeanStdev(FeatureId id, double mean, double stdev){
-		Statistics st = new Statistics();
+		for( Feature feature : features ) {
+			ScalarFeatureData data = feature.getData();
 			
-		st.setStatistic(st.MEAN, mean);
-		st.setStatistic(st.STDEV, stdev);
-		featureStatistics.put(id, st);
-		
-		//System.out.println("Afegit estadistic "+id.toString()+": "+st.toString());
+			DescriptiveStatistics featureStatistics = scalarFeaturesStatistics.get( feature.getId() );
+			if ( featureStatistics==null ) {
+				throw new Exception( "Error generating pattern. Signatures have different features" );
+			}
+			featureStatistics.addValue( data.getValue() );
+		}
 	}
 	
 	
-	private double compareFast( FunctionFeatureData f1, FunctionFeatureData f2 ) throws Exception {
-		TimeSeries ts1 = DataConvert.getTimeSeries(f1);
-		TimeSeries ts2 = DataConvert.getTimeSeries(f2);
-		
-		return FastDTW.getWarpDistBetween(ts1,ts2,new EuclideanDistance());
-	}
-	
-	
-	private void CreateStatisticsDistance(FeatureId id, double mean){
-		Statistics st = new Statistics();
+	private void processSignature0FunctionFeatures( Set<Feature> features,  
+								Map<FeatureId, List<FunctionFeatureData>> functionFeaturesDatas ) {
+		for( Feature feature : features ) {
+			FunctionFeatureData data = feature.getData();
 			
-		st.setStatistic(st.DISTANCE, mean);
-		featureStatistics.put(id, st);
-		
-		//System.out.println("Afegit estadistic "+id.toString()+": "+st.toString());
+			List<FunctionFeatureData> list = new ArrayList<FunctionFeatureData>();
+			list.add( data );
+			functionFeaturesDatas.put( feature.getId(), list );
+		}
 	}
 	
+	private void processFunctionFeatures( Set<Feature> features, 
+								Map<FeatureId, List<FunctionFeatureData>> functionFeaturesDatas ) throws Exception {
+		if ( features.size() != functionFeaturesDatas.size() ) {
+			throw new Exception( "Error generating pattern. Signatures have different features" );
+		}
+		
+		for( Feature feature : features ) {
+			FunctionFeatureData data = feature.getData();
+		
+			List<FunctionFeatureData> list = functionFeaturesDatas.get( feature.getId() );
+			if ( list==null ) {
+				throw new Exception( "Error generating pattern. Signatures have different features" );
+			}
+			list.add( data );
+		}
+	}
 }
