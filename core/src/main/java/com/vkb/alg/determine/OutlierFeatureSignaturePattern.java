@@ -19,6 +19,7 @@ public class OutlierFeatureSignaturePattern {
 	private static final double MAGICTHRESHOLD =1.96;
 	
 	private static Map<FeatureId,Double> featureWeight = featureWeightConstruct();
+	private static Map<FeatureId,Double> alphaFunctionWeight = alphaFunctionWeightConstruct();
 	private PatternsStatistics patternsStatistics;
 	private Set<FeatureId> scalarFeatues;		//Pre computed set for performance
 	private Set<FeatureId> functionFeatues;		//Pre computed set for performance
@@ -69,6 +70,20 @@ public class OutlierFeatureSignaturePattern {
 	}
 
 	
+	private static Map<FeatureId,Double> alphaFunctionWeightConstruct() {
+		Map<FeatureId,Double> alphaWeight = new HashMap<FeatureId,Double>();
+		
+		alphaWeight.put( FeatureId.POSITION_X, 1.0d );
+		alphaWeight.put( FeatureId.POSITION_Y, 1.0d );
+		alphaWeight.put( FeatureId.VELOCITY_X, 1.0d );
+		alphaWeight.put( FeatureId.VELOCITY_Y, 1.0d );
+		alphaWeight.put( FeatureId.ACCELERATION_X, 1.0d );
+		alphaWeight.put( FeatureId.ACCELERATION_Y, 1.0d );
+		alphaWeight.put( FeatureId.RELATION_X_Y, 1.0d );
+	
+		return alphaWeight;
+	}
+	
 	private void compareScalar( FeatureId featureId, Signature trace, 
 								Map<FeatureId,Boolean> featureCheckResults ){
 		Feature feature = trace.getFeature(featureId);
@@ -110,7 +125,10 @@ public class OutlierFeatureSignaturePattern {
 		}
 		
 		StatisticalSummary patternStatistics = patternsStatistics.getFunctionFeatureStatistics( featureId );
-		featureCheckResults.put( featureId, statistics.getMean() < patternStatistics.getMean() );
+		featureCheckResults.put( featureId, statistics.getMean() < (alphaFunctionWeight.get(featureId)*patternStatistics.getMean()));
+		
+		// Prova per coneixer d(j) vs. D(j))
+		//System.out.println(featureId+"-> "+statistics.getMean()+" < "+(alphaFunctionWeight.get(featureId)*patternStatistics.getMean()));
 	}
 	
 	

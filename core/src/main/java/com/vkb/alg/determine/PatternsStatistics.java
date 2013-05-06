@@ -66,6 +66,7 @@ public class PatternsStatistics {
 	public List<FunctionFeatureData> getFunctionFeatureDatas( FeatureId featureId ) {
 		return functionFeaturesDatas.get( featureId );
 	}
+
 	
 	private void calculateFunctionFeaturesStatistics(
 						Map<FeatureId, List<FunctionFeatureData>> functionFeaturesDatas) throws Exception {
@@ -73,6 +74,9 @@ public class PatternsStatistics {
 		for( Map.Entry<FeatureId, List<FunctionFeatureData>> functionFeatureDatas : functionFeaturesDatas.entrySet() ) {
 			DescriptiveStatistics statistics = calculateFunctionsStatistics( functionFeatureDatas.getValue() );
 			functionFeaturesStatistics.put( functionFeatureDatas.getKey(), statistics );
+			
+			// Prova per coneixer la std(D(j))
+			//System.out.println(functionFeatureDatas.getKey()+"->("+statistics.getMean()+","+statistics.getStandardDeviation()+")");
 		}
 	}
 
