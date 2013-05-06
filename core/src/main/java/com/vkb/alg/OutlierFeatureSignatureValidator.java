@@ -8,7 +8,7 @@ import com.vkb.alg.preprocess.EmptyPreprocessor;
 import com.vkb.model.CapturedData;
 import com.vkb.model.Signature;
 
-public class OutlierFeatureSignatureValidator {
+public class OutlierFeatureSignatureValidator implements Validator  {
 	private GenericSignatureValidator impl;
 	private OutlierFeatureDeterminer determiner;
 	
@@ -24,10 +24,12 @@ public class OutlierFeatureSignatureValidator {
 		determiner.setThreshold( th );
 	}
 	
+	@Override
 	public boolean check( CapturedData capturedData ) throws Exception {
 		return impl.check( capturedData );
 	}
 	
+	@Override
 	public boolean check( Signature signature ) throws Exception {
 		return impl.check( signature );
 	}

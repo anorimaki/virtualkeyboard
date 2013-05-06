@@ -1,11 +1,15 @@
 package com.vkb.app;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
@@ -27,14 +31,7 @@ import com.vkb.model.CapturedData;
 import com.vkb.model.Signature;
 
 public class AppEvaluation {
-	private static boolean FILE_OUT = true;
-	private static final String OUTPUT_FILE = "src/main/resources/quality.txt";
-	
-	private static final double MAX_LIMIT_TH = 1.0;
-	private static final double INC_TH = 0.05;
-	private static final double AUTHENTICATED_USERS = 7.0;
-	private static final double FALSE_USERS = (7.0 * 7.0)-AUTHENTICATED_USERS;
-	
+	private static final File OUTPUT_FILE = null; //new File("src/main/resources/quality.txt");
 		
 	private static final File INPUT_FOLDERS[] = { 
 		new File( Environment.RESOURCES_DIR, "user1" ),
@@ -56,109 +53,203 @@ public class AppEvaluation {
 	
 	private File[] inputFolders;
 	private File[] checkFolders;
-	private FileWriter fw = null;
-	private BufferedWriter bw= null;
 	
-	private Vector<boolean[][]> results = new Vector<boolean[][]>();
-	private double farVector[];
-	private double frrVector[];
+	private Writer output;
+	private static double ThresholdsToCheck[] = { 0.05d, 0.1d, 0.15d, 0.2d, 0.25d, 0.3d, 0.35d, 0.4d, 0.45d,
+											0.5d, 0.55d, 0.60d, 0.65d, 0.7d, 0.75d, 0.8d, 0.85d, 0.9d, 0.95d };
 	
 	private SignatureBuilder signatureBuilder;
+	private static int NTHREADS = 8;
+	
 		
-	public AppEvaluation( File[] inputFolders, File[] checkFolders ) {
+	public AppEvaluation( File[] inputFolders, File[] checkFolders ) throws Exception {
 		this.inputFolders = inputFolders;
 		this.checkFolders = checkFolders;
 		
 		Preprocessor preprocessor = new EmptyPreprocessor();
 		FeaturesExtractor featuresExtractor = new DefaultFeaturesExtractor();
 		signatureBuilder = new SignatureBuilder( preprocessor, featuresExtractor );
-		
 	}
+	
+	private static class SignaturesChecker implements Callable<List<boolean[]>> {
+		private OutlierFeatureSignatureValidator validator;
+		private List<Signature> signaturesToCheck;
+		
+		private SignaturesChecker( OutlierFeatureSignatureValidator validator, List<Signature> signaturesToCheck ) {
+			this.validator = validator;
+			this.signaturesToCheck = signaturesToCheck;
+			
+		}
 
+		@Override
+		public List<boolean[]> call() throws Exception {
+			List<boolean[]> result = new ArrayList<boolean[]>();
+			
+			for ( int i = 0; i<ThresholdsToCheck.length; ++i ) {
+				boolean[] partialResult = new boolean[signaturesToCheck.size()];
+				validator.setThreshold(ThresholdsToCheck[i]);
+				
+				for ( int j = 0; j<signaturesToCheck.size(); ++j ) {
+					partialResult[j] = validator.check( signaturesToCheck.get(j) );
+				}
+				result.add(partialResult);
+			}
+			
+			return result;
+		}
+	}
+	
+	private static class ResultAccesor {
+		private List<Future<List<boolean[]>>> data;
+		
+		public ResultAccesor( List<Future<List<boolean[]>>> data ) {
+			this.data = data;
+		}
+		
+		public boolean get( int thresholdIndex, int validatorIndex, int signatureToCheckIndex ) throws Exception {
+			return data.get( validatorIndex ).get().get( thresholdIndex )[ signatureToCheckIndex ];
+		}
+	}
+	
+	
 	// La idea es generar una matriu on cada usuari es validi contra 
 	// totes les signatures. Per cada usuari suposarem un intent que sera
 	// el primer fitxer del seu directori de signatures...
 	private void run() throws Exception {
-		long startedTime = System.currentTimeMillis();
-		
-		if( FILE_OUT ) {
-			fw = new FileWriter(OUTPUT_FILE);
-			bw = new BufferedWriter(fw);
+		if ( OUTPUT_FILE != null ) {
+			output = new FileWriter(OUTPUT_FILE);
 		}
-	
-		/* ********************************************** */
-		/* PER DESACTIVAR LES COMPARATIVES DE FUNCIONS	  */
-		/* determine.OutlierFeatureSignaturePattern		  */
-		/* determine.PatternsStatistics					  */
-		/* ********************************************** */
+		else {
+			output = new OutputStreamWriter( System.out );
+		}
 		
-		List<OutlierFeatureSignatureValidator> validators = generateValidators();
+		long startedTime = System.currentTimeMillis();
+
+		ExecutorService executor = Executors.newFixedThreadPool( NTHREADS );
+		
+		List<OutlierFeatureSignatureValidator> validators = generateValidators( executor );
 		List<Signature> signaturesToCheck = generateSignaturesToCheck();
-		
 		
 		System.out.println("Inici calcul FAR/FRR");
 		System.out.println("---------------------");
 		
-		int index = 0;
-		double threshold = 0.0;
-		while ( threshold < MAX_LIMIT_TH ){
-			boolean acceptMatrix[][] = new boolean[checkFolders.length][inputFolders.length];
+		List<Future<List<boolean[]>>> futures  = new ArrayList<Future<List<boolean[]>>>();
+		for ( OutlierFeatureSignatureValidator validator : validators ) {
+			futures.add( executor.submit( new SignaturesChecker(validator, signaturesToCheck) ) );
+		}
+		ResultAccesor result = new ResultAccesor( futures );
 
-			for ( int i=0; i<signaturesToCheck.size(); i++ ){
-				
-				Signature signatureToCheck = signaturesToCheck.get(i);
-				
-				for( int k=0; k<validators.size(); k++){
-					System.out.println( "\nUsuari " + checkFolders[i].getName() + " vs. "+ 
-									inputFolders[k].getName() + " amb Th:" + threshold );
-					System.out.println("---------------------------------------");
-			
-					OutlierFeatureSignatureValidator validator = validators.get( k );
-					validator.setThreshold(threshold);
-					
-					// Agafem la primera signatura de cada directori
-					acceptMatrix[i][k] = validator.check( signatureToCheck );
-				}
-			}
-		
-			results.add( index++, acceptMatrix );
-			threshold = threshold+INC_TH;
-		}
-		
-		farVector=new double[results.size()];
-		frrVector=new double[results.size()];
-		
-		calculateFarFrr();
-		
-		if(FILE_OUT){
-			bw.flush();
-			bw.close();
-			fw.close();
-		}
+		// Generacio de les grafiques
+		XYPlot tracesPlot = generateBasePlot();
+		XYSeriesCollection plotTraces = processResutls( result );
 		
 		long executionTime = System.currentTimeMillis() - startedTime;
 		System.out.println("Tiempo de ejecicion: "+executionTime);
 		
-		// Generacio de les grafiques
-		XYPlot tracesPlot = generatePlot();
+		if ( OUTPUT_FILE != null ) {
+			output.close();
+		}
+		
+		tracesPlot.setDataset( 0, plotTraces );
 		Application application = new Application();
 		application.run( "FAR/FRR Graphics", tracesPlot );
+	}
+	
+	//Index in result: pattern, threshold, checkedSignature 
+	private XYSeriesCollection processResutls( ResultAccesor result ) throws Exception{
+		XYSeries xySeriesFar = new XYSeries("FAR", false);
+		XYSeries xySeriesFrr = new XYSeries("FRR", false);
 		
+		for ( int i=0; i<ThresholdsToCheck.length; ++i ) {
+			double currentThreshold = ThresholdsToCheck[i];
+			
+			double far = calculateFar( result, i );
+			double frr = calculateFrr( result, i );
+			
+			displayMatrix( result, i, far, frr );
+			
+			xySeriesFar.add( currentThreshold, far );
+			xySeriesFrr.add( currentThreshold, frr );
+		}
+		
+		XYSeriesCollection ret = new XYSeriesCollection();
+		ret.addSeries(xySeriesFar);
+		ret.addSeries(xySeriesFrr);
+		return ret;
 	}
 
 
-	private List<OutlierFeatureSignatureValidator> generateValidators() throws Exception {
-		CapturedDatasParser inputDataParser = new CapturedDatasParser();
+	private double calculateFrr( ResultAccesor result, int thresholdIndex ) throws Exception {
+		double frr=0.0;
+		for ( int i=0; i<inputFolders.length; i++ ) {
+			if( !result.get( thresholdIndex, i, i ) ) {
+				frr++;
+			}
+		}
+		frr = frr/(double)inputFolders.length;
+		return frr;
+	}
+	
+
+	private double calculateFar( ResultAccesor result, int thresholdIndex ) throws Exception {
+		double far=0.0;
+		for ( int i=0; i<inputFolders.length; i++ ) {
+			for ( int j=0; j<checkFolders.length; ++j ) {
+				if( (i!=j) && result.get( thresholdIndex, i, j ) ) {
+					far++;
+				}
+			}
+		}
+		far = far/(double)((inputFolders.length-1)*checkFolders.length);
+		return far;
+	}
+
+	
+	private void displayMatrix( ResultAccesor result, int thresholdIndex, double far, double frr ) throws Exception {
+		final String ONE  = "1  ";
+		final String ZERO = "0  ";
 		
-		List<OutlierFeatureSignatureValidator> ret = new ArrayList<OutlierFeatureSignatureValidator>();
-		for (int i=0; i<inputFolders.length; i++){
-			String user = inputFolders[i].getName();
-			File folder=inputFolders[i];
-			List<CapturedData> inputData = inputDataParser.parse(folder);
+		output.write("Matriu identificacions Th:" + ThresholdsToCheck[thresholdIndex] + "\n" );
+		output.write("-------------------------------\n");
+		
+		for ( int i=0; i<inputFolders.length; ++i ) {
+			for ( int j=0; j<checkFolders.length; ++j ) {
+				boolean itemResult = result.get( thresholdIndex, i, j );
+				output.write( itemResult ? ONE : ZERO );
+			}
+			output.write( "\n" );
+		}
+		
+		output.write( "-> FRR:" + frr + "   FAR:" + far + "\n\n" );
+		output.flush();
+	}
+
+	
+	private List<OutlierFeatureSignatureValidator> generateValidators( ExecutorService executor ) throws Exception {
+		final CapturedDatasParser inputDataParser = new CapturedDatasParser();
+		
+		final List<Future<OutlierFeatureSignatureValidator>> futures = 
+					new ArrayList<Future<OutlierFeatureSignatureValidator>>();
+		for ( int i=0; i<inputFolders.length; i++ ){
+			final int userIndex = i; 
 			
-			System.out.println("Creant patrons de l'usuari: "+user);
-			OutlierFeatureSignatureValidator validator = new OutlierFeatureSignatureValidator(inputData);
-		    ret.add( validator );
+			Callable<OutlierFeatureSignatureValidator> validatorGenerator =
+							new Callable<OutlierFeatureSignatureValidator>() {
+					@Override
+					public OutlierFeatureSignatureValidator call() throws Exception {
+						File folder = inputFolders[userIndex];
+						List<CapturedData> inputData = inputDataParser.parse(folder);
+						
+						return new OutlierFeatureSignatureValidator(inputData);
+					}
+				};
+				
+			futures.add( executor.submit(validatorGenerator) );
+		}
+	
+		List<OutlierFeatureSignatureValidator> ret = new ArrayList<OutlierFeatureSignatureValidator>();
+		for( Future<OutlierFeatureSignatureValidator> future : futures ) {
+			ret.add( future.get() );
 		}
 		return ret;
 	}
@@ -178,65 +269,7 @@ public class AppEvaluation {
 		return ret;
 	}
 	
-	
-	private void calculateFarFrr() throws Exception{
-		boolean[][] matrix;
-		double Th=0.0;
 
-		for(int i=0;i<results.size();i++){
-			matrix = results.elementAt(i);
-			farVector[i]=calculateFar(matrix);
-			frrVector[i]=calculateFrr(matrix);
-
-			matrixDisplay(matrix, Th, farVector[i], frrVector[i]);
-									
-			Th=Th+INC_TH;
-		}
-		
-		if(FILE_OUT){
-			Th=0.0;
-			bw.write("\n\ngraph=[");
-			for(int i=0;i<farVector.length;i++){
-				// Format MATLAB
-				bw.write(Th+","+farVector[i]+","+frrVector[i]+";");
-				Th=Th+INC_TH;
-			}
-			bw.write("]\n\n");
-		}
-	}
-	
-	private double calculateFar(boolean[][] matrix){
-		double far=0.0;
-		
-		// Evitem la diagonal ja que son usuaris autentics -> (i!=k)
-		for(int i=0;i<matrix.length;i++){
-			for (int k=0;k<matrix.length;k++){
-				if (i!=k && matrix[i][k]){
-					far++;
-				}
-			}
-		}
-		// Matriu triangular
-		far=far/FALSE_USERS;
-		
-		return far;
-	}
-	
-	private double calculateFrr(boolean[][] matrix){
-		double frr=0.0;
-		
-		// Simplement mirem si en alguna posicio de la diagonal no s'ha identificat
-		// un usuari correcte
-		for (int i=0;i<matrix.length;i++)
-			if(!matrix[i][i])
-				frr++;
-		
-		frr=frr/AUTHENTICATED_USERS;
-		
-		return frr;
-	}
-	
-	
 	private XYPlot generateBasePlot() throws Exception {
 		NumberAxis xAxis = new NumberAxis("X");
 		xAxis.setAutoRangeIncludesZero(false);
@@ -255,76 +288,6 @@ public class AppEvaluation {
 	}
 
 	
-	private XYPlot generatePlot() throws Exception{
-		XYPlot tracesPlot = generateBasePlot();
-		XYSeriesCollection compleTraces = new XYSeriesCollection();
-		// Series no ordenades
-		XYSeries xySeriesFar = new XYSeries("FAR", false);
-		XYSeries xySeriesFrr = new XYSeries("FRR", false);
-		double Th=0.0;
-		
-		int i=0;
-		while (Th<MAX_LIMIT_TH){
-			xySeriesFar.add(Th,farVector[i]);
-			xySeriesFrr.add(Th,frrVector[i]);
-			i++;
-			Th = Th+INC_TH;
-		}
-		
-		compleTraces.addSeries(xySeriesFar);
-		compleTraces.addSeries(xySeriesFrr);
-		tracesPlot.setDataset( 0, compleTraces );
-		
-		return tracesPlot;
-	}
-
-	
-	
-	private void matrixDisplay(boolean[][] acceptMatrix, double Th, double far, double frr) throws Exception {
-		// Matriu quadrada
-		int N=acceptMatrix.length;
-		
-		if(FILE_OUT){
-			bw.write("\nMatriu identificacions Th:"+Th+"\n");
-			bw.write("-------------------------------\n");
-		}else{
-			System.out.println("\nMatriu identificacions Th:"+Th);
-			System.out.println("-------------------------------");
-		}
-		
-		for (int i=0;i<N;i++){
-			for (int k=0;k<N;k++){
-				if(acceptMatrix[i][k]){
-					if(FILE_OUT)
-						bw.write("1  ");
-					else
-					    System.out.print("1  ");
-				}
-				else{
-					if(FILE_OUT)
-						bw.write("0  ");
-					else
-						System.out.print("0  ");
-				}
-			}
-			if(FILE_OUT)
-				bw.write("\n");
-			else
-				System.out.print("\n");
-		}
-		
-		if(FILE_OUT){
-			bw.write("-> FRR:"+frr+"   FAR:"+far+"\n");
-		}else{
-			System.out.println("-> FRR:"+frr+"   FAR:"+far);
-		}
-		
-	}	
-	
-	
-	
-	
-		
 	public static void main(String[] args) {
 		try {
 			AppEvaluation prueba = new AppEvaluation( INPUT_FOLDERS, CHECK_FOLDERS);

@@ -5,7 +5,7 @@ import java.util.List;
 import com.vkb.model.CapturedData;
 import com.vkb.model.Signature;
 
-public class GenericSignatureValidator {
+public class GenericSignatureValidator implements Validator {
 	private Determiner determiner;
 	private SignatureBuilder signatureBuilder;
 	
@@ -20,11 +20,13 @@ public class GenericSignatureValidator {
 		determiner.setPattern(patternTraces);
 	}
 	
+	@Override
 	public boolean check( CapturedData capturedData ) throws Exception {
 		Signature signature = signatureBuilder.build( capturedData );
 		return check( signature );
 	}
 	
+	@Override
 	public boolean check( Signature signature ) throws Exception {
 		return determiner.check( signature );
 	}
