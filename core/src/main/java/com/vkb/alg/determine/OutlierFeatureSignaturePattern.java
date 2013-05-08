@@ -140,16 +140,26 @@ public class OutlierFeatureSignaturePattern {
 		FunctionFeatureData featureData = feature.getData();
 		
 		// Cal calcular DTW de ffd amb tots els patterns per cada feature i fer la mitja
+		
+		FunctionFeatureDeterminer determiner = patternsStatistics.getFunctionFeatureDeterminer(featureId);
+		determiner.setThreshold(alphaFunctionWeight.get(featureId));
+		boolean result = determiner.check(featureData);
+		featureCheckResults.put( featureId,result);
+		
+		/* CANVIS FUNCTIONFEATUREDETERMINER
 		FunctionFeatureComparator comparator = new FunctionFeatureComparator();
 		DescriptiveStatistics statistics = new DescriptiveStatistics();
+ 
 		List<FunctionFeatureData> patternDatas = patternsStatistics.getFunctionFeatureDatas( featureId );
 		for( FunctionFeatureData patternData : patternDatas ) {
 			double distance = comparator.distance( patternData, featureData );
 			statistics.addValue( distance );
 		}
-		
+			
 		StatisticalSummary patternStatistics = patternsStatistics.getFunctionFeatureStatistics( featureId );
 		featureCheckResults.put( featureId, statistics.getMean() < (alphaFunctionWeight.get(featureId)*patternStatistics.getMean()));
+		*/
+		
 		
 		// Prova per coneixer d(j) vs. D(j))
 		//System.out.println(featureId+"-> "+statistics.getMean()+" < ("+(alphaFunctionWeight.get(featureId)*patternStatistics.getMean())+","+patternStatistics.getStandardDeviation()+")");

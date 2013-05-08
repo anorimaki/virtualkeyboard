@@ -19,7 +19,7 @@ import com.vkb.model.Signature;
 
 public class PatternsStatistics {
 	private Map<FeatureId, DescriptiveStatistics> scalarFeaturesStatistics;
-	private Map<FeatureId, DescriptiveStatistics> functionFeaturesStatistics;
+	private Map<FeatureId, FunctionFeatureDeterminer> functionFeaturesStatistics;
 	private Map<FeatureId, List<FunctionFeatureData>> functionFeaturesDatas;
 	
 	public PatternsStatistics( List<Signature> signatures ) throws Exception {
@@ -43,7 +43,7 @@ public class PatternsStatistics {
 			processFunctionFeatures( functionFeatures, functionFeaturesDatas );
 		}
 		
-		functionFeaturesStatistics = new HashMap<FeatureId, DescriptiveStatistics>();
+		functionFeaturesStatistics = new HashMap<FeatureId, FunctionFeatureDeterminer>();
 		calculateFunctionFeaturesStatistics( functionFeaturesDatas );
 	}
 	
@@ -59,7 +59,13 @@ public class PatternsStatistics {
 		return scalarFeaturesStatistics.get( featureId );
 	}
 	
+	/* CANVIS FUNCTIONFEATUREDETERMINER
 	public StatisticalSummary getFunctionFeatureStatistics( FeatureId featureId ) {
+		return functionFeaturesStatistics.get( featureId );
+	}
+	*/
+	
+	public FunctionFeatureDeterminer getFunctionFeatureDeterminer( FeatureId featureId ) {
 		return functionFeaturesStatistics.get( featureId );
 	}
 	
@@ -71,9 +77,14 @@ public class PatternsStatistics {
 	private void calculateFunctionFeaturesStatistics(
 						Map<FeatureId, List<FunctionFeatureData>> functionFeaturesDatas) throws Exception {
 		
+		FunctionFeatureDeterminer featureDeterminer;
+		
 		for( Map.Entry<FeatureId, List<FunctionFeatureData>> functionFeatureDatas : functionFeaturesDatas.entrySet() ) {
-			DescriptiveStatistics statistics = calculateFunctionsStatistics( functionFeatureDatas.getValue() );
-			functionFeaturesStatistics.put( functionFeatureDatas.getKey(), statistics );
+			featureDeterminer = new FunctionFeatureDeterminer(functionFeatureDatas.getValue());
+
+			//DescriptiveStatistics statistics = calculateFunctionsStatistics( functionFeatureDatas.getValue() );
+			// CANVIS AMB FUNCTIONFEATUREDETERMINER!!!
+			functionFeaturesStatistics.put( functionFeatureDatas.getKey(), featureDeterminer );
 			
 			// Prova per coneixer la std(D(j))
 			//System.out.println(functionFeatureDatas.getKey()+"->("+statistics.getMean()+","+statistics.getStandardDeviation()+")");
@@ -81,6 +92,8 @@ public class PatternsStatistics {
 	}
 
 	
+	// FunctionFeatureDeterminer, no m'acaba de quadrar...
+	/*
 	private DescriptiveStatistics calculateFunctionsStatistics( List<FunctionFeatureData> datas ) throws Exception {
 		FunctionFeatureComparator comparator = new FunctionFeatureComparator();
 		
@@ -94,7 +107,7 @@ public class PatternsStatistics {
 		}
 		return ret;
 	}
-
+*/
 
 	private void processSignature0ScalarFeatures( Set<Feature> features ) {
 		for( Feature feature : features ) {
