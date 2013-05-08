@@ -30,6 +30,7 @@ public class OutlierFeatureSignaturePattern {
 		functionFeatues = patternsStatistics.getFunctionFeatures();
 		
 		featureWeightConstruct();
+		alphaFunctionWeightConstruct();
 	}
 	
 	
@@ -52,6 +53,7 @@ public class OutlierFeatureSignaturePattern {
 	private static Map<FeatureId,Double> featureWeightConstruct() {
 		Map<FeatureId,Double> featureWeight = new HashMap<FeatureId,Double>();
 		
+		
 		featureWeight.put( FeatureId.ACCELERATION_X_AVG, 0.969685781326788d );
 		featureWeight.put( FeatureId.ACCELERATION_Y_AVG, 0.8367402193097967d );
 		featureWeight.put( FeatureId.POSITION_X_AVG, 0.8349410056742863d );
@@ -65,6 +67,28 @@ public class OutlierFeatureSignaturePattern {
 		for( FeatureId feature : FeatureId.getByModel( FunctionFeatureData.class ) ) {
 			featureWeight.put( feature, 1.0d );
 		}
+		
+		
+//		Proves per a una sola FunctionFeature
+		/*
+		featureWeight.put( FeatureId.ACCELERATION_X_AVG, 0.0d );
+		featureWeight.put( FeatureId.ACCELERATION_Y_AVG, 0.0d );
+		featureWeight.put( FeatureId.POSITION_X_AVG, 0.0d );
+		featureWeight.put( FeatureId.POSITION_Y_AVG, 0.0d );
+		featureWeight.put( FeatureId.VELOCITY_X_AVG, 0.0d );
+		featureWeight.put( FeatureId.VELOCITY_Y_AVG, 0.0d );
+		featureWeight.put( FeatureId.AREA_X, 0.0d );
+		featureWeight.put( FeatureId.AREA_Y, 0.0d );
+		featureWeight.put( FeatureId.RELATION_AREA, 0.0d );
+		
+		featureWeight.put( FeatureId.POSITION_X, 0.0d );
+		featureWeight.put( FeatureId.POSITION_Y, 1.0d );
+		featureWeight.put( FeatureId.VELOCITY_X, 0.0d );
+		featureWeight.put( FeatureId.VELOCITY_Y, 0.0d );
+		featureWeight.put( FeatureId.ACCELERATION_X, 0.0d );
+		featureWeight.put( FeatureId.ACCELERATION_Y, 1.0d );
+		featureWeight.put( FeatureId.RELATION_X_Y, 0.0d );
+*/
 		
 		return featureWeight;
 	}
@@ -128,7 +152,7 @@ public class OutlierFeatureSignaturePattern {
 		featureCheckResults.put( featureId, statistics.getMean() < (alphaFunctionWeight.get(featureId)*patternStatistics.getMean()));
 		
 		// Prova per coneixer d(j) vs. D(j))
-		//System.out.println(featureId+"-> "+statistics.getMean()+" < "+(alphaFunctionWeight.get(featureId)*patternStatistics.getMean()));
+		//System.out.println(featureId+"-> "+statistics.getMean()+" < ("+(alphaFunctionWeight.get(featureId)*patternStatistics.getMean())+","+patternStatistics.getStandardDeviation()+")");
 	}
 	
 	
