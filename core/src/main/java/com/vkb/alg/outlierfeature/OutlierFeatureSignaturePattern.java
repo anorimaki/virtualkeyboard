@@ -1,17 +1,16 @@
-﻿package com.vkb.alg.determine;
+﻿package com.vkb.alg.outlierfeature;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import com.vkb.model.Feature;
-import com.vkb.model.FeatureData;
+import com.vkb.alg.determine.FunctionFeatureDeterminer;
+import com.vkb.alg.determine.ScalarFeatureDeterminer;
 import com.vkb.model.FeatureId;
 import com.vkb.model.FunctionFeatureData;
 import com.vkb.model.ScalarFeatureData;
 import com.vkb.model.Signature;
+import com.vkb.model.Signatures;
 
 public class OutlierFeatureSignaturePattern {
 	
@@ -23,6 +22,16 @@ public class OutlierFeatureSignaturePattern {
 	public OutlierFeatureSignaturePattern( List<Signature> traces ) throws Exception {
 		createFuntionFeatureDeterminers( traces );
 		createScalarFeatureDeterminer( traces );
+	}
+	
+	
+	@SuppressWarnings("unchecked")
+	public <T> T getFeatureValidator( FeatureId feature ) {
+		FunctionFeatureDeterminer ret = functionFeatureDeterminers.get(feature);
+		if ( ret!=null ) {
+			return (T) ret;
+		}
+		return (T) scalarFeatureDeterminers.get(feature);
 	}
 	
 	
@@ -104,7 +113,7 @@ public class OutlierFeatureSignaturePattern {
 	private void createScalarFeatureDeterminer( List<Signature> signatures ) throws Exception {
 		scalarFeatureDeterminers = new HashMap<FeatureId, ScalarFeatureDeterminer>();
 		Map<FeatureId, List<ScalarFeatureData>> featuresDatas = 
-								extractFeaturesByModel( signatures, ScalarFeatureData.class );
+					Signatures.extractFeaturesByModel( signatures, ScalarFeatureData.class );
 		for( Map.Entry<FeatureId, List<ScalarFeatureData>> featureDatas : featuresDatas.entrySet() ) {
 			scalarFeatureDeterminers.put( featureDatas.getKey(), 
 								new ScalarFeatureDeterminer(featureDatas.getValue()) );
@@ -115,46 +124,10 @@ public class OutlierFeatureSignaturePattern {
 	private void createFuntionFeatureDeterminers( List<Signature> signatures ) throws Exception {
 		functionFeatureDeterminers = new HashMap<FeatureId, FunctionFeatureDeterminer>();
 		Map<FeatureId, List<FunctionFeatureData>> featuresDatas = 
-								extractFeaturesByModel( signatures, FunctionFeatureData.class );
+					Signatures.extractFeaturesByModel( signatures, FunctionFeatureData.class );
 		for( Map.Entry<FeatureId, List<FunctionFeatureData>> featureDatas : featuresDatas.entrySet() ) {
 			functionFeatureDeterminers.put( featureDatas.getKey(), 
 								new FunctionFeatureDeterminer(featureDatas.getValue()) );
 		}
-	}
-	
-	static private <T extends FeatureData> Map<FeatureId, List<T>> extractFeaturesByModel( 
-								List<Signature> signatures, Class<T> t ) throws Exception {
-		Signature signature0 = signatures.get(0);
-		
-		Map<FeatureId, List<T>> ret = new HashMap<FeatureId, List<T>>();
-		Set<Feature> signature0Features = signature0.getFeatures().getAllByModel( t );
-		for( Feature feature : signature0Features ) {
-			T data = feature.getData();
-			
-			List<T> list = new ArrayList<T>();
-			list.add( data );
-			ret.put( feature.getId(), list );
-		}
-		
-		for ( int i=1; i<signatures.size(); ++i ) {
-			Signature signature = signatures.get(i);
-			Set<Feature> signatureFeatures = signature.getFeatures().getAllByModel( t );
-			
-			if ( signatureFeatures.size() != signature0Features.size() ) {
-				throw new Exception( "Error generating pattern. Signatures have different features" );
-			}
-			
-			for( Feature feature : signatureFeatures ) {
-				T data = feature.getData();
-			
-				List<T> list = ret.get( feature.getId() );
-				if ( list==null ) {
-					throw new Exception( "Error generating pattern. Signatures have different features" );
-				}
-				list.add( data );
-			}
-		}
-		
-		return ret;
 	}
 }

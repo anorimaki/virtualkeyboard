@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.vkb.alg.outlierfeature.OutlierFeatureAlgorithm;
 import com.vkb.io.CapturedDatasParser;
 import com.vkb.model.CapturedData;
 
@@ -22,7 +23,7 @@ public class SignatureValidatorTest {
 		List<CapturedData> datas1 = parser.parse( INPUT_FOLDER1 ) ;
 		List<CapturedData> datas2 = parser.parse( INPUT_FOLDER2 ) ;
 		
-		OutlierFeatureSignatureValidator validationAlgorithm = new OutlierFeatureSignatureValidator( datas1 );
+		OutlierFeatureAlgorithm validationAlgorithm = new OutlierFeatureAlgorithm( datas1 );
 		assertTrue( validationAlgorithm.check(datas1.get(0)) );
 		assertFalse( validationAlgorithm.check(datas2.get(0)) );
 	}

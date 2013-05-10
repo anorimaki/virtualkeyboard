@@ -24,7 +24,7 @@ import com.vkb.model.CapturedData;
 import com.vkb.model.FeatureId;
 import com.vkb.model.FunctionFeatureData;
 import com.vkb.model.Signature;
-import com.vkb.alg.determine.OutlierFeatureDeterminer;
+import com.vkb.alg.outlierfeature.OutlierFeatureSignatureValidator;
 
 
 

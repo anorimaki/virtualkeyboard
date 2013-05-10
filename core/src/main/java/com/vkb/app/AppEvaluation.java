@@ -19,10 +19,10 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import com.vkb.alg.FeaturesExtractor;
-import com.vkb.alg.OutlierFeatureSignatureValidator;
 import com.vkb.alg.Preprocessor;
 import com.vkb.alg.SignatureBuilder;
 import com.vkb.alg.extract.DefaultFeaturesExtractor;
+import com.vkb.alg.outlierfeature.OutlierFeatureAlgorithm;
 import com.vkb.alg.preprocess.EmptyPreprocessor;
 import com.vkb.app.util.Environment;
 import com.vkb.gui.Application;
@@ -34,22 +34,22 @@ public class AppEvaluation {
 	private static final File OUTPUT_FILE = null; //new File("src/main/resources/quality.txt");
 		
 	private static final File INPUT_FOLDERS[] = { 
-		new File( Environment.RESOURCES_DIR, "user1" ),
-		new File( Environment.RESOURCES_DIR, "user2" ),
-		new File( Environment.RESOURCES_DIR, "user3" ),
-		new File( Environment.RESOURCES_DIR, "user4" ),
-		new File( Environment.RESOURCES_DIR, "user5" ),
-		new File( Environment.RESOURCES_DIR, "user6" ),
-		new File( Environment.RESOURCES_DIR, "user7" ) };
+		new File( Environment.RESOURCES_DIR, "user1/pattern" ),
+		new File( Environment.RESOURCES_DIR, "user2/pattern" ),
+		new File( Environment.RESOURCES_DIR, "user3/pattern" ),
+		new File( Environment.RESOURCES_DIR, "user4/pattern" ),
+		new File( Environment.RESOURCES_DIR, "user5/pattern" ),
+		new File( Environment.RESOURCES_DIR, "user6/pattern" ),
+		new File( Environment.RESOURCES_DIR, "user7/pattern" ) };
 	
 	private static final File CHECK_FOLDERS[] = { 
-		new File( Environment.RESOURCES_DIR, "CapturaUser1" ),
-		new File( Environment.RESOURCES_DIR, "CapturaUser2" ),
-		new File( Environment.RESOURCES_DIR, "CapturaUser3" ),
-		new File( Environment.RESOURCES_DIR, "CapturaUser4" ),
-		new File( Environment.RESOURCES_DIR, "CapturaUser5" ),
-		new File( Environment.RESOURCES_DIR, "CapturaUser6" ),
-		new File( Environment.RESOURCES_DIR, "CapturaUser7" ) };
+		new File( Environment.RESOURCES_DIR, "user1/samples" ),
+		new File( Environment.RESOURCES_DIR, "user2/samples" ),
+		new File( Environment.RESOURCES_DIR, "user3/samples" ),
+		new File( Environment.RESOURCES_DIR, "user4/samples" ),
+		new File( Environment.RESOURCES_DIR, "user5/samples" ),
+		new File( Environment.RESOURCES_DIR, "user6/samples" ),
+		new File( Environment.RESOURCES_DIR, "user7/samples" ) };
 	
 	private File[] inputFolders;
 	private File[] checkFolders;
@@ -59,7 +59,7 @@ public class AppEvaluation {
 											0.5d, 0.55d, 0.60d, 0.65d, 0.7d, 0.75d, 0.8d, 0.85d, 0.9d, 0.95d };
 	
 	private SignatureBuilder signatureBuilder;
-	private static int NTHREADS = 8;
+	private static int NTHREADS = 10;
 	
 		
 	public AppEvaluation( File[] inputFolders, File[] checkFolders ) throws Exception {
@@ -72,10 +72,10 @@ public class AppEvaluation {
 	}
 	
 	private static class SignaturesChecker implements Callable<List<boolean[]>> {
-		private OutlierFeatureSignatureValidator validator;
+		private OutlierFeatureAlgorithm validator;
 		private List<Signature> signaturesToCheck;
 		
-		private SignaturesChecker( OutlierFeatureSignatureValidator validator, List<Signature> signaturesToCheck ) {
+		private SignaturesChecker( OutlierFeatureAlgorithm validator, List<Signature> signaturesToCheck ) {
 			this.validator = validator;
 			this.signaturesToCheck = signaturesToCheck;
 			
@@ -127,14 +127,14 @@ public class AppEvaluation {
 
 		ExecutorService executor = Executors.newFixedThreadPool( NTHREADS );
 		
-		List<OutlierFeatureSignatureValidator> validators = generateValidators( executor );
+		List<OutlierFeatureAlgorithm> validators = generateValidators( executor );
 		List<Signature> signaturesToCheck = generateSignaturesToCheck();
 		
 		System.out.println("Inici calcul FAR/FRR");
 		System.out.println("---------------------");
 		
 		List<Future<List<boolean[]>>> futures  = new ArrayList<Future<List<boolean[]>>>();
-		for ( OutlierFeatureSignatureValidator validator : validators ) {
+		for ( OutlierFeatureAlgorithm validator : validators ) {
 			futures.add( executor.submit( new SignaturesChecker(validator, signaturesToCheck) ) );
 		}
 		ResultAccesor result = new ResultAccesor( futures );
@@ -225,30 +225,30 @@ public class AppEvaluation {
 	}
 
 	
-	private List<OutlierFeatureSignatureValidator> generateValidators( ExecutorService executor ) throws Exception {
+	private List<OutlierFeatureAlgorithm> generateValidators( ExecutorService executor ) throws Exception {
 		final CapturedDatasParser inputDataParser = new CapturedDatasParser();
 		
-		final List<Future<OutlierFeatureSignatureValidator>> futures = 
-					new ArrayList<Future<OutlierFeatureSignatureValidator>>();
+		final List<Future<OutlierFeatureAlgorithm>> futures = 
+					new ArrayList<Future<OutlierFeatureAlgorithm>>();
 		for ( int i=0; i<inputFolders.length; i++ ){
 			final int userIndex = i; 
 			
-			Callable<OutlierFeatureSignatureValidator> validatorGenerator =
-							new Callable<OutlierFeatureSignatureValidator>() {
+			Callable<OutlierFeatureAlgorithm> validatorGenerator =
+							new Callable<OutlierFeatureAlgorithm>() {
 					@Override
-					public OutlierFeatureSignatureValidator call() throws Exception {
+					public OutlierFeatureAlgorithm call() throws Exception {
 						File folder = inputFolders[userIndex];
 						List<CapturedData> inputData = inputDataParser.parse(folder);
 						
-						return new OutlierFeatureSignatureValidator(inputData);
+						return new OutlierFeatureAlgorithm(inputData);
 					}
 				};
 				
 			futures.add( executor.submit(validatorGenerator) );
 		}
 	
-		List<OutlierFeatureSignatureValidator> ret = new ArrayList<OutlierFeatureSignatureValidator>();
-		for( Future<OutlierFeatureSignatureValidator> future : futures ) {
+		List<OutlierFeatureAlgorithm> ret = new ArrayList<OutlierFeatureAlgorithm>();
+		for( Future<OutlierFeatureAlgorithm> future : futures ) {
 			ret.add( future.get() );
 		}
 		return ret;

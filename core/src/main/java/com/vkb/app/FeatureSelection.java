@@ -20,8 +20,8 @@ import com.vkb.model.Signature;
 
 public class FeatureSelection {
 	private static final String BLANKS = "                                ";
-	private static final File INPUT_FOLDERS[] = { new File( Environment.RESOURCES_DIR, "user1" ), 
-													new File( Environment.RESOURCES_DIR, "user2" ) };
+	private static final File INPUT_FOLDERS[] = { new File( Environment.RESOURCES_DIR, "user1/pattern" ), 
+													new File( Environment.RESOURCES_DIR, "user2/pattern" ) };
 	private static final DecimalFormat doubleFormat = new DecimalFormat("#.#####");
 
 	private File[] inputFolders;

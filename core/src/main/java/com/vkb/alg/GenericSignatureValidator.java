@@ -5,19 +5,20 @@ import java.util.List;
 import com.vkb.model.CapturedData;
 import com.vkb.model.Signature;
 
-public class GenericSignatureValidator implements Validator {
-	private Determiner determiner;
+public class GenericSignatureValidator implements SignatureValidator, CapturedDataValidator {
+	private SignaturePatternBasedValidator impl;
 	private SignatureBuilder signatureBuilder;
 	
 	public GenericSignatureValidator( Preprocessor preprocessor, 
-							FeaturesExtractor featuresExtractor, Determiner determiner,
+							FeaturesExtractor featuresExtractor, 
+							SignaturePatternBasedValidator pattern,
 							List<CapturedData> capturedDatas ) throws Exception {
 		signatureBuilder = new SignatureBuilder( preprocessor, featuresExtractor );
 		
 		List<Signature> patternTraces = signatureBuilder.build( capturedDatas );
 		
-		this.determiner = determiner;
-		determiner.setPattern(patternTraces);
+		this.impl = pattern;
+		impl.setPattern(patternTraces);
 	}
 	
 	@Override
@@ -28,6 +29,6 @@ public class GenericSignatureValidator implements Validator {
 	
 	@Override
 	public boolean check( Signature signature ) throws Exception {
-		return determiner.check( signature );
+		return impl.check( signature );
 	}
 }

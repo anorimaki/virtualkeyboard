@@ -1,16 +1,21 @@
-package com.vkb.alg.determine;
+package com.vkb.alg.outlierfeature;
 
 import java.util.List;
 
-import com.vkb.alg.Determiner;
+import com.vkb.alg.SignaturePatternBasedValidator;
+import com.vkb.model.FeatureId;
 import com.vkb.model.Signature;
 
-public class OutlierFeatureDeterminer implements Determiner {
+public class OutlierFeatureSignatureValidator implements SignaturePatternBasedValidator {
 	private OutlierFeatureSignaturePattern pattern;
 	private double threshold;
 	
 	public void setThreshold( double th ) {
 		threshold = th;
+	}
+	
+	public <T> T getFeatureValidator( FeatureId feature ) {
+		return pattern.getFeatureValidator( feature );
 	}
 	
 	@Override
