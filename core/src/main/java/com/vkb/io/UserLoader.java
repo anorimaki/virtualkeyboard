@@ -43,16 +43,7 @@ public class UserLoader<T extends SignatureBuilder>  {
 	public List<User<T>> load( File[] inputFolders ) throws Exception {
 		Parallelizer<User<T>> parallelizer = new Parallelizer<User<T>>(executor);
 		for( File inputFolder : inputFolders ) {
-			final File userFolder = inputFolder;
-			
-			Callable<User<T>> job = new Callable<User<T>>() {
-					@Override
-					public User<T> call() throws Exception {
-						return load( userFolder );
-					}
-				};
-			
-			parallelizer.submit(job);
+			parallelizer.submit( new LoadTask(inputFolder) );
 		}
 		
 		return parallelizer.join();
@@ -66,5 +57,18 @@ public class UserLoader<T extends SignatureBuilder>  {
 	public static <K extends SignatureBuilder> List<User<K>>
 			load( ExecutorService executor, SignatureValidatorFactory<K> validatorFactory, File[] userFolder  ) throws Exception {
 		return new UserLoader<K>( executor, validatorFactory ).load( userFolder ); 
+	}
+	
+	private class LoadTask implements Callable<User<T>> {
+		private File userFolder;
+		
+		public LoadTask( File userFolder ) {
+			this.userFolder = userFolder;
+		}
+		
+		@Override
+		public User<T> call() throws Exception {
+			return load( userFolder );
+		}
 	}
 }
