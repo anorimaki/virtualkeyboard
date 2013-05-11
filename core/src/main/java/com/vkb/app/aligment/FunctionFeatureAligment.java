@@ -15,7 +15,7 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import com.vkb.alg.SignatureBuilder;
+import com.vkb.alg.GenericSignatureBuilder;
 import com.vkb.app.util.DefaultSignatureBuilder;
 import com.vkb.gui.Application;
 import com.vkb.gui.DataConvert;
@@ -52,9 +52,9 @@ public class FunctionFeatureAligment {
 		List<CapturedData> capturedDatas1 = parser.parse( inputFolder1 ) ;
 		List<CapturedData> capturedDatas2 = parser.parse( inputFolder2 ) ;
 		
-		SignatureBuilder traceBuilder = new DefaultSignatureBuilder();
-		List<Signature> traces1 = traceBuilder.build(capturedDatas1);
-		List<Signature> traces2 = traceBuilder.build(capturedDatas2);
+		GenericSignatureBuilder traceBuilder = new DefaultSignatureBuilder();
+		List<Signature> traces1 = traceBuilder.buildSignatures(capturedDatas1);
+		List<Signature> traces2 = traceBuilder.buildSignatures(capturedDatas2);
 		
 		Application application = new Application();
 		for( Pair<String,FunctionFeatureAligmentMode> aligmentMode : modes ) {

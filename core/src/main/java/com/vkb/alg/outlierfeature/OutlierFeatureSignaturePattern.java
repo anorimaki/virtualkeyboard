@@ -113,7 +113,7 @@ public class OutlierFeatureSignaturePattern {
 	private void createScalarFeatureDeterminer( List<Signature> signatures ) throws Exception {
 		scalarFeatureDeterminers = new HashMap<FeatureId, ScalarFeatureDeterminer>();
 		Map<FeatureId, List<ScalarFeatureData>> featuresDatas = 
-					Signatures.extractFeaturesByModel( signatures, ScalarFeatureData.class );
+					Signatures.extractFeatureDatasByModel( signatures, ScalarFeatureData.class );
 		for( Map.Entry<FeatureId, List<ScalarFeatureData>> featureDatas : featuresDatas.entrySet() ) {
 			scalarFeatureDeterminers.put( featureDatas.getKey(), 
 								new ScalarFeatureDeterminer(featureDatas.getValue()) );
@@ -124,7 +124,7 @@ public class OutlierFeatureSignaturePattern {
 	private void createFuntionFeatureDeterminers( List<Signature> signatures ) throws Exception {
 		functionFeatureDeterminers = new HashMap<FeatureId, FunctionFeatureDeterminer>();
 		Map<FeatureId, List<FunctionFeatureData>> featuresDatas = 
-					Signatures.extractFeaturesByModel( signatures, FunctionFeatureData.class );
+					Signatures.extractFeatureDatasByModel( signatures, FunctionFeatureData.class );
 		for( Map.Entry<FeatureId, List<FunctionFeatureData>> featureDatas : featuresDatas.entrySet() ) {
 			functionFeatureDeterminers.put( featureDatas.getKey(), 
 								new FunctionFeatureDeterminer(featureDatas.getValue()) );

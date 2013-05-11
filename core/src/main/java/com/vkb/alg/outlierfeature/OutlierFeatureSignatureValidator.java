@@ -3,7 +3,6 @@ package com.vkb.alg.outlierfeature;
 import java.util.List;
 
 import com.vkb.alg.SignaturePatternBasedValidator;
-import com.vkb.model.FeatureId;
 import com.vkb.model.Signature;
 
 public class OutlierFeatureSignatureValidator implements SignaturePatternBasedValidator {
@@ -12,10 +11,6 @@ public class OutlierFeatureSignatureValidator implements SignaturePatternBasedVa
 	
 	public void setThreshold( double th ) {
 		threshold = th;
-	}
-	
-	public <T> T getFeatureValidator( FeatureId feature ) {
-		return pattern.getFeatureValidator( feature );
 	}
 	
 	@Override

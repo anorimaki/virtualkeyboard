@@ -8,7 +8,7 @@ import java.util.Map;
 
 import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 
-import com.vkb.alg.SignatureBuilder;
+import com.vkb.alg.GenericSignatureBuilder;
 import com.vkb.app.util.DefaultSignatureBuilder;
 import com.vkb.app.util.Environment;
 import com.vkb.app.util.FeaturesStatistics;
@@ -33,10 +33,10 @@ public class FeatureSelection {
 	private void run() throws Exception {
 		CapturedDatasParser inputDataParser = new CapturedDatasParser();
 		List<List<Signature>> signaturesGroups = new ArrayList<List<Signature>>();
-		SignatureBuilder signatureBuilder = new DefaultSignatureBuilder();
+		GenericSignatureBuilder signatureBuilder = new DefaultSignatureBuilder();
 		for ( File inputFolder : inputFolders ) {
 			List<CapturedData> inputData = inputDataParser.parse(inputFolder);
-			signaturesGroups.add( signatureBuilder.build(inputData) );
+			signaturesGroups.add( signatureBuilder.buildSignatures(inputData) );
 		}
 		
 		FunctionFeaturesComparators signaturesCompoarators  = new FunctionFeaturesComparators();

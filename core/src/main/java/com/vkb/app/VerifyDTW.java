@@ -12,7 +12,7 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import com.vkb.alg.SignatureBuilder;
+import com.vkb.alg.GenericSignatureBuilder;
 import com.vkb.app.util.DefaultSignatureBuilder;
 import com.vkb.app.util.Environment;
 import com.vkb.app.util.FunctionFeatureComparator;
@@ -40,8 +40,8 @@ public class VerifyDTW {
 		CapturedDatasParser parser = new CapturedDatasParser();
 		List<CapturedData> rawTraces = parser.parse( inputFolder) ;
 		
-		SignatureBuilder traceBuilder = new DefaultSignatureBuilder();
-		List<Signature> traces = traceBuilder.build(rawTraces);
+		GenericSignatureBuilder traceBuilder = new DefaultSignatureBuilder();
+		List<Signature> traces = traceBuilder.buildSignatures(rawTraces);
 		
 		FunctionFeaturesComparators tracesComparator  = new FunctionFeaturesComparators();
 		FunctionFeaturesComparators.Result result = tracesComparator.compare(traces);

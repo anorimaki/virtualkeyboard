@@ -2,72 +2,68 @@ package com.vkb.app.quality.err;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
+import com.vkb.alg.SignatureValidator;
+import com.vkb.alg.ThresholdedSignatureValidator;
 import com.vkb.app.model.User;
 import com.vkb.concurrent.Parallelizer;
 import com.vkb.model.Signature;
 
 public class EERCalculator {
 	private ExecutorService executor;
-	private ThresholdedSignatureValidatorFactory signatureValidatorFactory;
-	private double[] thresholdsToCheck;
 	
-	public EERCalculator( ExecutorService executor,
-							ThresholdedSignatureValidatorFactory signatureValidatorFactory,
-							double[] thresholdsToCheck ) {
+	public EERCalculator( ExecutorService executor ) {
 		this.executor = executor;
-		this.signatureValidatorFactory = signatureValidatorFactory;
-		this.thresholdsToCheck = thresholdsToCheck;
 	}
 	
-	
-	public List<ERRResult> execute( List<User> users ) throws Exception {
-		List<ThresholdedSignatureValidator> validators = createValidators( users );
+	public <T extends SignatureValidator> ERRResult execute( List<User<T>> users ) throws Exception {
+		List<List<Signature>> signaturesList = getSignaturesList(users);
 		
-		List<List<Signature>> signaturesList = getSignaturesList( users );
-		
-		return executeValidations( validators, signaturesList );
-	}
-		
-	
-	private List<ERRResult> executeValidations( List<ThresholdedSignatureValidator> validators,
-										List<List<Signature>> signaturesList ) throws Exception {
 		Parallelizer<TaskResult> parallelizer = new Parallelizer<TaskResult>( executor );
-		for ( ThresholdedSignatureValidator validator : validators ) {
-			parallelizer.submit( new Task( validator, signaturesList, thresholdsToCheck )  );
+		for ( User<T> user : users ) {
+			Task task = new Task( user.getValidator(), signaturesList ); 
+			parallelizer.submit( task );
 		}
 		List<TaskResult> taskResults = parallelizer.join();
 		
+		return computeResult( new TaskAdapter( taskResults ) );
+	}
+	
+	public <T extends ThresholdedSignatureValidator> List<ERRResult> execute( List<User<T>> users, double[] thresholds ) throws Exception {
+		List<List<Signature>> signaturesList = getSignaturesList(users);
+		
+		Parallelizer<ThresholdTaskResult> parallelizer = new Parallelizer<ThresholdTaskResult>( executor );
+		for ( User<T> user : users ) {
+			ThresholdTask task = new ThresholdTask( user.getValidator(), signaturesList, thresholds ); 
+			parallelizer.submit( task );
+		}
+		List<ThresholdTaskResult> taskResults = parallelizer.join();
+		
 		List<ERRResult> ret = new ArrayList<ERRResult>();
-		for( int i=0; i<thresholdsToCheck.length; ++i ) {
-			ERRResult thresholdResult = computeResultForThreshold( taskResults, i );
+		for( int i=0; i<thresholds.length; ++i ) {
+			ERRResult thresholdResult = computeResult( new ThresholdTaskAdapter( taskResults, i ) );
 			ret.add( thresholdResult );
 		}
 		return ret;
 	}
 	
-		
-	private ERRResult computeResultForThreshold( List<TaskResult> taskResults, int thresholdIndex ) {
-		
-		ERRResult.Matrix matrixResult = new ERRResult.Matrix( taskResults.size() );
+	private ERRResult computeResult( ResultAccesor result ) {
+		ERRResult.Matrix matrixResult = new ERRResult.Matrix( result.size() );
 		ERRCounters indicatorCounters = new ERRCounters();
 		
-		for( int validatorIndex=0; validatorIndex<taskResults.size(); ++validatorIndex ) {
-			computeResultForValidator( taskResults.get(validatorIndex), thresholdIndex, validatorIndex, 
-									matrixResult, indicatorCounters );
+		for( int userIndex=0; userIndex<result.size(); ++userIndex ) {
+			computeResult( result, userIndex, matrixResult, indicatorCounters );
 		}
 		
 		return new ERRResult( matrixResult, indicatorCounters.getFAR(), indicatorCounters.getFRR() );
 	}
 	
-
-	private void computeResultForValidator( TaskResult taskResult, int thresholdIndex, int userIndex,
-									ERRResult.Matrix matrixResult, ERRCounters indicatorCounters  ) {
-		for ( int userSignaturesIndex=0; userSignaturesIndex<taskResult.usersSize(); ++userSignaturesIndex ) {
-			int total = taskResult.countTotalSignatures( thresholdIndex, userSignaturesIndex );
-			int passed = taskResult.countPassedSignatures( thresholdIndex, userSignaturesIndex );
+	private void computeResult( ResultAccesor result, int userIndex,
+				ERRResult.Matrix matrixResult, ERRCounters indicatorCounters  ) {
+		for ( int userSignaturesIndex=0; userSignaturesIndex<result.size(); ++userSignaturesIndex ) {
+			int total = result.totalSignatures( userIndex, userSignaturesIndex );
+			int passed = result.passedSignatures( userIndex, userSignaturesIndex );
 			
 			matrixResult.set( userIndex, userSignaturesIndex, (double)passed/(double)total );
 			
@@ -79,31 +75,67 @@ public class EERCalculator {
 			}
 		}
 	}
-
-
-	private List<List<Signature>> getSignaturesList(List<User> users) {
+	
+	private <T> List<List<Signature>> getSignaturesList( List<User<T>> users ) {
 		List<List<Signature>> ret = new ArrayList<List<Signature>>();
-		for( User user : users ) {
+		for( User<?> user : users  ) {
 			ret.add( user.getOwnSignatures() );
 		}
 		return ret;
 	}
-
-
-
-	private List<ThresholdedSignatureValidator> createValidators( List<User> users ) throws Exception {
-		Parallelizer<ThresholdedSignatureValidator> parallelizer = new Parallelizer<ThresholdedSignatureValidator>( executor );
-		for( User user : users ) {
-			final User currentUser = user;
-			
-			parallelizer.submit( new Callable<ThresholdedSignatureValidator>() {
-					@Override
-					public ThresholdedSignatureValidator call() throws Exception {
-						return signatureValidatorFactory.generateSignatureValidator(currentUser);
-					}
-				});
+	
+	static private interface ResultAccesor {
+		public int totalSignatures( int userIndex, int signatureListIndex );
+		public int passedSignatures( int userIndex, int signatureListIndex );
+		public int size();
+	}
+	
+	static private class TaskAdapter implements ResultAccesor {
+		private List<TaskResult> result;
+		
+		public TaskAdapter( List<TaskResult> result ) {
+			this.result = result;
 		}
-		return parallelizer.join();
+
+		@Override
+		public int totalSignatures( int userIndex, int signatureListIndex ) {
+			return result.get(userIndex).countTotalSignatures( signatureListIndex );
+		}
+
+		@Override
+		public int passedSignatures( int userIndex, int signatureListIndex ) {
+			return result.get(userIndex).countPassedSignatures( signatureListIndex );
+		}
+
+		@Override
+		public int size() {
+			return result.size();
+		}
 	}
 		
+	static private class ThresholdTaskAdapter implements ResultAccesor {
+		private List<ThresholdTaskResult> result;
+		private int thresholIndex;
+		
+		public ThresholdTaskAdapter( List<ThresholdTaskResult> result, int thresholIndex ) {
+			this.result = result;
+			this.thresholIndex = thresholIndex;
+		}
+
+		@Override
+		public int totalSignatures( int userIndex, int signatureListIndex ) {
+			return result.get(userIndex).countTotalSignatures( thresholIndex, signatureListIndex );
+		}
+
+		@Override
+		public int passedSignatures( int userIndex, int signatureListIndex ) {
+			return result.get(userIndex).countPassedSignatures( thresholIndex, signatureListIndex );
+		}
+		
+		@Override
+		public int size() {
+			return result.size();
+		}
+	}
+
 }

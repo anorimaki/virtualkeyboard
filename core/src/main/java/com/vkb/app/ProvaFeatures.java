@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.vkb.alg.SignatureBuilder;
+import com.vkb.alg.GenericSignatureBuilder;
 import com.vkb.app.util.DefaultSignatureBuilder;
 import com.vkb.app.util.Environment;
 import com.vkb.io.CapturedDataParser;
@@ -26,12 +26,12 @@ public class ProvaFeatures {
 
 	private void run() throws Exception {
 		CapturedDataParser inputDataParser = new CapturedDataParser();
-		SignatureBuilder signatureBuilder = new DefaultSignatureBuilder();
+		GenericSignatureBuilder signatureBuilder = new DefaultSignatureBuilder();
 		Signature sig=null;
 		
 		for ( File inputFolder : inputFolders ) {
 			CapturedData inputData = inputDataParser.parse(inputFolder);
-			sig = signatureBuilder.build(inputData);
+			sig = signatureBuilder.buildSignature(inputData);
 		}
 		if(sig!=null){
 			

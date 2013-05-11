@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class Signatures {
-	static public <T extends FeatureData> Map<FeatureId, List<T>> extractFeaturesByModel( 
+	static public <T extends FeatureData> Map<FeatureId, List<T>> extractFeatureDatasByModel( 
 			List<Signature> signatures, Class<T> t ) throws Exception {
 		Signature signature0 = signatures.get(0);
 		
@@ -27,19 +27,32 @@ public class Signatures {
 			
 			if ( signatureFeatures.size() != signature0Features.size() ) {
 				throw new Exception( "Error generating pattern. Signatures have different features" );
-		}
-		
-		for( Feature feature : signatureFeatures ) {
-			T data = feature.getData();
+			}
 			
-			List<T> list = ret.get( feature.getId() );
-			if ( list==null ) {
-				throw new Exception( "Error generating pattern. Signatures have different features" );
-			}
-			list.add( data );
+			for( Feature feature : signatureFeatures ) {
+				T data = feature.getData();
+				
+				List<T> list = ret.get( feature.getId() );
+				if ( list==null ) {
+					throw new Exception( "Error generating pattern. Signatures have different features" );
+				}
+				list.add( data );
 			}
 		}
 		
+		return ret;
+	}
+	
+	static public <T extends FeatureData> List<T> extractFeatureData( 
+			List<Signature> signatures, FeatureId feature ) throws Exception {
+		List<T> ret = new ArrayList<T>();
+		for( Signature signature : signatures ) {
+			T data = signature.getFeature(feature).getData();
+			if ( data == null ) {
+				throw new Exception( "Missign feature: " + feature );
+			}
+			ret.add( data );
+		}
 		return ret;
 	}
 }

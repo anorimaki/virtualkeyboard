@@ -12,7 +12,7 @@ import org.jfree.data.general.PieDataset;
 
 import com.vkb.alg.FeaturesExtractor;
 import com.vkb.alg.Preprocessor;
-import com.vkb.alg.SignatureBuilder;
+import com.vkb.alg.GenericSignatureBuilder;
 import com.vkb.alg.extract.DefaultFeaturesExtractor;
 import com.vkb.alg.preprocess.EmptyPreprocessor;
 import com.vkb.app.quality.FeatureQualityEntropy;
@@ -54,7 +54,7 @@ public class ScalarFeatureQuality {
 		CapturedDatasParser inputDataParser = new CapturedDatasParser();
 		Preprocessor preprocessor = new EmptyPreprocessor();
 		FeaturesExtractor featuresExtractor = new DefaultFeaturesExtractor();
-		SignatureBuilder traceBuilder = new SignatureBuilder( preprocessor, featuresExtractor );
+		GenericSignatureBuilder traceBuilder = new GenericSignatureBuilder( preprocessor, featuresExtractor );
 		FeatureQualityManova fQM = new FeatureQualityManova();
 		FeatureQualityEntropy fQE = new FeatureQualityEntropy();
 		
@@ -62,7 +62,7 @@ public class ScalarFeatureQuality {
 		for ( File inputFolder : inputFolders ) {
 			List<CapturedData> inputData = inputDataParser.parse(inputFolder);
 			System.out.println("Fitxers llegits a "+inputFolder.getAbsolutePath()+": "+inputData.size());
-			List<Signature> patternTraces = traceBuilder.build( inputData );
+			List<Signature> patternTraces = traceBuilder.buildSignatures( inputData );
 			ScalarFeaturesStatistics aux = new ScalarFeaturesStatistics( patternTraces );
 			fQM.add( inputFolder.getName(), aux );
 			fQE.add( inputFolder.getName(), aux );

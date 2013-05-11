@@ -17,7 +17,7 @@ import org.jfree.data.xy.IntervalXYDataset;
 
 import com.vkb.alg.FeaturesExtractor;
 import com.vkb.alg.Preprocessor;
-import com.vkb.alg.SignatureBuilder;
+import com.vkb.alg.GenericSignatureBuilder;
 import com.vkb.alg.extract.DefaultFeaturesExtractor;
 import com.vkb.alg.preprocess.EmptyPreprocessor;
 import com.vkb.app.quality.ScalarFeaturesStatistics;
@@ -60,13 +60,13 @@ public class ScalarFeatureDispersionHisto {
 		CapturedDatasParser inputDataParser = new CapturedDatasParser();
 		Preprocessor preprocessor = new EmptyPreprocessor();
 		FeaturesExtractor featuresExtractor = new DefaultFeaturesExtractor();
-		SignatureBuilder traceBuilder = new SignatureBuilder( preprocessor, featuresExtractor );
+		GenericSignatureBuilder traceBuilder = new GenericSignatureBuilder( preprocessor, featuresExtractor );
 		
 		Map<String, ScalarFeaturesStatistics> featuresStatistics = new HashMap<String, ScalarFeaturesStatistics>();
 		for ( File inputFolder : inputFolders ) {
 			List<CapturedData> inputData = inputDataParser.parse(inputFolder);
 			System.out.println("Fitxers llegits a "+inputFolder.getAbsolutePath()+": "+inputData.size());
-			List<Signature> patternTraces = traceBuilder.build( inputData );
+			List<Signature> patternTraces = traceBuilder.buildSignatures( inputData );
 			ScalarFeaturesStatistics aux = new ScalarFeaturesStatistics( patternTraces );
 			featuresStatistics.put( inputFolder.getName(), aux );
 		}

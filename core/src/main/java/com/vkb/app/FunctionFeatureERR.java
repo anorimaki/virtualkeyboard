@@ -1,26 +1,29 @@
 package com.vkb.app;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.jfree.chart.plot.XYPlot;
 
+import com.vkb.alg.SignatureBuilder;
+import com.vkb.alg.ThresholdedSignatureValidator;
+import com.vkb.alg.SignatureValidatorFactory;
 import com.vkb.alg.determine.FunctionFeatureDeterminer;
 import com.vkb.app.model.User;
 import com.vkb.app.quality.err.EERCalculator;
 import com.vkb.app.quality.err.ERRResult;
-import com.vkb.app.quality.err.ThresholdedSignatureValidator;
-import com.vkb.app.quality.err.ThresholdedSignatureValidatorFactory;
 import com.vkb.app.quality.err.ui.ERRDisplay;
+import com.vkb.app.util.DefaultSignatureBuilder;
 import com.vkb.app.util.Environment;
 import com.vkb.gui.Application;
 import com.vkb.io.UserLoader;
+import com.vkb.model.CapturedData;
 import com.vkb.model.FeatureId;
 import com.vkb.model.FunctionFeatureData;
 import com.vkb.model.Signature;
+import com.vkb.model.Signatures;
 
 public class FunctionFeatureERR {
 	private static int NTHREADS = 10;
@@ -33,63 +36,24 @@ public class FunctionFeatureERR {
 		new File( Environment.RESOURCES_DIR, "user6" ),
 		new File( Environment.RESOURCES_DIR, "user7" ) };
 	
-	private List<User> users = new ArrayList<User>();
+	private List<User<ThresholdedSignatureValidatorAdaptor>> users;
 	private ExecutorService executor;
 	private static double ThresholdsToCheck[] = { 0.7d, 0.75d, 0.8d, 0.85d, 0.9d, 0.95d,
 		1.0d, 1.05d, 1.1d, 1.15d, 1.2d, 1.25d };
 	
 	public FunctionFeatureERR( File[] inputFolders ) throws Exception {
 		executor = Executors.newFixedThreadPool( NTHREADS );
-		users = new UserLoader(executor).load(inputFolders);
-	}
-	
-	
-	private static class ThresholdedSignatureValidatorImpl implements 
-					ThresholdedSignatureValidator {
 		
-		private FunctionFeatureDeterminer featureValidator ;
-		private FeatureId featureId ;
-		
-		public ThresholdedSignatureValidatorImpl( User user, FeatureId featureId ) {
-			this.featureId = featureId; 
-			this.featureValidator = 
-					user.getValidationAlgorithm().getValidator().getFeatureValidator(featureId);
-		}
-
-		@Override
-		public void setThreshold(double threshold) {
-			featureValidator.setThreshold(threshold);
-		}
-
-		@Override
-		public boolean check(Signature signature) throws Exception {
-			FunctionFeatureData featureData = signature.getFeatures().get(featureId).getData();
-			return featureValidator.check(featureData);
-		}
-	}
-	
-
-	private static class ThresholdedSignatureValidatorFactoryImpl implements 
-					ThresholdedSignatureValidatorFactory {
-		private FeatureId featureId ;
-		
-		public ThresholdedSignatureValidatorFactoryImpl( FeatureId featureId ) {
-			this.featureId = featureId;
-		}
-		
-		@Override
-		public ThresholdedSignatureValidator generateSignatureValidator( User user ) {
-			return new ThresholdedSignatureValidatorImpl( user, featureId );
-		}
+		SignatureValidatorFactory<ThresholdedSignatureValidatorAdaptor> factory = 
+							new ThresholdedSignatureValidatorAdaptorFactory( FeatureId.VELOCITY_Y );
+		users = UserLoader.load( executor, factory, inputFolders );
 	}
 	
 	
 	public void run() throws Exception {
-		ThresholdedSignatureValidatorFactoryImpl factory = 
-					new ThresholdedSignatureValidatorFactoryImpl( FeatureId.VELOCITY_Y );
-		EERCalculator errCalculator = new EERCalculator( executor, factory, ThresholdsToCheck );
+		EERCalculator errCalculator = new EERCalculator( executor );
 		
-		List<ERRResult> result = errCalculator.execute(users);
+		List<ERRResult> result = errCalculator.execute( users, ThresholdsToCheck );
 		
 		ERRDisplay printer = new ERRDisplay();
 		printer.print( ThresholdsToCheck, result );
@@ -109,4 +73,53 @@ public class FunctionFeatureERR {
 			e.printStackTrace();
 		}
     }
+	
+	private static class ThresholdedSignatureValidatorAdaptorFactory 
+					implements SignatureValidatorFactory<ThresholdedSignatureValidatorAdaptor> {
+		private FeatureId featureId;
+		private DefaultSignatureBuilder signatureBuilder;
+		
+		public ThresholdedSignatureValidatorAdaptorFactory( FeatureId featureId ) {
+			this.featureId = featureId;
+			this.signatureBuilder = new DefaultSignatureBuilder();
+		}
+
+		@Override
+		public ThresholdedSignatureValidatorAdaptor generateValidator( List<CapturedData> patternSamples ) throws Exception {
+			List<Signature> patternTraces = signatureBuilder.buildSignatures( patternSamples );
+			List<FunctionFeatureData> patternData = Signatures.extractFeatureData(patternTraces, featureId);
+			FunctionFeatureDeterminer validator = new FunctionFeatureDeterminer( patternData );
+			return new ThresholdedSignatureValidatorAdaptor( featureId, validator, signatureBuilder );
+		}
+		
+	}
+	
+	private static class ThresholdedSignatureValidatorAdaptor implements ThresholdedSignatureValidator, SignatureBuilder {
+		private FunctionFeatureDeterminer featureValidator ;
+		private FeatureId featureId;
+		private SignatureBuilder signatureBuilder;
+		
+		public ThresholdedSignatureValidatorAdaptor( FeatureId featureId,
+					FunctionFeatureDeterminer impl, SignatureBuilder signatureBuilder ) {
+			this.featureValidator = impl;
+			this.featureId = featureId;
+			this.signatureBuilder = signatureBuilder;
+		}
+		
+		@Override
+		public void setThreshold( double threshold ) {
+			featureValidator.setThreshold(threshold);
+		}
+		
+		@Override
+		public boolean check(Signature signature) throws Exception {
+			FunctionFeatureData featureData = signature.getFeatures().get(featureId).getData();
+			return featureValidator.check(featureData);
+		}
+
+		@Override
+		public Signature buildSignature(CapturedData capturedData) throws Exception {
+			return signatureBuilder.buildSignature(capturedData);
+		}
+	}
 }
