@@ -1,4 +1,4 @@
-package com.vkb.app.quality.err;
+package com.vkb.quality.farfrr;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,18 +6,18 @@ import java.util.concurrent.ExecutorService;
 
 import com.vkb.alg.SignatureValidator;
 import com.vkb.alg.ThresholdedSignatureValidator;
-import com.vkb.app.model.User;
 import com.vkb.concurrent.Parallelizer;
 import com.vkb.model.Signature;
+import com.vkb.model.User;
 
-public class EERCalculator {
+public class FARFRRCalculator {
 	private ExecutorService executor;
 	
-	public EERCalculator( ExecutorService executor ) {
+	public FARFRRCalculator( ExecutorService executor ) {
 		this.executor = executor;
 	}
 	
-	public <T extends SignatureValidator> ERRResult execute( List<User<T>> users ) throws Exception {
+	public <T extends SignatureValidator> FARFRRResult execute( List<User<T>> users ) throws Exception {
 		List<List<Signature>> signaturesList = getSignaturesList(users);
 		
 		Parallelizer<TaskResult> parallelizer = new Parallelizer<TaskResult>( executor );
@@ -30,7 +30,7 @@ public class EERCalculator {
 		return computeResult( new TaskAdapter( taskResults ) );
 	}
 	
-	public <T extends ThresholdedSignatureValidator> List<ERRResult> execute( List<User<T>> users, double[] thresholds ) throws Exception {
+	public <T extends ThresholdedSignatureValidator> List<Result> execute( List<User<T>> users, double[] thresholds ) throws Exception {
 		List<List<Signature>> signaturesList = getSignaturesList(users);
 		
 		Parallelizer<ThresholdTaskResult> parallelizer = new Parallelizer<ThresholdTaskResult>( executor );
@@ -40,27 +40,27 @@ public class EERCalculator {
 		}
 		List<ThresholdTaskResult> taskResults = parallelizer.join();
 		
-		List<ERRResult> ret = new ArrayList<ERRResult>();
+		List<Result> ret = new ArrayList<Result>();
 		for( int i=0; i<thresholds.length; ++i ) {
-			ERRResult thresholdResult = computeResult( new ThresholdTaskAdapter( taskResults, i ) );
+			Result thresholdResult = computeResult( new ThresholdTaskAdapter( taskResults, i ) );
 			ret.add( thresholdResult );
 		}
 		return ret;
 	}
 	
-	private ERRResult computeResult( ResultAccesor result ) {
-		ERRResult.Matrix matrixResult = new ERRResult.Matrix( result.size() );
-		ERRCounters indicatorCounters = new ERRCounters();
+	private Result computeResult( ResultAccesor result ) {
+		Result.Matrix matrixResult = new Result.Matrix( result.size() );
+		FARFRRCounters indicatorCounters = new FARFRRCounters();
 		
 		for( int userIndex=0; userIndex<result.size(); ++userIndex ) {
 			computeResult( result, userIndex, matrixResult, indicatorCounters );
 		}
 		
-		return new ERRResult( matrixResult, indicatorCounters.getFAR(), indicatorCounters.getFRR() );
+		return new Result( matrixResult, indicatorCounters.getFAR(), indicatorCounters.getFRR() );
 	}
 	
 	private void computeResult( ResultAccesor result, int userIndex,
-				ERRResult.Matrix matrixResult, ERRCounters indicatorCounters  ) {
+				FARFRRResult.Matrix matrixResult, FARFRRCounters indicatorCounters  ) {
 		for ( int userSignaturesIndex=0; userSignaturesIndex<result.size(); ++userSignaturesIndex ) {
 			int total = result.totalSignatures( userIndex, userSignaturesIndex );
 			int passed = result.passedSignatures( userIndex, userSignaturesIndex );
@@ -83,6 +83,12 @@ public class EERCalculator {
 		}
 		return ret;
 	}
+	
+	static public class Result extends FARFRRResult {
+		public Result(Matrix matrix, double far, double frr) {
+			super(matrix, far, frr);
+		}
+	};
 	
 	static private interface ResultAccesor {
 		public int totalSignatures( int userIndex, int signatureListIndex );

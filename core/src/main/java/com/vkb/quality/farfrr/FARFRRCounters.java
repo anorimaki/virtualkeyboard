@@ -1,6 +1,6 @@
-package com.vkb.app.quality.err;
+package com.vkb.quality.farfrr;
 
-public class ERRCounters {
+class FARFRRCounters {
 	int passedOwnSignatures = 0;
 	int totalOwnSignatures = 0;
 	int passedOtherSignatures = 0;

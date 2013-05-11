@@ -1,4 +1,4 @@
-package com.vkb.app.quality.err;
+package com.vkb.quality.farfrr;
 
 import java.util.ArrayList;
 import java.util.List;

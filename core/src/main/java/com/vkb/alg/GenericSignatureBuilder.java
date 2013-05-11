@@ -14,6 +14,7 @@ public class GenericSignatureBuilder implements SignatureBuilder {
 	public GenericSignatureBuilder( Preprocessor preprocessor, FeaturesExtractor featuresExtractor ) {
 		this.preprocessor = preprocessor;
 		this.featuresExtractor = featuresExtractor;
+		signaturesBuilder = new SignaturesBuilder( this );
 	}
 	
 	@Override

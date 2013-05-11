@@ -1,8 +1,7 @@
-package com.vkb.app.model;
+package com.vkb.model;
 
 import java.util.List;
 
-import com.vkb.model.Signature;
 
 public class User<T> {
 	private T validatorAlgorithm;

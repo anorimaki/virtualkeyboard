@@ -11,12 +11,9 @@ import com.vkb.alg.SignatureBuilder;
 import com.vkb.alg.ThresholdedSignatureValidator;
 import com.vkb.alg.SignatureValidatorFactory;
 import com.vkb.alg.determine.FunctionFeatureDeterminer;
-import com.vkb.app.model.User;
-import com.vkb.app.quality.err.EERCalculator;
-import com.vkb.app.quality.err.ERRResult;
-import com.vkb.app.quality.err.ui.ERRDisplay;
 import com.vkb.app.util.DefaultSignatureBuilder;
 import com.vkb.app.util.Environment;
+import com.vkb.app.util.FARFRRPlotter;
 import com.vkb.gui.Application;
 import com.vkb.io.UserLoader;
 import com.vkb.model.CapturedData;
@@ -24,6 +21,9 @@ import com.vkb.model.FeatureId;
 import com.vkb.model.FunctionFeatureData;
 import com.vkb.model.Signature;
 import com.vkb.model.Signatures;
+import com.vkb.model.User;
+import com.vkb.quality.farfrr.FARFRRCalculator;
+import com.vkb.quality.farfrr.ui.FARFRRPrinter;
 
 public class FunctionFeatureERR {
 	private static int NTHREADS = 10;
@@ -38,8 +38,7 @@ public class FunctionFeatureERR {
 	
 	private List<User<ThresholdedSignatureValidatorAdaptor>> users;
 	private ExecutorService executor;
-	private static double ThresholdsToCheck[] = { 0.7d, 0.75d, 0.8d, 0.85d, 0.9d, 0.95d,
-		1.0d, 1.05d, 1.1d, 1.15d, 1.2d, 1.25d };
+	private static double ThresholdsToCheck[] = buildThresholdsToCheck();
 	
 	public FunctionFeatureERR( File[] inputFolders ) throws Exception {
 		executor = Executors.newFixedThreadPool( NTHREADS );
@@ -50,16 +49,28 @@ public class FunctionFeatureERR {
 	}
 	
 	
+	private static double[] buildThresholdsToCheck() {
+		final int N = 30;
+		double[] ret = new double[N];
+		ret[0] = 0.90d;
+		for ( int i=1; i<ret.length; ++i ) {
+			ret[i] = ret[i-1] + 0.05d;
+		}
+		return ret;
+	}
+
+
 	public void run() throws Exception {
-		EERCalculator errCalculator = new EERCalculator( executor );
+		FARFRRCalculator errCalculator = new FARFRRCalculator( executor );
 		
-		List<ERRResult> result = errCalculator.execute( users, ThresholdsToCheck );
+		List<FARFRRCalculator.Result> result = errCalculator.execute( users, ThresholdsToCheck );
 		
-		ERRDisplay printer = new ERRDisplay();
+		FARFRRPrinter printer = new FARFRRPrinter();
 		printer.print( ThresholdsToCheck, result );
 
+		FARFRRPlotter plotter = new FARFRRPlotter();
 		Application application = new Application();
-		XYPlot tracesPlot = printer.plot( ThresholdsToCheck, result );
+		XYPlot tracesPlot = plotter.plot( ThresholdsToCheck, result );
 		application.run( "FAR/FRR Graphics", tracesPlot );
 	}
 	

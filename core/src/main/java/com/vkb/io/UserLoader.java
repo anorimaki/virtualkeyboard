@@ -8,10 +8,10 @@ import java.util.concurrent.ExecutorService;
 import com.vkb.alg.SignatureBuilder;
 import com.vkb.alg.SignaturesBuilder;
 import com.vkb.alg.SignatureValidatorFactory;
-import com.vkb.app.model.User;
 import com.vkb.concurrent.Parallelizer;
 import com.vkb.model.CapturedData;
 import com.vkb.model.Signature;
+import com.vkb.model.User;
 
 public class UserLoader<T extends SignatureBuilder>  {
 	private static String SAMPLES_FOLDER = "samples";

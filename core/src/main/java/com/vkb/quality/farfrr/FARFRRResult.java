@@ -1,6 +1,6 @@
-package com.vkb.app.quality.err;
+package com.vkb.quality.farfrr;
 
-public class ERRResult {
+class FARFRRResult {
 	public static class Matrix {
 		private double[][] data;
 		
@@ -25,7 +25,7 @@ public class ERRResult {
 	private double far;
 	private double frr;
 	
-	public ERRResult( Matrix matrix, double far, double frr ) {
+	public FARFRRResult( Matrix matrix, double far, double frr ) {
 		this.matrix = matrix;
 		this.far = far;
 		this.frr = frr;
