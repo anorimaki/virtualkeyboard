@@ -161,7 +161,6 @@ public class FunctionFeatureERR {
 			public void setThreshold(double threshold) {
 				featureValidator.setThreshold(threshold);
 			}
-			
 		}
 		
 		private Map<FeatureId, FunctionFeatureDeterminer> validators ;

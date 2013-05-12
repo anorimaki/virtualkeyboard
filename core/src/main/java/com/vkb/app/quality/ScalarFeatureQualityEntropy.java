@@ -10,7 +10,7 @@ import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 
 import com.vkb.model.FeatureId;
 
-public class FeatureQualityEntropy implements FeatureQualityCalculator{
+public class ScalarFeatureQualityEntropy implements ScalarFeatureQualityCalculator{
 	
 	private static int Nh=10; // Disretitzacio histograma per Entropia
 	private Map<String,ScalarFeaturesStatistics> statistics= new HashMap<String, ScalarFeaturesStatistics>();

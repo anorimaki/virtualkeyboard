@@ -7,7 +7,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import com.vkb.model.FeatureId;
 
-public class FeatureQualityManova implements FeatureQualityCalculator {
+public class ScalarFeatureQualityManova implements ScalarFeatureQualityCalculator {
 	
 	private Map<String,ScalarFeaturesStatistics> statistics= new HashMap<String, ScalarFeaturesStatistics>();
 		

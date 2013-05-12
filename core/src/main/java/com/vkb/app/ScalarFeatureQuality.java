@@ -15,8 +15,8 @@ import com.vkb.alg.Preprocessor;
 import com.vkb.alg.GenericSignatureBuilder;
 import com.vkb.alg.extract.DefaultFeaturesExtractor;
 import com.vkb.alg.preprocess.EmptyPreprocessor;
-import com.vkb.app.quality.FeatureQualityEntropy;
-import com.vkb.app.quality.FeatureQualityManova;
+import com.vkb.app.quality.ScalarFeatureQualityEntropy;
+import com.vkb.app.quality.ScalarFeatureQualityManova;
 import com.vkb.app.quality.ScalarFeaturesStatistics;
 import com.vkb.app.util.Environment;
 import com.vkb.gui.Application;
@@ -55,8 +55,8 @@ public class ScalarFeatureQuality {
 		Preprocessor preprocessor = new EmptyPreprocessor();
 		FeaturesExtractor featuresExtractor = new DefaultFeaturesExtractor();
 		GenericSignatureBuilder traceBuilder = new GenericSignatureBuilder( preprocessor, featuresExtractor );
-		FeatureQualityManova fQM = new FeatureQualityManova();
-		FeatureQualityEntropy fQE = new FeatureQualityEntropy();
+		ScalarFeatureQualityManova fQM = new ScalarFeatureQualityManova();
+		ScalarFeatureQualityEntropy fQE = new ScalarFeatureQualityEntropy();
 		
 		// Cal crear un hash <usuari,UsersStatistics> per cada lectura de directori
 		for ( File inputFolder : inputFolders ) {
