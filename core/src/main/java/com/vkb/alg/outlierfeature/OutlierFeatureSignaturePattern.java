@@ -6,6 +6,8 @@ import java.util.Map;
 
 import com.vkb.alg.determine.FunctionFeatureDeterminer;
 import com.vkb.alg.determine.ScalarFeatureDeterminer;
+import com.vkb.math.dtw.DefaultFunctionFeatureComparator;
+import com.vkb.math.dtw.FunctionFeatureComparator;
 import com.vkb.model.FeatureId;
 import com.vkb.model.FunctionFeatureData;
 import com.vkb.model.ScalarFeatureData;
@@ -20,10 +22,14 @@ public class OutlierFeatureSignaturePattern {
 	private Map<FeatureId, ScalarFeatureDeterminer> scalarFeatureDeterminers;
 	
 	public OutlierFeatureSignaturePattern( List<Signature> traces ) throws Exception {
-		createFuntionFeatureDeterminers( traces );
-		createScalarFeatureDeterminer( traces );
+		this( traces, new DefaultFunctionFeatureComparator() );
 	}
 	
+	public OutlierFeatureSignaturePattern( List<Signature> traces, 
+							FunctionFeatureComparator functionFeatureComparator ) throws Exception {
+		createFuntionFeatureDeterminers( traces, functionFeatureComparator );
+		createScalarFeatureDeterminer( traces );
+	}
 	
 	@SuppressWarnings("unchecked")
 	public <T> T getFeatureValidator( FeatureId feature ) {
@@ -121,13 +127,14 @@ public class OutlierFeatureSignaturePattern {
 	}
 	
 
-	private void createFuntionFeatureDeterminers( List<Signature> signatures ) throws Exception {
+	private void createFuntionFeatureDeterminers( List<Signature> signatures,
+						FunctionFeatureComparator functionFeatureComparator ) throws Exception {
 		functionFeatureDeterminers = new HashMap<FeatureId, FunctionFeatureDeterminer>();
 		Map<FeatureId, List<FunctionFeatureData>> featuresDatas = 
 					Signatures.extractFeatureDatasByModel( signatures, FunctionFeatureData.class );
 		for( Map.Entry<FeatureId, List<FunctionFeatureData>> featureDatas : featuresDatas.entrySet() ) {
 			functionFeatureDeterminers.put( featureDatas.getKey(), 
-								new FunctionFeatureDeterminer(featureDatas.getValue()) );
+								new FunctionFeatureDeterminer( featureDatas.getValue(), functionFeatureComparator ) );
 		}
 	}
 }

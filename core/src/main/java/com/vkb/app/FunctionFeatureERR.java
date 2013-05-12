@@ -133,7 +133,7 @@ public class FunctionFeatureERR {
 											new HashMap<FeatureId, FunctionFeatureDeterminer>();
 			for( Map.Entry<FeatureId, List<FunctionFeatureData>> featureDatas : featuresDatas.entrySet() ) {
 				functionFeatureDeterminers.put( featureDatas.getKey(), 
-									new FunctionFeatureDeterminer(featureDatas.getValue()) );
+								new FunctionFeatureDeterminer( featureDatas.getValue() ) );
 			}
 			
 			return new UserLoaderValidator( functionFeatureDeterminers, signatureBuilder );
