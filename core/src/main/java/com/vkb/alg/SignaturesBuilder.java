@@ -20,4 +20,8 @@ public class SignaturesBuilder {
 		}
 		return ret;
 	}
+	
+	public static List<Signature> build( SignatureBuilder impl, List<CapturedData> capturesDatas ) throws Exception {
+		return new SignaturesBuilder( impl ).buildSignatures( capturesDatas );
+	}
 }

@@ -1,6 +1,7 @@
 package com.vkb.math.dtw;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.vkb.model.FunctionFeatureData;
@@ -63,6 +64,15 @@ public class PreCalculatedFunctionFeatureComparator implements FunctionFeatureCo
 		functionFeatureDatasValues = new HashMap<Key<FunctionFeatureDatas>, Double>();
 		functionFeatureDataValues = new HashMap<Key<FunctionFeatureData>, Double>();
 	}
+	
+	public void put( FunctionFeatureComparator baseComparator, List<FunctionFeatureData> features ) throws Exception {
+		for ( int i=0; i<features.size(); i++ ){
+			for ( int j=i; j<features.size(); j++ ){
+				double distance = baseComparator.distance( features.get(i), features.get(j) );
+				put( features.get(i), features.get(j), distance );
+			}
+		}
+	}
 
 	public void put( FunctionFeatureDatas features1, FunctionFeatureDatas features2, double value ) {
 		functionFeatureDatasValues.put( Key.create(features1, features2), value );
@@ -75,12 +85,20 @@ public class PreCalculatedFunctionFeatureComparator implements FunctionFeatureCo
 	@Override
 	public double distance( FunctionFeatureDatas features1,
 							FunctionFeatureDatas features2 ) throws Exception {
-		return functionFeatureDatasValues.get( Key.create(features1, features2) );
+		Double ret = functionFeatureDatasValues.get( Key.create(features1, features2) );
+		if ( ret == null ) {
+			throw new Exception( "Value not cached" );
+		}
+		return ret;
 	}
 
 	@Override
 	public double distance( FunctionFeatureData feature1,
 							FunctionFeatureData feature2 ) throws Exception {
-		return functionFeatureDataValues.get( Key.create(feature1, feature2) );
+		Double ret = functionFeatureDataValues.get( Key.create(feature1, feature2) );
+		if ( ret == null ) {
+			throw new Exception( "Value not cached" );
+		}
+		return ret;
 	}
 }

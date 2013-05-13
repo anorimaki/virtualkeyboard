@@ -15,9 +15,8 @@ import com.vkb.model.Signature;
 import com.vkb.model.Signatures;
 
 public class OutlierFeatureSignaturePattern {
-	
-	private static Map<FeatureId,Double> featureWeight = featureWeightConstruct();
-	private static Map<FeatureId,Double> alphaFunctionWeight = alphaFunctionWeightConstruct();
+	private static Map<FeatureId,Double> featureWeights = featureWeightsConstruct();
+	private static Map<FeatureId,Double> featureThresholds = featureThresholdsConstruct();
 	private Map<FeatureId, FunctionFeatureDeterminer> functionFeatureDeterminers;
 	private Map<FeatureId, ScalarFeatureDeterminer> scalarFeatureDeterminers;
 	
@@ -25,11 +24,13 @@ public class OutlierFeatureSignaturePattern {
 		this( traces, new DefaultFunctionFeatureComparator() );
 	}
 	
+	
 	public OutlierFeatureSignaturePattern( List<Signature> traces, 
 							FunctionFeatureComparator functionFeatureComparator ) throws Exception {
 		createFuntionFeatureDeterminers( traces, functionFeatureComparator );
 		createScalarFeatureDeterminer( traces );
 	}
+	
 	
 	@SuppressWarnings("unchecked")
 	public <T> T getFeatureValidator( FeatureId feature ) {
@@ -40,6 +41,13 @@ public class OutlierFeatureSignaturePattern {
 		return (T) scalarFeatureDeterminers.get(feature);
 	}
 	
+	
+	public void setFunctionComparator( FunctionFeatureComparator functionComparator ) {
+		for( Map.Entry<FeatureId, FunctionFeatureDeterminer> determiner : functionFeatureDeterminers.entrySet() ) {
+			determiner.getValue().setFunctionComparator(functionComparator);
+		}
+	}
+
 	
 	public double compare( Signature trace ) throws Exception {
 		Map<FeatureId,Boolean> featureCheckResults = new HashMap<FeatureId,Boolean>();
@@ -60,7 +68,7 @@ public class OutlierFeatureSignaturePattern {
 	}
 	
 
-	private static Map<FeatureId,Double> featureWeightConstruct() {
+	private static Map<FeatureId,Double> featureWeightsConstruct() {
 		Map<FeatureId,Double> featureWeight = new HashMap<FeatureId,Double>();
 		
 		featureWeight.put( FeatureId.ACCELERATION_X_AVG, 0.969685781326788d );
@@ -81,7 +89,7 @@ public class OutlierFeatureSignaturePattern {
 	}
 
 	
-	private static Map<FeatureId,Double> alphaFunctionWeightConstruct() {
+	private static Map<FeatureId,Double> featureThresholdsConstruct() {
 		Map<FeatureId,Double> alphaWeight = new HashMap<FeatureId,Double>();
 		
 		alphaWeight.put( FeatureId.POSITION_X, 1.0d );
@@ -102,7 +110,7 @@ public class OutlierFeatureSignaturePattern {
 		double res=0.0;
 
 		for( Map.Entry<FeatureId,Boolean> featureCheckResult : featureCheckResults.entrySet() ) {
-			double weight = featureWeight.get( featureCheckResult.getKey() );
+			double weight = featureWeights.get( featureCheckResult.getKey() );
 			sum += weight;
 			if ( featureCheckResults.get( featureCheckResult.getKey() ) ) {
 				res += weight;
@@ -121,8 +129,11 @@ public class OutlierFeatureSignaturePattern {
 		Map<FeatureId, List<ScalarFeatureData>> featuresDatas = 
 					Signatures.extractFeatureDatasByModel( signatures, ScalarFeatureData.class );
 		for( Map.Entry<FeatureId, List<ScalarFeatureData>> featureDatas : featuresDatas.entrySet() ) {
-			scalarFeatureDeterminers.put( featureDatas.getKey(), 
+			FeatureId featureId = featureDatas.getKey();
+			if ( featureWeights.containsKey(featureId) ) {
+				scalarFeatureDeterminers.put( featureDatas.getKey(), 
 								new ScalarFeatureDeterminer(featureDatas.getValue()) );
+			}
 		}
 	}
 	
@@ -133,8 +144,11 @@ public class OutlierFeatureSignaturePattern {
 		Map<FeatureId, List<FunctionFeatureData>> featuresDatas = 
 					Signatures.extractFeatureDatasByModel( signatures, FunctionFeatureData.class );
 		for( Map.Entry<FeatureId, List<FunctionFeatureData>> featureDatas : featuresDatas.entrySet() ) {
-			functionFeatureDeterminers.put( featureDatas.getKey(), 
+			FeatureId featureId = featureDatas.getKey();
+			if ( featureWeights.containsKey(featureId) ) {
+				functionFeatureDeterminers.put( featureDatas.getKey(), 
 								new FunctionFeatureDeterminer( featureDatas.getValue(), functionFeatureComparator ) );
+			}
 		}
 	}
 }

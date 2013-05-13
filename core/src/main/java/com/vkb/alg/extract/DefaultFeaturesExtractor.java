@@ -49,7 +49,7 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 	
 	
 	private void extractPositionFeatures( Features features,
-								DiscreteFunction traceX, DiscreteFunction traceY ) {
+								DiscreteFunction traceX, DiscreteFunction traceY ) throws Exception {
 		features.put( new Feature( FeatureId.POSITION_X, new FunctionFeatureData( traceX ) ) );
 		features.put( new Feature( FeatureId.POSITION_Y, new FunctionFeatureData( traceY ) ) );
 	}

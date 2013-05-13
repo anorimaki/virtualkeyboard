@@ -26,6 +26,10 @@ public class FunctionFeatureDeterminer {
 		this.patternStatistics = calculateFunctionsStatistics( patternSamples );
 	}
 	
+	public void setFunctionComparator( FunctionFeatureComparator comparator ) {
+		this.comparator = comparator;
+	}
+	
 	public void setThreshold( double threshold ) {
 		this.threshold = threshold;		//alpha factor
 	}

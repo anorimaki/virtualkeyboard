@@ -64,8 +64,8 @@ public class ScalarFeatureQuality {
 			System.out.println("Fitxers llegits a "+inputFolder.getAbsolutePath()+": "+inputData.size());
 			List<Signature> patternTraces = traceBuilder.buildSignatures( inputData );
 			ScalarFeaturesStatistics aux = new ScalarFeaturesStatistics( patternTraces );
-			fQM.add( inputFolder.getName(), aux );
-			fQE.add( inputFolder.getName(), aux );
+			fQM.add( inputFolder.getPath(), aux );
+			fQE.add( inputFolder.getPath(), aux );
 		}
 		
 		double f=0.0;
