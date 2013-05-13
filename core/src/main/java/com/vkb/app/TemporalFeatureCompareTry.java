@@ -1,13 +1,10 @@
 package com.vkb.app;
 
 import java.io.File;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 
 import com.fastdtw.dtw.DTW;
 import com.fastdtw.dtw.FastDTW;
@@ -17,14 +14,12 @@ import com.fastdtw.util.EuclideanDistance;
 import com.vkb.alg.GenericSignatureBuilder;
 import com.vkb.app.util.DefaultSignatureBuilder;
 import com.vkb.app.util.Environment;
-import com.vkb.app.util.FeaturesStatistics;
 import com.vkb.io.CapturedDatasParser;
 import com.vkb.math.dtw.DataConvert;
 import com.vkb.model.CapturedData;
 import com.vkb.model.FeatureId;
 import com.vkb.model.FunctionFeatureData;
 import com.vkb.model.Signature;
-import com.vkb.alg.outlierfeature.OutlierFeatureSignatureValidator;
 
 
 

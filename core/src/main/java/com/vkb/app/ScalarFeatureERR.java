@@ -12,6 +12,7 @@ import org.jfree.chart.plot.XYPlot;
 import com.vkb.alg.SignatureValidatorFactory;
 import com.vkb.alg.ThresholdedSignatureValidator;
 import com.vkb.alg.determine.FunctionFeatureDeterminer;
+import com.vkb.alg.determine.ScalarFeatureDeterminer;
 import com.vkb.alg.outlierfeature.OutlierFeatureAlgorithm;
 import com.vkb.alg.outlierfeature.OutlierFeatureAlgorithmFactory;
 import com.vkb.app.util.Environment;
@@ -20,12 +21,13 @@ import com.vkb.gui.Application;
 import com.vkb.io.UserLoader;
 import com.vkb.model.FeatureId;
 import com.vkb.model.FunctionFeatureData;
+import com.vkb.model.ScalarFeatureData;
 import com.vkb.model.Signature;
 import com.vkb.model.User;
 import com.vkb.quality.farfrr.FARFRRCalculator;
 import com.vkb.quality.farfrr.ui.FARFRRPrinter;
 
-public class FunctionFeatureERR {
+public class ScalarFeatureERR {
 	private static int NTHREADS = 10;
 	private static double PATTERN_THRESHOLD = 0.0d;
 	private static final File INPUT_FOLDERS[] = { 
@@ -41,7 +43,7 @@ public class FunctionFeatureERR {
 	private ExecutorService executor;
 	private static double ThresholdsToCheck[] = buildThresholdsToCheck();
 	
-	public FunctionFeatureERR( File[] inputFolders ) throws Exception {
+	public ScalarFeatureERR( File[] inputFolders ) throws Exception {
 		executor = Executors.newFixedThreadPool( NTHREADS );
 		
 		SignatureValidatorFactory<OutlierFeatureAlgorithm> factory = 
@@ -52,9 +54,9 @@ public class FunctionFeatureERR {
 	
 	
 	private static double[] buildThresholdsToCheck() {
-		final int N = 30;
+		final int N = 50;
 		double[] ret = new double[N];
-		ret[0] = 0.90d;
+		ret[0] = 0.70d;
 		for ( int i=1; i<ret.length; ++i ) {
 			ret[i] = ret[i-1] + 0.05d;
 		}
@@ -63,7 +65,7 @@ public class FunctionFeatureERR {
 
 
 	public void run() throws Exception {
-		Set<FeatureId> features = FeatureId.getByModel(FunctionFeatureData.class);
+		Set<FeatureId> features = FeatureId.getByModel(ScalarFeatureData.class);
 		List<String> titles = new ArrayList<String>();
 		List<XYPlot> plots = new ArrayList<XYPlot>();
 		for( FeatureId feature : features ) {
@@ -94,7 +96,7 @@ public class FunctionFeatureERR {
 	private List<User<Validator>> generateUsers( FeatureId feature ) throws Exception {
 		List<User<Validator>> ret = new ArrayList<User<Validator>>();
 		for( User<OutlierFeatureAlgorithm> user : users ) {
-			FunctionFeatureDeterminer functionValidator = user.getValidator().getPattern().getFeatureValidator(feature);
+			ScalarFeatureDeterminer functionValidator = user.getValidator().getPattern().getFeatureValidator(feature);
 			User<Validator> newUser = 
 						new User<Validator>( new Validator(functionValidator, feature), 
 											user.getOwnSignatures() );
@@ -106,7 +108,7 @@ public class FunctionFeatureERR {
 
 	public static void main(String[] args) {
 		try {
-			FunctionFeatureERR app = new FunctionFeatureERR( INPUT_FOLDERS );
+			ScalarFeatureERR app = new ScalarFeatureERR( INPUT_FOLDERS );
 			app.run();
 		} 
 		catch (Exception e) {
@@ -116,17 +118,17 @@ public class FunctionFeatureERR {
 	
 	
 	private static class Validator implements ThresholdedSignatureValidator {
-		private FunctionFeatureDeterminer featureValidator;
+		private ScalarFeatureDeterminer featureValidator;
 		private FeatureId featureId;
 		
-		public Validator( FunctionFeatureDeterminer featureValidator, FeatureId featureId ) {
+		public Validator( ScalarFeatureDeterminer featureValidator, FeatureId featureId ) {
 			this.featureValidator = featureValidator;
 			this.featureId = featureId;
 		}
 
 		@Override
 		public boolean check(Signature signature) throws Exception {
-			FunctionFeatureData featureData = signature.getFeatures().get(featureId).getData();
+			ScalarFeatureData featureData = signature.getFeatures().get(featureId).getData();
 			return featureValidator.check(featureData);
 		}
 

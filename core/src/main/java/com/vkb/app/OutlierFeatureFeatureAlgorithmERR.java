@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 
 import org.jfree.chart.plot.XYPlot;
 
+import com.vkb.alg.SignatureValidatorFactory;
 import com.vkb.alg.outlierfeature.OutlierFeatureAlgorithm;
 import com.vkb.alg.outlierfeature.OutlierFeatureAlgorithmFactory;
 import com.vkb.app.util.Environment;
@@ -18,7 +19,7 @@ import com.vkb.quality.farfrr.FARFRRCalculator;
 import com.vkb.quality.farfrr.ui.FARFRRPrinter;
 
 public class OutlierFeatureFeatureAlgorithmERR {
-	private static int NTHREADS = 2;
+	private static int NTHREADS = 10;
 	private static final File INPUT_FOLDERS[] = { 
 		new File( Environment.RESOURCES_DIR, "user1" ),
 		new File( Environment.RESOURCES_DIR, "user2" ),
@@ -28,6 +29,7 @@ public class OutlierFeatureFeatureAlgorithmERR {
 		new File( Environment.RESOURCES_DIR, "user6" ),
 		new File( Environment.RESOURCES_DIR, "user7" ) };
 	
+	private static double PATTERN_THRESHOLD = 0.35d;
 	private List<User<OutlierFeatureAlgorithm>> users;
 	private ExecutorService executor;
 	private static double ThresholdsToCheck[] = { 0.05d, 0.1d, 0.15d, 0.2d, 0.25d, 0.3d, 0.35d, 0.4d, 0.45d,
@@ -35,7 +37,11 @@ public class OutlierFeatureFeatureAlgorithmERR {
 	
 	public OutlierFeatureFeatureAlgorithmERR( File[] inputFolders ) throws Exception {
 		executor = Executors.newFixedThreadPool( NTHREADS );
-		users = UserLoader.load( executor, new OutlierFeatureAlgorithmFactory(), inputFolders );
+		
+		SignatureValidatorFactory<OutlierFeatureAlgorithm> factory = 
+								new OutlierFeatureAlgorithmFactory( PATTERN_THRESHOLD );
+		
+		users = UserLoader.load( executor, factory, inputFolders );
 	}
 	
 	
@@ -52,8 +58,8 @@ public class OutlierFeatureFeatureAlgorithmERR {
 		XYPlot tracesPlot = plotter.plot( ThresholdsToCheck, result );
 		application.run( "FAR/FRR Graphics", tracesPlot );
 	}
-	
 
+	
 	public static void main(String[] args) {
 		try {
 			OutlierFeatureFeatureAlgorithmERR app = new OutlierFeatureFeatureAlgorithmERR( INPUT_FOLDERS );

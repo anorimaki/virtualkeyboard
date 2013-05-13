@@ -23,7 +23,7 @@ public class SignatureValidatorTest {
 		List<CapturedData> datas1 = parser.parse( INPUT_FOLDER1 ) ;
 		List<CapturedData> datas2 = parser.parse( INPUT_FOLDER2 ) ;
 		
-		OutlierFeatureAlgorithm validationAlgorithm = new OutlierFeatureAlgorithm( datas1 );
+		OutlierFeatureAlgorithm validationAlgorithm = new OutlierFeatureAlgorithm( datas1, 0.8d );
 		assertTrue( validationAlgorithm.check(datas1.get(0)) );
 		assertFalse( validationAlgorithm.check(datas2.get(0)) );
 	}

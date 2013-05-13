@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import com.vkb.math.dtw.DefaultFunctionFeatureComparator;
 import com.vkb.math.dtw.FunctionFeatureComparator;
 import com.vkb.model.FunctionFeatureData;
 
@@ -15,9 +16,18 @@ public class FunctionFeatureDeterminer {
 	private FunctionFeatureComparator comparator;
 	
 	public FunctionFeatureDeterminer( List<FunctionFeatureData> patternSamples ) throws Exception {
+		this( patternSamples, new DefaultFunctionFeatureComparator() );
+	}
+	
+	public FunctionFeatureDeterminer( List<FunctionFeatureData> patternSamples,
+								FunctionFeatureComparator functionFeatureComparator ) throws Exception {
 		this.patternSamples = patternSamples;
-		this.comparator = new FunctionFeatureComparator();
+		this.comparator = functionFeatureComparator;
 		this.patternStatistics = calculateFunctionsStatistics( patternSamples );
+	}
+	
+	public void setFunctionComparator( FunctionFeatureComparator comparator ) {
+		this.comparator = comparator;
 	}
 	
 	public void setThreshold( double threshold ) {
