@@ -38,7 +38,7 @@ public class FunctionFeatureDeterminer {
 		DescriptiveStatistics ret = new DescriptiveStatistics();
 		
 		for ( int i=0; i<datas.size(); i++ ){
-			for ( int j=i+1; i<datas.size(); i++ ){
+			for ( int j=i+1; j<datas.size(); j++ ){
 				double distance = comparator.distance( datas.get(i), datas.get(j) );
 				ret.addValue( distance );
 			}
