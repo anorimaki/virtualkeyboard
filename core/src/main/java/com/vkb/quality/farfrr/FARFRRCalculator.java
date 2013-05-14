@@ -17,7 +17,7 @@ public class FARFRRCalculator {
 		this.executor = executor;
 	}
 	
-	public <T extends SignatureValidator> FARFRRResult execute( List<User<T>> users ) throws Exception {
+	public <T extends SignatureValidator> Result execute( List<User<T>> users ) throws Exception {
 		List<List<Signature>> signaturesList = getSignaturesList(users);
 		
 		Parallelizer<TaskResult> parallelizer = new Parallelizer<TaskResult>( executor );
