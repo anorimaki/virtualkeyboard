@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -66,29 +67,45 @@ public class FeatureERR {
 		Map<FeatureId, ERRCalculator.Result> functionResults = run( application, functionFeatures,
 															FuntionFeatureTraits.instance );
 		
-		Map<FeatureId, ERRCalculator.Result> allResults = new HashMap<FeatureId, ERRCalculator.Result>();
+		Map<FeatureId, ERRCalculator.Result> allResults = new TreeMap<FeatureId, ERRCalculator.Result>();
 		allResults.putAll( scalarResults );
 		allResults.putAll( functionResults );
 		
 		Map<FeatureId, Double> weights = calculateWeights( allResults );
 		
+		System.out.println( "***************************************************** " );
 		for ( Map.Entry<FeatureId, ERRCalculator.Result> errResult : allResults.entrySet() ) {
 			FeatureId feature = errResult.getKey();
 			System.out.print( "* Feature " + feature.getName() + ": " );
 			System.out.print( "Threshold = " + errResult.getValue().getThreshold() + ", " );
 			System.out.print( "Err = " + errResult.getValue().getValue() + ", " );
-			System.out.println( "Weight =" + weights.get(feature) + "." );
+			System.out.println( "Weight = " + weights.get(feature) + "." );
+		}
+		
+		System.out.println( "***************************************************** " );
+		System.out.println( "Weights:" );
+		for ( Map.Entry<FeatureId, Double> entry : weights.entrySet() ) {
+			System.out.println( "ret.put( " + entry.getKey().getCodeName() + ", " +
+								entry.getValue() + " );" );
+		}
+		
+		
+		System.out.println( "***************************************************** " );
+		System.out.println( "Thresholds:" );
+		for ( Map.Entry<FeatureId, ERRCalculator.Result> entry : allResults.entrySet() ) {
+			System.out.println( "ret.put( " + entry.getKey().getCodeName() + ", " +
+								entry.getValue().getThreshold() + " );" );
 		}
 	}
 	
 	
 	private Map<FeatureId, Double> calculateWeights( Map<FeatureId, ERRCalculator.Result> allResults ) {
-		Map<FeatureId, Double> ret = new HashMap<FeatureId, Double>();
+		Map<FeatureId, Double> ret = new TreeMap<FeatureId, Double>();
 		
 		for ( Map.Entry<FeatureId, ERRCalculator.Result> errResult : allResults.entrySet() ) {
 			FeatureId feature = errResult.getKey();
 			
-			double weight = 1.0d / errResult.getValue().getValue();
+			double weight = 1 / errResult.getValue().getValue();
 			ret.put( feature, weight );
 		}
 		
@@ -101,7 +118,7 @@ public class FeatureERR {
 		List<String> titles = new ArrayList<String>();
 		List<XYPlot> plots = new ArrayList<XYPlot>();
 		
-		Map<FeatureId, ERRCalculator.Result> ret = new HashMap<FeatureId, ERRCalculator.Result>();
+		Map<FeatureId, ERRCalculator.Result> ret = new TreeMap<FeatureId, ERRCalculator.Result>();
 		for( FeatureId feature : features ) {
 			titles.add( feature.getName() );
 			ERRCalculator.Result err = run( plots, feature, traits );
@@ -117,6 +134,8 @@ public class FeatureERR {
 	public ERRCalculator.Result run( List<XYPlot> plots, FeatureId feature, FeatureTraits traits ) throws Exception {
 		List<FARFRRCalculator.Result> result = calculateFarFrr( feature, traits );
 		
+		System.out.println( "***************************************************** " );
+		System.out.println( feature.getName() + ":" );
 		FARFRRPrinter printer = new FARFRRPrinter();
 		printer.print( traits.getThresholdsToCheck(), result );
 
@@ -184,7 +203,7 @@ public class FeatureERR {
 		}
 		
 		private static double[] buildThresholdsToCheck() {
-			final int N = 50;
+			final int N = 25;
 			double[] ret = new double[N];
 			ret[0] = 0.70d;
 			for ( int i=1; i<ret.length; ++i ) {
@@ -232,7 +251,7 @@ public class FeatureERR {
 		}
 		
 		private static double[] buildThresholdsToCheck() {
-			final int N = 30;
+			final int N = 15;
 			double[] ret = new double[N];
 			ret[0] = 0.90d;
 			for ( int i=1; i<ret.length; ++i ) {
