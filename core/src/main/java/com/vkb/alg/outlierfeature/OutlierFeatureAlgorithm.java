@@ -19,7 +19,6 @@ import com.vkb.model.Signature;
 public class OutlierFeatureAlgorithm implements ThresholdedSignatureValidator, CapturedDataValidator, SignatureBuilder  {
 	private GenericSignatureValidator impl;
 	private WorkValidator validator;
-	private static final double DEFAULT_THRESHOLD = 0.8d;
 	
 	public OutlierFeatureAlgorithm( List<CapturedData> capturedDatas, double threshold ) throws Exception {
 		GenericSignatureBuilder signatureBuilder = generateSignatureBuilder();
@@ -72,7 +71,7 @@ public class OutlierFeatureAlgorithm implements ThresholdedSignatureValidator, C
 	private void init( SignatureBuilder signatureBuilder, OutlierFeatureSignaturePattern pattern,
 						double threshold ) throws Exception {
 		validator = new WorkValidator( pattern );
-		validator.setThreshold(DEFAULT_THRESHOLD);
+		validator.setThreshold( threshold );
 		
 		impl = new GenericSignatureValidator( signatureBuilder, validator );
 	}
