@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
+import org.apache.commons.math3.exception.NumberIsTooSmallException;
 
 public class DiscreteFunction {
 	public static class Point {
@@ -91,8 +92,22 @@ public class DiscreteFunction {
 	}
 	
 	public UnivariateFunction interpolate() {
-		UnivariateInterpolator interpolator = new LoessInterpolator( 0.05d, 0, LoessInterpolator.DEFAULT_ACCURACY );
-		return interpolator.interpolate(getX(), getY());
+		final double MAX_BANDWIDTH = 0.1d;
+		final double MIN_BANDWIDTH = 0.05d;
+		final double BANDWIDTH_INC = 0.01d;
+		
+		for ( double bandwidth = MIN_BANDWIDTH; true; bandwidth += BANDWIDTH_INC ) {
+			try {
+				UnivariateInterpolator interpolator =
+							new LoessInterpolator( bandwidth, 0, LoessInterpolator.DEFAULT_ACCURACY );
+				return interpolator.interpolate(getX(), getY());
+			}
+			catch( NumberIsTooSmallException e ) {
+				if ( bandwidth > MAX_BANDWIDTH ) {
+					throw e;
+				}
+			}
+		}
 	}
 	
 	public DiscreteFunction multiply( UnivariateFunction f ) {
