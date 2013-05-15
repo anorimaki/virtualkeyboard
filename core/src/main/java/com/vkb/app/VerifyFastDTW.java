@@ -22,7 +22,7 @@ import com.vkb.model.Signatures;
 
 
 public class VerifyFastDTW {
-	private static final File INPUT_FOLDER = new File( Environment.RESOURCES_DIR, "user1/pattern" );
+	private static final File INPUT_FOLDER = new File( Environment.RESOURCES_DIR, "user_doh/pattern" );
 		
 	private File inputFolder;
 	

@@ -22,15 +22,15 @@ import com.vkb.quality.farfrr.ui.FARFRRPrinter;
 public class OutlierFeatureFeatureAlgorithmERR {
 	private static int NTHREADS = 10;
 	private static final File INPUT_FOLDERS[] = { 
-		new File( Environment.RESOURCES_DIR, "user1" ),
-		new File( Environment.RESOURCES_DIR, "user2" ),
-		new File( Environment.RESOURCES_DIR, "user3" ),
-		new File( Environment.RESOURCES_DIR, "user4" ),
-		new File( Environment.RESOURCES_DIR, "user5" ),
-		new File( Environment.RESOURCES_DIR, "user6" ),
-		new File( Environment.RESOURCES_DIR, "user7" ) };
+		new File( Environment.RESOURCES_DIR, "user_a" ),
+		new File( Environment.RESOURCES_DIR, "user_doh" ),
+		new File( Environment.RESOURCES_DIR, "user_egg" ),
+		new File( Environment.RESOURCES_DIR, "user_fj" ),
+		new File( Environment.RESOURCES_DIR, "user_jig" ),
+		new File( Environment.RESOURCES_DIR, "user_ma" ),
+		new File( Environment.RESOURCES_DIR, "user_xf" ) };
 	
-	private static double PATTERN_THRESHOLD = 0.30d;
+	private static double PATTERN_THRESHOLD = 0.4d;
 	private List<User<OutlierFeatureAlgorithm>> users;
 	private ExecutorService executor;
 	private static double ThresholdsToCheck[] = { 0.05d, 0.1d, 0.15d, 0.2d, 0.25d, 0.3d, 0.35d, 0.4d, 0.45d,

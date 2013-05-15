@@ -27,7 +27,7 @@ import com.vkb.model.Signature;
 
 public class VerifyDTW {
 	private static final String BLANKS = "                                ";
-	private static final File INPUT_FOLDER = new File( Environment.RESOURCES_DIR, "user1/pattern" );
+	private static final File INPUT_FOLDER = new File( Environment.RESOURCES_DIR, "user_doh/pattern" );
 
 	private File inputFolder;
 	

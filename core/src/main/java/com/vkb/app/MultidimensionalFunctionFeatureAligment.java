@@ -41,8 +41,8 @@ public class MultidimensionalFunctionFeatureAligment {
 	
 	public static void main(String[] args) {
 		try {
-			File inputFile1 = new File( Environment.RESOURCES_DIR, "user1/pattern" );
-			File inputFile2 = new File( Environment.RESOURCES_DIR, "user2/pattern" );
+			File inputFile1 = new File( Environment.RESOURCES_DIR, "user_doh/pattern" );
+			File inputFile2 = new File( Environment.RESOURCES_DIR, "user_jig/pattern" );
 			MultidimensionalFunctionFeatureAligment prueba = new MultidimensionalFunctionFeatureAligment( inputFile1, inputFile2 );
 			prueba.run();
 		} 

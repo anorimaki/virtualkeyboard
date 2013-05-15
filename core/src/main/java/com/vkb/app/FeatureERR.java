@@ -2,7 +2,6 @@ package com.vkb.app;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,13 +35,13 @@ public class FeatureERR {
 	private static int NTHREADS = 10;
 	private static double PATTERN_THRESHOLD = 0.0d;
 	private static final File INPUT_FOLDERS[] = { 
-		new File( Environment.RESOURCES_DIR, "user1" ),
-		new File( Environment.RESOURCES_DIR, "user2" ),
-		new File( Environment.RESOURCES_DIR, "user3" ),
-		new File( Environment.RESOURCES_DIR, "user4" ),
-		new File( Environment.RESOURCES_DIR, "user5" ),
-		new File( Environment.RESOURCES_DIR, "user6" ),
-		new File( Environment.RESOURCES_DIR, "user7" ) };
+		new File( Environment.RESOURCES_DIR, "user_a" ),
+		new File( Environment.RESOURCES_DIR, "user_doh" ),
+		new File( Environment.RESOURCES_DIR, "user_egg" ),
+		new File( Environment.RESOURCES_DIR, "user_fj" ),
+		new File( Environment.RESOURCES_DIR, "user_jig" ),
+		new File( Environment.RESOURCES_DIR, "user_ma" ),
+		new File( Environment.RESOURCES_DIR, "user_xf" ) };
 	
 	private List<User<OutlierFeatureAlgorithm>> users;;
 	private ExecutorService executor;

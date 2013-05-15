@@ -27,13 +27,13 @@ import com.vkb.model.Signature;
 
 public class ScalarFeatureQuality {
 	private static final File INPUT_FOLDERS[] = { 
-		new File( Environment.RESOURCES_DIR, "user1/pattern" ),
-		new File( Environment.RESOURCES_DIR, "user2/pattern" ),
-		new File( Environment.RESOURCES_DIR, "user3/pattern" ),
-		new File( Environment.RESOURCES_DIR, "user4/pattern" ),
-		new File( Environment.RESOURCES_DIR, "user5/pattern" ),
-		new File( Environment.RESOURCES_DIR, "user6/pattern" ),
-		new File( Environment.RESOURCES_DIR, "user7/pattern" ) };
+		new File( Environment.RESOURCES_DIR, "user_a/pattern" ),
+		new File( Environment.RESOURCES_DIR, "user_doh/pattern" ),
+		new File( Environment.RESOURCES_DIR, "user_egg/pattern" ),
+		new File( Environment.RESOURCES_DIR, "user_fj/pattern" ),
+		new File( Environment.RESOURCES_DIR, "user_jig/pattern" ),
+		new File( Environment.RESOURCES_DIR, "user_ma/pattern" ),
+		new File( Environment.RESOURCES_DIR, "user_xf/pattern" ) };
 			
 	private File[] inputFolders;
 	private Map<FeatureId,Double> results= new HashMap<FeatureId, Double>();
