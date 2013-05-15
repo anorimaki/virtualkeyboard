@@ -9,6 +9,11 @@ import java.util.Set;
 public class Signatures {
 	static public <T extends FeatureData> Map<FeatureId, List<T>> extractFeatureDatasByModel( 
 			List<Signature> signatures, Class<T> t ) throws Exception {
+		
+		if ( signatures.isEmpty() ) {
+			throw new Exception( "Empty signaute list" );
+		}
+		
 		Signature signature0 = signatures.get(0);
 		
 		Map<FeatureId, List<T>> ret = new HashMap<FeatureId, List<T>>();

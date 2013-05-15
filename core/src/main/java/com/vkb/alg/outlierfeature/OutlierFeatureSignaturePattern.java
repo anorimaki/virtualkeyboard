@@ -122,22 +122,22 @@ public class OutlierFeatureSignaturePattern {
 	private static Map<FeatureId,Double> featureWeightsConstruct() {
 		Map<FeatureId,Double> ret = new HashMap<FeatureId,Double>();
 		
-		ret.put( FeatureId.POSITION_X, 3.266666666666663);
-		ret.put( FeatureId.POSITION_Y, 5.500000000000009);
-		ret.put( FeatureId.VELOCITY_X, 16.333333333333325);
-		ret.put( FeatureId.VELOCITY_Y, 10.499999999999986);
-		ret.put( FeatureId.ACCELERATION_X, 16.333333333333357);
-		ret.put( FeatureId.ACCELERATION_Y, 14.000000000000009);
-		ret.put( FeatureId.POSITION_X_AVG, 2.3333333333333317);
-		ret.put( FeatureId.POSITION_Y_AVG, 3.4999999999999996);
-		ret.put( FeatureId.VELOCITY_X_AVG, 2.3333333333333357);
-		ret.put( FeatureId.VELOCITY_Y_AVG, 8.4);
-		ret.put( FeatureId.ACCELERATION_X_AVG, 1.8260869565217397);
-		ret.put( FeatureId.ACCELERATION_Y_AVG, 1.96);
-		ret.put( FeatureId.AREA_X, 4.2);
-		ret.put( FeatureId.AREA_Y, 6.999999999999991);
-		ret.put( FeatureId.RELATION_AREA, 2.3333333333333357);
-		ret.put( FeatureId.RELATION_X_Y, 3.000000000000003);
+		ret.put( FeatureId.POSITION_X, 5.833333333333344 );
+		ret.put( FeatureId.POSITION_Y, 6.3636363636363695 );
+		ret.put( FeatureId.VELOCITY_X, 17.499999999999975 );
+		ret.put( FeatureId.VELOCITY_Y, 17.499999999999975 );
+		ret.put( FeatureId.ACCELERATION_X, 18.846153846153992 );
+		ret.put( FeatureId.ACCELERATION_Y, 17.50000000000006 );
+		ret.put( FeatureId.POSITION_X_AVG, 3.130081300813009 );
+		ret.put( FeatureId.POSITION_Y_AVG, 2.841880341880344 );
+		ret.put( FeatureId.VELOCITY_X_AVG, 3.4027777777777724 );
+		ret.put( FeatureId.VELOCITY_Y_AVG, 6.621621621621631 );
+		ret.put( FeatureId.ACCELERATION_X_AVG, 2.1875000000000018 );
+		ret.put( FeatureId.ACCELERATION_Y_AVG, 2.464788732394369 );
+		ret.put( FeatureId.AREA_X, 6.125000000000011 );
+		ret.put( FeatureId.AREA_Y, 5.0 );
+		ret.put( FeatureId.RELATION_AREA, 3.47328244274809 );
+		ret.put( FeatureId.RELATION_X_Y, 3.0624999999999947 );
 		
 		return ret;
 	}
@@ -146,22 +146,22 @@ public class OutlierFeatureSignaturePattern {
 	private static Map<FeatureId,Double> featureThresholdsConstruct() {
 		Map<FeatureId,Double> ret = new HashMap<FeatureId,Double>();
 		
-		ret.put( FeatureId.POSITION_X, 1.2428571428571429);
-		ret.put( FeatureId.POSITION_Y, 1.322727272727273);
-		ret.put( FeatureId.VELOCITY_X, 1.5285714285714287);
-		ret.put( FeatureId.VELOCITY_Y, 1.4666666666666668);
-		ret.put( FeatureId.ACCELERATION_X, 1.3785714285714288);
-		ret.put( FeatureId.ACCELERATION_Y, 1.3250000000000002);
-		ret.put( FeatureId.POSITION_X_AVG, 0.9833333333333336);
-		ret.put( FeatureId.POSITION_Y_AVG, 0.8749999999999997);
-		ret.put( FeatureId.VELOCITY_X_AVG, 1.6500000000000041);
-		ret.put( FeatureId.VELOCITY_Y_AVG, 1.1083333333333334);
-		ret.put( FeatureId.ACCELERATION_X_AVG, 1.308333333333334);
-		ret.put( FeatureId.ACCELERATION_Y_AVG, 0.9714285714285715);
-		ret.put( FeatureId.AREA_X, 1.0166666666666666);
-		ret.put( FeatureId.AREA_Y, 1.1000000000000005);
-		ret.put( FeatureId.RELATION_AREA, 1.325);
-		ret.put( FeatureId.RELATION_X_Y, 0.9333333333333335);
+		ret.put( FeatureId.POSITION_X, 1.0699999999999992 );
+		ret.put( FeatureId.POSITION_Y, 1.2749999999999997 );
+		ret.put( FeatureId.VELOCITY_X, 1.5800000000000003 );
+		ret.put( FeatureId.VELOCITY_Y, 1.6000000000000019 );
+		ret.put( FeatureId.ACCELERATION_X, 1.7071428571428586 );
+		ret.put( FeatureId.ACCELERATION_Y, 1.5166666666666673 );
+		ret.put( FeatureId.POSITION_X_AVG, 0.8409090909090915 );
+		ret.put( FeatureId.POSITION_Y_AVG, 0.9842105263157905 );
+		ret.put( FeatureId.VELOCITY_X_AVG, 1.1357142857142861 );
+		ret.put( FeatureId.VELOCITY_Y_AVG, 1.2857142857142863 );
+		ret.put( FeatureId.ACCELERATION_X_AVG, 0.7624999999999965 );
+		ret.put( FeatureId.ACCELERATION_Y_AVG, 0.840000000000001 );
+		ret.put( FeatureId.AREA_X, 0.9142857142857148 );
+		ret.put( FeatureId.AREA_Y, 1.3750000000000022 );
+		ret.put( FeatureId.RELATION_AREA, 1.0153846153846156 );
+		ret.put( FeatureId.RELATION_X_Y, 0.928571428571427 );
 	
 		return ret;
 	}
