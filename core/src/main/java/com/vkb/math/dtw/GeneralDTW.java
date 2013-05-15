@@ -1,7 +1,6 @@
 package com.vkb.math.dtw;
 
 import com.vkb.math.DiscreteVectorFunction;
-import com.vkb.math.MinMaxNormalizationMethod;
 
 public class GeneralDTW implements FunctionWarper, FunctionComparator {
 	private MatrixCostFunction costMatrixCalculator;
@@ -27,12 +26,12 @@ public class GeneralDTW implements FunctionWarper, FunctionComparator {
 	
 
 	private MatrixCost getCostMatrix( DiscreteVectorFunction serie1, DiscreteVectorFunction serie2 ) throws Exception {
-		DiscreteVectorFunction normalizedF1 = new DiscreteVectorFunction( serie1 );
+	/*	DiscreteVectorFunction normalizedF1 = new DiscreteVectorFunction( serie1 );
 		normalizedF1.normalizeValues( MinMaxNormalizationMethod.INSTANCE );
 		
 		DiscreteVectorFunction normalizedF2 = new DiscreteVectorFunction( serie2 );
 		normalizedF2.normalizeValues( MinMaxNormalizationMethod.INSTANCE );
-		
-		return costMatrixCalculator.calculate( normalizedF1, normalizedF2 );
+		*/
+		return costMatrixCalculator.calculate( serie1, serie2 );
 	}
 }
