@@ -68,42 +68,6 @@ public class OutlierFeatureSignaturePattern {
 	}
 	
 
-	private static Map<FeatureId,Double> featureWeightsConstruct() {
-		Map<FeatureId,Double> featureWeight = new HashMap<FeatureId,Double>();
-		
-		featureWeight.put( FeatureId.ACCELERATION_X_AVG, 0.969685781326788d );
-		featureWeight.put( FeatureId.ACCELERATION_Y_AVG, 0.8367402193097967d );
-		featureWeight.put( FeatureId.POSITION_X_AVG, 0.8349410056742863d );
-		featureWeight.put( FeatureId.POSITION_Y_AVG, 0.9131320183317968d );
-		featureWeight.put( FeatureId.VELOCITY_X_AVG, 1.2139466477499392d );
-		featureWeight.put( FeatureId.VELOCITY_Y_AVG, 1.198957799511142d );
-		featureWeight.put( FeatureId.AREA_X, 1.110382116310794d );
-		featureWeight.put( FeatureId.AREA_Y, 0.9133431709359657d );
-		featureWeight.put( FeatureId.RELATION_AREA, 1.0088712408494909d );
-
-		for( FeatureId feature : FeatureId.getByModel( FunctionFeatureData.class ) ) {
-			featureWeight.put( feature, 1.0d );
-		}
-		
-		return featureWeight;
-	}
-
-	
-	private static Map<FeatureId,Double> featureThresholdsConstruct() {
-		Map<FeatureId,Double> alphaWeight = new HashMap<FeatureId,Double>();
-		
-		alphaWeight.put( FeatureId.POSITION_X, 1.0d );
-		alphaWeight.put( FeatureId.POSITION_Y, 1.0d );
-		alphaWeight.put( FeatureId.VELOCITY_X, 1.0d );
-		alphaWeight.put( FeatureId.VELOCITY_Y, 1.0d );
-		alphaWeight.put( FeatureId.ACCELERATION_X, 1.0d );
-		alphaWeight.put( FeatureId.ACCELERATION_Y, 1.0d );
-		alphaWeight.put( FeatureId.RELATION_X_Y, 1.0d );
-	
-		return alphaWeight;
-	}
-
-	
 	private double insidersRateCompute( Map<FeatureId,Boolean> featureCheckResults ){
 		// A partir del vector de ratios calcula un ratio global, per comparar amb treshold
 		double sum=0.0;
@@ -131,8 +95,9 @@ public class OutlierFeatureSignaturePattern {
 		for( Map.Entry<FeatureId, List<ScalarFeatureData>> featureDatas : featuresDatas.entrySet() ) {
 			FeatureId featureId = featureDatas.getKey();
 			if ( featureWeights.containsKey(featureId) ) {
-				scalarFeatureDeterminers.put( featureDatas.getKey(), 
-								new ScalarFeatureDeterminer(featureDatas.getValue()) );
+				ScalarFeatureDeterminer validator = new ScalarFeatureDeterminer(featureDatas.getValue());
+				validator.setThreshold( featureThresholds.get(featureId) );
+				scalarFeatureDeterminers.put( featureDatas.getKey(), validator );
 			}
 		}
 	}
@@ -146,9 +111,58 @@ public class OutlierFeatureSignaturePattern {
 		for( Map.Entry<FeatureId, List<FunctionFeatureData>> featureDatas : featuresDatas.entrySet() ) {
 			FeatureId featureId = featureDatas.getKey();
 			if ( featureWeights.containsKey(featureId) ) {
-				functionFeatureDeterminers.put( featureDatas.getKey(), 
-								new FunctionFeatureDeterminer( featureDatas.getValue(), functionFeatureComparator ) );
+				FunctionFeatureDeterminer validator = new FunctionFeatureDeterminer( featureDatas.getValue(), functionFeatureComparator );
+				validator.setThreshold( featureThresholds.get(featureId) );
+				functionFeatureDeterminers.put( featureDatas.getKey(), validator );
 			}
 		}
+	}
+	
+	
+	private static Map<FeatureId,Double> featureWeightsConstruct() {
+		Map<FeatureId,Double> ret = new HashMap<FeatureId,Double>();
+		
+		ret.put( FeatureId.POSITION_X, 3.266666666666663);
+		ret.put( FeatureId.POSITION_Y, 5.500000000000009);
+		ret.put( FeatureId.VELOCITY_X, 16.333333333333325);
+		ret.put( FeatureId.VELOCITY_Y, 10.499999999999986);
+		ret.put( FeatureId.ACCELERATION_X, 16.333333333333357);
+		ret.put( FeatureId.ACCELERATION_Y, 14.000000000000009);
+		ret.put( FeatureId.POSITION_X_AVG, 2.3333333333333317);
+		ret.put( FeatureId.POSITION_Y_AVG, 3.4999999999999996);
+		ret.put( FeatureId.VELOCITY_X_AVG, 2.3333333333333357);
+		ret.put( FeatureId.VELOCITY_Y_AVG, 8.4);
+		ret.put( FeatureId.ACCELERATION_X_AVG, 1.8260869565217397);
+		ret.put( FeatureId.ACCELERATION_Y_AVG, 1.96);
+		ret.put( FeatureId.AREA_X, 4.2);
+		ret.put( FeatureId.AREA_Y, 6.999999999999991);
+		ret.put( FeatureId.RELATION_AREA, 2.3333333333333357);
+		ret.put( FeatureId.RELATION_X_Y, 3.000000000000003);
+		
+		return ret;
+	}
+
+	
+	private static Map<FeatureId,Double> featureThresholdsConstruct() {
+		Map<FeatureId,Double> ret = new HashMap<FeatureId,Double>();
+		
+		ret.put( FeatureId.POSITION_X, 1.2428571428571429);
+		ret.put( FeatureId.POSITION_Y, 1.322727272727273);
+		ret.put( FeatureId.VELOCITY_X, 1.5285714285714287);
+		ret.put( FeatureId.VELOCITY_Y, 1.4666666666666668);
+		ret.put( FeatureId.ACCELERATION_X, 1.3785714285714288);
+		ret.put( FeatureId.ACCELERATION_Y, 1.3250000000000002);
+		ret.put( FeatureId.POSITION_X_AVG, 0.9833333333333336);
+		ret.put( FeatureId.POSITION_Y_AVG, 0.8749999999999997);
+		ret.put( FeatureId.VELOCITY_X_AVG, 1.6500000000000041);
+		ret.put( FeatureId.VELOCITY_Y_AVG, 1.1083333333333334);
+		ret.put( FeatureId.ACCELERATION_X_AVG, 1.308333333333334);
+		ret.put( FeatureId.ACCELERATION_Y_AVG, 0.9714285714285715);
+		ret.put( FeatureId.AREA_X, 1.0166666666666666);
+		ret.put( FeatureId.AREA_Y, 1.1000000000000005);
+		ret.put( FeatureId.RELATION_AREA, 1.325);
+		ret.put( FeatureId.RELATION_X_Y, 0.9333333333333335);
+	
+		return ret;
 	}
 }

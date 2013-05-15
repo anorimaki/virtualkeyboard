@@ -15,6 +15,7 @@ import com.vkb.app.util.FARFRRPlotter;
 import com.vkb.gui.Application;
 import com.vkb.io.UserLoader;
 import com.vkb.model.User;
+import com.vkb.quality.farfrr.ERRCalculator;
 import com.vkb.quality.farfrr.FARFRRCalculator;
 import com.vkb.quality.farfrr.ui.FARFRRPrinter;
 
@@ -29,7 +30,7 @@ public class OutlierFeatureFeatureAlgorithmERR {
 		new File( Environment.RESOURCES_DIR, "user6" ),
 		new File( Environment.RESOURCES_DIR, "user7" ) };
 	
-	private static double PATTERN_THRESHOLD = 0.35d;
+	private static double PATTERN_THRESHOLD = 0.30d;
 	private List<User<OutlierFeatureAlgorithm>> users;
 	private ExecutorService executor;
 	private static double ThresholdsToCheck[] = { 0.05d, 0.1d, 0.15d, 0.2d, 0.25d, 0.3d, 0.35d, 0.4d, 0.45d,
@@ -52,6 +53,10 @@ public class OutlierFeatureFeatureAlgorithmERR {
 		
 		FARFRRPrinter printer = new FARFRRPrinter();
 		printer.print( ThresholdsToCheck, result );
+		
+		ERRCalculator.Result errResult = ERRCalculator.calculate( result, ThresholdsToCheck );
+		System.out.println( "***************************************************************" );
+		System.out.println( "ERR " + errResult.getValue() + " on threshold " + errResult.getThreshold() );
 
 		FARFRRPlotter plotter = new FARFRRPlotter();
 		Application application = new Application();
