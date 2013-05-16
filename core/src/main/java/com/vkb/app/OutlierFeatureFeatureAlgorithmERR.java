@@ -20,7 +20,6 @@ import com.vkb.quality.farfrr.FARFRRCalculator;
 import com.vkb.quality.farfrr.ui.FARFRRPrinter;
 
 public class OutlierFeatureFeatureAlgorithmERR {
-	private static int NTHREADS = 10;
 	private static final File INPUT_FOLDERS[] = { 
 		new File( Environment.RESOURCES_DIR, "user_a" ),
 		new File( Environment.RESOURCES_DIR, "user_doh" ),
@@ -29,6 +28,7 @@ public class OutlierFeatureFeatureAlgorithmERR {
 		new File( Environment.RESOURCES_DIR, "user_jig" ),
 		new File( Environment.RESOURCES_DIR, "user_ma" ),
 		new File( Environment.RESOURCES_DIR, "user_xf" ) };
+	private static int NTHREADS = INPUT_FOLDERS.length;
 	
 	private static double PATTERN_THRESHOLD = 0.4d;
 	private List<User<OutlierFeatureAlgorithm>> users;

@@ -2,6 +2,7 @@ package com.vkb.app;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +92,7 @@ public class ScalarFeatureQuality {
 		
 		String[] titles={"MANOVA Feature Quality Compare","ENTROPY  FeatureQuality Compare"};
 		Application application = new Application();
-		application.run( "Feature Quality", plots,titles);	
+		application.run( "Feature Quality", Arrays.asList(titles), plots );	
 		
 		generateWeightVector(results);
 		generateWeightVector(resultsE);

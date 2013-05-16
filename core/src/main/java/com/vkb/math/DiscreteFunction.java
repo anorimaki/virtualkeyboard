@@ -120,6 +120,27 @@ public class DiscreteFunction {
 		return ret;
 	}
 	
+	public DiscreteFunction sum( String name, DiscreteFunction other ) throws Exception {
+		if ( size() != other.size() ) {
+			throw new Exception( "Can't sum discrete functions with different sizes" );
+		}
+		DiscreteFunction ret = new DiscreteFunction( name );
+		for ( int i=0; i<size(); ++i ) {
+			Point p1 = get(i);
+			Point p2 = other.get(i);
+			if( p1.getX() != p2.getX() ) {
+				throw new Exception( "Can't sum discrete functions with different X values" );
+			}
+			Point newPoint = new Point( p1.getX(), p1.getY() + p2.getY() );
+			ret.add(newPoint);
+		}
+		return ret;
+	}
+	
+	public DiscreteFunction sum( DiscreteFunction other ) throws Exception {
+		return sum( getName(), other );
+	}
+	
 	public double[] getX() {
 		double[] ret = new double[size()];
 		int i=0;

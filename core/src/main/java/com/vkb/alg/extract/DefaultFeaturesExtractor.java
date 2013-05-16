@@ -56,16 +56,28 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 	
 	
 	private void extractVelocityFeatures( Features features,
-								FiniteDifferencesDifferentiator differentiator ) {
-		features.put( createDerivate( differentiator, FeatureId.VELOCITY_X, features.get(FeatureId.POSITION_X) ) );
-		features.put( createDerivate( differentiator, FeatureId.VELOCITY_Y, features.get(FeatureId.POSITION_Y) ) );
+								FiniteDifferencesDifferentiator differentiator ) throws Exception {
+		Feature velocityX = createDerivate( differentiator, FeatureId.VELOCITY_X, features.get(FeatureId.POSITION_X) );
+		features.put( velocityX );
+		
+		Feature velocityY = createDerivate( differentiator, FeatureId.VELOCITY_Y, features.get(FeatureId.POSITION_Y) );
+		features.put( velocityY );
+		
+		Feature velocity = createSum( FeatureId.VELOCITY, velocityX, velocityY );
+		features.put( velocity );
 	}
 		
 
 	private void extractAccelerationFeatures( Features features,
-								FiniteDifferencesDifferentiator differentiator ) {
-		features.put( createDerivate( differentiator, FeatureId.ACCELERATION_X, features.get(FeatureId.VELOCITY_X) ) );
-		features.put( createDerivate( differentiator, FeatureId.ACCELERATION_Y, features.get(FeatureId.VELOCITY_Y) ) );
+								FiniteDifferencesDifferentiator differentiator ) throws Exception {
+		Feature accelerationX = createDerivate( differentiator, FeatureId.ACCELERATION_X, features.get(FeatureId.VELOCITY_X) );
+		features.put( accelerationX );
+		
+		Feature accelerationY = createDerivate( differentiator, FeatureId.ACCELERATION_Y, features.get(FeatureId.VELOCITY_Y) );
+		features.put( accelerationY );
+		
+		Feature acceleration = createSum( FeatureId.ACCELERATION, accelerationX, accelerationY );
+		features.put( acceleration );
 	}
 	
 	
@@ -130,6 +142,13 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 		
 		ScalarFeatureData data = new ScalarFeatureData(area);
 		return new Feature( newFeatureId, data );
+	}
+	
+	private Feature createSum( FeatureId newFeatureId, Feature op1, Feature op2 ) throws Exception {
+		FunctionFeatureData data1 = op1.getData();
+		FunctionFeatureData data2 = op2.getData();
+		DiscreteFunction sum = data1.getSamples().sum( newFeatureId.getName(), data2.getSamples() );
+		return new Feature( newFeatureId, new FunctionFeatureData( sum ) );
 	}
 	
 	private Feature createDerivate( FiniteDifferencesDifferentiator differentiator,

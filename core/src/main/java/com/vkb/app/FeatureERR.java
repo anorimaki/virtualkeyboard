@@ -32,7 +32,6 @@ import com.vkb.quality.farfrr.FARFRRCalculator;
 import com.vkb.quality.farfrr.ui.FARFRRPrinter;
 
 public class FeatureERR {
-	private static int NTHREADS = 10;
 	private static double PATTERN_THRESHOLD = 0.0d;
 	private static final File INPUT_FOLDERS[] = { 
 		new File( Environment.RESOURCES_DIR, "user_a" ),
@@ -42,6 +41,7 @@ public class FeatureERR {
 		new File( Environment.RESOURCES_DIR, "user_jig" ),
 		new File( Environment.RESOURCES_DIR, "user_ma" ),
 		new File( Environment.RESOURCES_DIR, "user_xf" ) };
+	private static int NTHREADS = INPUT_FOLDERS.length;
 	
 	private List<User<OutlierFeatureAlgorithm>> users;;
 	private ExecutorService executor;
@@ -124,7 +124,7 @@ public class FeatureERR {
 			ret.put( feature, err );
 		}
 		
-		application.start( "FAR/FRR Graphics", titles.toArray( new String[0] ), plots );
+		application.start( "FAR/FRR Graphics", titles, plots );
 		
 		return ret;
 	}
@@ -162,7 +162,7 @@ public class FeatureERR {
 			ThresholdedSignatureValidator validator =
 					traits.generateValidator( user.getValidator().getPattern(), feature );
 			User<ThresholdedSignatureValidator> newUser = 
-						new User<ThresholdedSignatureValidator>( validator, user.getOwnSignatures() );
+						new User<ThresholdedSignatureValidator>( user.getId(), validator, user.getOwnSignatures() );
 			ret.add( newUser );
 		}
 		return ret;

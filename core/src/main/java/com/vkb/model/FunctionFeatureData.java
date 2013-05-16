@@ -1,6 +1,7 @@
 package com.vkb.model;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
+import org.apache.commons.math3.analysis.function.StepFunction;
 
 import com.vkb.math.DiscreteFunction;
 import com.vkb.math.FunctionUtils;
@@ -12,17 +13,17 @@ public class FunctionFeatureData implements FeatureData {
 	private double weight;
 	
 	public FunctionFeatureData( DiscreteFunction functionPoints ) {
-		this.function = functionPoints.interpolate();
-		
 		if ( fitsDesriredInterval( functionPoints ) ) {
 			samples = functionPoints;
+			function = new StepFunction( samples.getX(), samples.getY() );
 		}
 		else {
+			function = functionPoints.interpolate();
 			samples = FunctionUtils.sample( functionPoints.getName(), function, 
 						functionPoints.getMinX(), functionPoints.getMaxX(), DEFAULT_STEP );
 		}
 	}
-
+	
 	public FunctionFeatureData( String name, UnivariateFunction function, 
 								double min, double max ) {
 		this.function = function;
