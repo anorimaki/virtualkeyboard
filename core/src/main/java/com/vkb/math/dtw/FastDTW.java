@@ -50,7 +50,7 @@ public class FastDTW implements FunctionWarper, FunctionComparator {
 
 	private static WarpPath convertWarpPath( com.fastdtw.dtw.WarpPath path ) {
 		WarpPath ret = new WarpPath();
-		for( int i=0; i<path.size(); ++i ) {
+		for( int i=path.size()-1; i>=0; --i ) {
 			ColMajorCell cell = path.get(i);
 			ret.pushFront( cell.getCol(), cell.getRow() );
 		}

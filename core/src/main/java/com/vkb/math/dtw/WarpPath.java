@@ -26,6 +26,11 @@ public class WarpPath {
 		public int getRow() {
 			return row;
 		}
+		
+		@Override
+		public String toString() {
+			return "(" + column + "," + row + ")";
+		}
 	}
 	
 	private class IteratorImpl implements Iterator<Cell> {
