@@ -13,7 +13,7 @@ public class FARFRRPrinter {
 	
 	public FARFRRPrinter() {
 		output = new OutputStreamWriter( System.out );
-		numFormatter = new DecimalFormat( "000.00%" );
+		numFormatter = new DecimalFormat( "##0.0" );
 	}
 	
 	public void print( double[] thresholds, List<FARFRRCalculator.Result> results ) throws Exception {
@@ -29,7 +29,7 @@ public class FARFRRPrinter {
 		output.write("-------------------------------\n");
 		for ( int i=0; i<matrix.size(); ++i ) {
 			for ( int j=0; j<matrix.size(); ++j ) {
-				double itemResult = matrix.get( i, j );
+				double itemResult = matrix.get( i, j ) + 100.0d;
 				output.write( numFormatter.format(itemResult) + "   " );
 			}
 			output.write( "\n" );

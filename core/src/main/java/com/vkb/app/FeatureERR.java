@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -32,7 +33,6 @@ import com.vkb.quality.farfrr.FARFRRCalculator;
 import com.vkb.quality.farfrr.ui.FARFRRPrinter;
 
 public class FeatureERR {
-	private static int NTHREADS = 10;
 	private static double PATTERN_THRESHOLD = 0.0d;
 	private static final File INPUT_FOLDERS[] = { 
 		new File( Environment.RESOURCES_DIR, "user_a" ),
@@ -42,6 +42,7 @@ public class FeatureERR {
 		new File( Environment.RESOURCES_DIR, "user_jig" ),
 		new File( Environment.RESOURCES_DIR, "user_ma" ),
 		new File( Environment.RESOURCES_DIR, "user_xf" ) };
+	private static int NTHREADS = INPUT_FOLDERS.length;
 	
 	private List<User<OutlierFeatureAlgorithm>> users;;
 	private ExecutorService executor;
@@ -57,8 +58,9 @@ public class FeatureERR {
 	
 
 	public void run() throws Exception {
-		Set<FeatureId> scalarFeatures = FeatureId.getByModel(ScalarFeatureData.class);
-		Set<FeatureId> functionFeatures = FeatureId.getByModel(FunctionFeatureData.class);
+		Set<FeatureId> scalarFeatures = new TreeSet<FeatureId>();
+		Set<FeatureId> functionFeatures = new TreeSet<FeatureId>();
+		getFeaturesToCheck( scalarFeatures, functionFeatures );
 
 		Application application = new Application();
 		Map<FeatureId, ERRCalculator.Result> scalarResults = run( application, scalarFeatures,
@@ -97,7 +99,7 @@ public class FeatureERR {
 		}
 	}
 	
-	
+
 	private Map<FeatureId, Double> calculateWeights( Map<FeatureId, ERRCalculator.Result> allResults ) {
 		Map<FeatureId, Double> ret = new TreeMap<FeatureId, Double>();
 		
@@ -124,7 +126,7 @@ public class FeatureERR {
 			ret.put( feature, err );
 		}
 		
-		application.start( "FAR/FRR Graphics", titles.toArray( new String[0] ), plots );
+		application.start( "FAR/FRR Graphics", titles, plots );
 		
 		return ret;
 	}
@@ -162,10 +164,23 @@ public class FeatureERR {
 			ThresholdedSignatureValidator validator =
 					traits.generateValidator( user.getValidator().getPattern(), feature );
 			User<ThresholdedSignatureValidator> newUser = 
-						new User<ThresholdedSignatureValidator>( validator, user.getOwnSignatures() );
+						new User<ThresholdedSignatureValidator>( user.getId(), validator, user.getOwnSignatures() );
 			ret.add( newUser );
 		}
 		return ret;
+	}
+	
+	private static void getFeaturesToCheck( Set<FeatureId> scalarFeatures, Set<FeatureId> functionFeatures ) {
+		Map<FeatureId, Double> features = OutlierFeatureSignaturePattern.getFeatureWeights();
+
+		for( Map.Entry<FeatureId, Double> feature : features.entrySet() ) {
+			if ( feature.getKey().getModel().equals( ScalarFeatureData.class ) ) {
+				scalarFeatures.add( feature.getKey() );
+			}
+			else if ( feature.getKey().getModel().equals( FunctionFeatureData.class ) ) {
+				functionFeatures.add( feature.getKey() );
+			}
+		}
 	}
 
 

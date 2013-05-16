@@ -9,6 +9,7 @@ import org.apache.commons.math3.analysis.UnivariateFunction;
 import com.vkb.alg.FeaturesExtractor;
 import com.vkb.math.DiscreteFunction;
 import com.vkb.math.FunctionUtils;
+import com.vkb.math.DiscreteFunction.Point;
 import com.vkb.model.CapturedData;
 import com.vkb.model.Feature;
 import com.vkb.model.Features;
@@ -56,16 +57,28 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 	
 	
 	private void extractVelocityFeatures( Features features,
-								FiniteDifferencesDifferentiator differentiator ) {
-		features.put( createDerivate( differentiator, FeatureId.VELOCITY_X, features.get(FeatureId.POSITION_X) ) );
-		features.put( createDerivate( differentiator, FeatureId.VELOCITY_Y, features.get(FeatureId.POSITION_Y) ) );
+								FiniteDifferencesDifferentiator differentiator ) throws Exception {
+		Feature velocityX = createDerivate( differentiator, FeatureId.VELOCITY_X, features.get(FeatureId.POSITION_X) );
+		features.put( velocityX );
+		
+		Feature velocityY = createDerivate( differentiator, FeatureId.VELOCITY_Y, features.get(FeatureId.POSITION_Y) );
+		features.put( velocityY );
+		
+		Feature velocity = createComposed( FeatureId.VELOCITY, velocityX, velocityY );
+		features.put( velocity );
 	}
 		
 
 	private void extractAccelerationFeatures( Features features,
-								FiniteDifferencesDifferentiator differentiator ) {
-		features.put( createDerivate( differentiator, FeatureId.ACCELERATION_X, features.get(FeatureId.VELOCITY_X) ) );
-		features.put( createDerivate( differentiator, FeatureId.ACCELERATION_Y, features.get(FeatureId.VELOCITY_Y) ) );
+								FiniteDifferencesDifferentiator differentiator ) throws Exception {
+		Feature accelerationX = createDerivate( differentiator, FeatureId.ACCELERATION_X, features.get(FeatureId.VELOCITY_X) );
+		features.put( accelerationX );
+		
+		Feature accelerationY = createDerivate( differentiator, FeatureId.ACCELERATION_Y, features.get(FeatureId.VELOCITY_Y) );
+		features.put( accelerationY );
+		
+		Feature acceleration = createComposed( FeatureId.ACCELERATION, accelerationX, accelerationY );
+		features.put( acceleration );
 	}
 	
 	
@@ -132,9 +145,34 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 		return new Feature( newFeatureId, data );
 	}
 	
+	private Feature createComposed( FeatureId newFeatureId, Feature op1, Feature op2 ) throws Exception {
+		FunctionFeatureData data1 = op1.getData();
+		FunctionFeatureData data2 = op2.getData();
+		
+		DiscreteFunction f1 = data1.getSamples();
+		DiscreteFunction f2 = data2.getSamples();
+		
+		if ( f1.size() != f2.size() ) {
+			throw new Exception( "Can't compose discrete functions with different sizes" );
+		}
+		DiscreteFunction fcomposed = new DiscreteFunction( newFeatureId.getName() );
+		for ( int i=0; i<f1.size(); ++i ) {
+			Point p1 = f1.get(i);
+			Point p2 = f2.get(i);
+			if( p1.getX() != p2.getX() ) {
+				throw new Exception( "Can't compose discrete functions with different X values" );
+			}
+			Point newPoint = new Point( p1.getX(),
+										Math.sqrt( (p1.getY()*p1.getY()) + (p2.getY()*p2.getY()) ) );
+			fcomposed.add(newPoint);
+		}
+		
+		return new Feature( newFeatureId, new FunctionFeatureData( fcomposed ) );
+	}
+	
 	private Feature createDerivate( FiniteDifferencesDifferentiator differentiator,
 											FeatureId newFeatureId,
-											Feature originalFeature ) {
+											Feature originalFeature ) throws Exception {
 		FunctionFeatureData originalFeatureData = originalFeature.getData();
 		
 		UnivariateDifferentiableFunction derivateFunction = 
