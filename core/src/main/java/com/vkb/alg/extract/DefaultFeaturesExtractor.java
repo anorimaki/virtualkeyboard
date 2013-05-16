@@ -9,6 +9,7 @@ import org.apache.commons.math3.analysis.UnivariateFunction;
 import com.vkb.alg.FeaturesExtractor;
 import com.vkb.math.DiscreteFunction;
 import com.vkb.math.FunctionUtils;
+import com.vkb.math.DiscreteFunction.Point;
 import com.vkb.model.CapturedData;
 import com.vkb.model.Feature;
 import com.vkb.model.Features;
@@ -63,7 +64,7 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 		Feature velocityY = createDerivate( differentiator, FeatureId.VELOCITY_Y, features.get(FeatureId.POSITION_Y) );
 		features.put( velocityY );
 		
-		Feature velocity = createSum( FeatureId.VELOCITY, velocityX, velocityY );
+		Feature velocity = createComposed( FeatureId.VELOCITY, velocityX, velocityY );
 		features.put( velocity );
 	}
 		
@@ -76,7 +77,7 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 		Feature accelerationY = createDerivate( differentiator, FeatureId.ACCELERATION_Y, features.get(FeatureId.VELOCITY_Y) );
 		features.put( accelerationY );
 		
-		Feature acceleration = createSum( FeatureId.ACCELERATION, accelerationX, accelerationY );
+		Feature acceleration = createComposed( FeatureId.ACCELERATION, accelerationX, accelerationY );
 		features.put( acceleration );
 	}
 	
@@ -144,16 +145,34 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 		return new Feature( newFeatureId, data );
 	}
 	
-	private Feature createSum( FeatureId newFeatureId, Feature op1, Feature op2 ) throws Exception {
+	private Feature createComposed( FeatureId newFeatureId, Feature op1, Feature op2 ) throws Exception {
 		FunctionFeatureData data1 = op1.getData();
 		FunctionFeatureData data2 = op2.getData();
-		DiscreteFunction sum = data1.getSamples().sum( newFeatureId.getName(), data2.getSamples() );
-		return new Feature( newFeatureId, new FunctionFeatureData( sum ) );
+		
+		DiscreteFunction f1 = data1.getSamples();
+		DiscreteFunction f2 = data2.getSamples();
+		
+		if ( f1.size() != f2.size() ) {
+			throw new Exception( "Can't compose discrete functions with different sizes" );
+		}
+		DiscreteFunction fcomposed = new DiscreteFunction( newFeatureId.getName() );
+		for ( int i=0; i<f1.size(); ++i ) {
+			Point p1 = f1.get(i);
+			Point p2 = f2.get(i);
+			if( p1.getX() != p2.getX() ) {
+				throw new Exception( "Can't compose discrete functions with different X values" );
+			}
+			Point newPoint = new Point( p1.getX(),
+										Math.sqrt( (p1.getY()*p1.getY()) + (p2.getY()*p2.getY()) ) );
+			fcomposed.add(newPoint);
+		}
+		
+		return new Feature( newFeatureId, new FunctionFeatureData( fcomposed ) );
 	}
 	
 	private Feature createDerivate( FiniteDifferencesDifferentiator differentiator,
 											FeatureId newFeatureId,
-											Feature originalFeature ) {
+											Feature originalFeature ) throws Exception {
 		FunctionFeatureData originalFeatureData = originalFeature.getData();
 		
 		UnivariateDifferentiableFunction derivateFunction = 

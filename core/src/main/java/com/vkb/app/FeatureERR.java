@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -57,8 +58,9 @@ public class FeatureERR {
 	
 
 	public void run() throws Exception {
-		Set<FeatureId> scalarFeatures = FeatureId.getByModel(ScalarFeatureData.class);
-		Set<FeatureId> functionFeatures = FeatureId.getByModel(FunctionFeatureData.class);
+		Set<FeatureId> scalarFeatures = new TreeSet<FeatureId>();
+		Set<FeatureId> functionFeatures = new TreeSet<FeatureId>();
+		getFeaturesToCheck( scalarFeatures, functionFeatures );
 
 		Application application = new Application();
 		Map<FeatureId, ERRCalculator.Result> scalarResults = run( application, scalarFeatures,
@@ -97,7 +99,7 @@ public class FeatureERR {
 		}
 	}
 	
-	
+
 	private Map<FeatureId, Double> calculateWeights( Map<FeatureId, ERRCalculator.Result> allResults ) {
 		Map<FeatureId, Double> ret = new TreeMap<FeatureId, Double>();
 		
@@ -166,6 +168,19 @@ public class FeatureERR {
 			ret.add( newUser );
 		}
 		return ret;
+	}
+	
+	private static void getFeaturesToCheck( Set<FeatureId> scalarFeatures, Set<FeatureId> functionFeatures ) {
+		Map<FeatureId, Double> features = OutlierFeatureSignaturePattern.getFeatureWeights();
+
+		for( Map.Entry<FeatureId, Double> feature : features.entrySet() ) {
+			if ( feature.getKey().getModel().equals( ScalarFeatureData.class ) ) {
+				scalarFeatures.add( feature.getKey() );
+			}
+			else if ( feature.getKey().getModel().equals( FunctionFeatureData.class ) ) {
+				functionFeatures.add( feature.getKey() );
+			}
+		}
 	}
 
 

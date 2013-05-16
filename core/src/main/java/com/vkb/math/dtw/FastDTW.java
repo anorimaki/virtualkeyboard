@@ -29,7 +29,7 @@ public class FastDTW implements FunctionWarper, FunctionComparator {
 	}
 	
 	@Override
-	public double distance(DiscreteVectorFunction f1, DiscreteVectorFunction f2) throws Exception {
+	public double distance( DiscreteVectorFunction f1, DiscreteVectorFunction f2 ) throws Exception {
 		TimeSeries ts1 = DataConvert.getTimeSeries(f1);
 		TimeSeries ts2 = DataConvert.getTimeSeries(f2);
 		

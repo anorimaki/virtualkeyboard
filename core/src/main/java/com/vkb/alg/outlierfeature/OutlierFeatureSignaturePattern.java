@@ -119,6 +119,11 @@ public class OutlierFeatureSignaturePattern {
 	}
 	
 	
+	public static Map<FeatureId,Double> getFeatureWeights() {
+		return featureWeights;
+	}
+	
+	
 	private static Map<FeatureId,Double> featureWeightsConstruct() {
 		Map<FeatureId,Double> ret = new HashMap<FeatureId,Double>();
 		
