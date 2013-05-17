@@ -95,7 +95,7 @@ public class OutlierFeaturePatternGenerator {
 		@Override
 		public boolean check( Signature signature ) throws Exception {
 			double insidersRate = pattern.compare(signature);
-			return insidersRate > threshold;
+			return insidersRate >= threshold;
 		}
 	}
 }

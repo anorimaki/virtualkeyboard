@@ -21,11 +21,9 @@ import com.vkb.alg.outlierfeature.OutlierFeatureAlgorithm;
 import com.vkb.alg.outlierfeature.OutlierFeatureSignaturePattern;
 import com.vkb.app.util.Environment;
 import com.vkb.app.util.FARFRRPlotter;
-import com.vkb.app.util.PreComputeFunctionDistances;
+import com.vkb.app.util.PreComputedDataUserLoader;
 import com.vkb.gui.Application;
-import com.vkb.io.NoOpUserLoaderTraits;
-import com.vkb.io.UserLoader;
-import com.vkb.math.dtw.PreCalculatedFunctionFeatureComparator;
+import com.vkb.model.Feature;
 import com.vkb.model.FeatureId;
 import com.vkb.model.FunctionFeatureData;
 import com.vkb.model.ScalarFeatureData;
@@ -43,7 +41,12 @@ public class FeatureERR {
 		new File( Environment.RESOURCES_DIR, "user_fj" ),
 		new File( Environment.RESOURCES_DIR, "user_jig" ),
 		new File( Environment.RESOURCES_DIR, "user_ma" ),
-		new File( Environment.RESOURCES_DIR, "user_xf" ) };
+		new File( Environment.RESOURCES_DIR, "user_xf" ) };  
+	
+	/*private static final File INPUT_FOLDERS[] = { 
+		new File( "src/main/resources2", "user_doh" ),
+		new File( "src/main/resources2", "user_xf" ) };*/ 
+	
 	private static int NTHREADS = INPUT_FOLDERS.length;
 	
 	private List<User<OutlierFeatureAlgorithm>> users;
@@ -52,20 +55,13 @@ public class FeatureERR {
 	public FeatureERR( File[] inputFolders ) throws Exception {
 		executor = Executors.newFixedThreadPool( NTHREADS );
 		
-		List<User<NoOpUserLoaderTraits.Validator>> users = 
-				UserLoader.load( executor, new NoOpUserLoaderTraits.Factory(), inputFolders );
+		ConfigurableOutlierFeatureAlgorithmTraits algorithmTraits =
+				new ConfigurableOutlierFeatureAlgorithmTraits( DefaultOutlierFeatureAlgorithmTraits.getInstance() );
 		
-		PreComputeFunctionDistances preComputeFunctionDistances = new PreComputeFunctionDistances( executor, 
-						DefaultOutlierFeatureAlgorithmTraits.getInstance().getFunctionFeatureComparator() );
-		PreCalculatedFunctionFeatureComparator preComputedDistances =
-						preComputeFunctionDistances.apply( users );
-
-		ConfigurableOutlierFeatureAlgorithmTraits algorithmTraits = new 
-				ConfigurableOutlierFeatureAlgorithmTraits( DefaultOutlierFeatureAlgorithmTraits.getInstance() );
 		algorithmTraits.setThreshold( 0.0d );
-		algorithmTraits.setFunctionFeatureComparator( preComputedDistances );
 		
-		this.users = preComputeFunctionDistances.generateUsers( users, algorithmTraits );
+		PreComputedDataUserLoader preComputeFunctionDistances = new PreComputedDataUserLoader( executor );
+		this.users = preComputeFunctionDistances.load( inputFolders, algorithmTraits );
 	}
 	
 	
@@ -182,16 +178,15 @@ public class FeatureERR {
 		return ret;
 	}
 	
-	private static void getFeaturesToCheck( Set<FeatureId> scalarFeatures, Set<FeatureId> functionFeatures ) {
-		Map<FeatureId, Double> features = OutlierFeatureSignaturePattern.getFeatureWeights();
-
-		for( Map.Entry<FeatureId, Double> feature : features.entrySet() ) {
-			if ( feature.getKey().getModel().equals( ScalarFeatureData.class ) ) {
-				scalarFeatures.add( feature.getKey() );
-			}
-			else if ( feature.getKey().getModel().equals( FunctionFeatureData.class ) ) {
-				functionFeatures.add( feature.getKey() );
-			}
+	private void getFeaturesToCheck( Set<FeatureId> scalarFeatureIds, Set<FeatureId> functionFeatureIds ) {
+		Signature signature = users.get(0).getOwnSignatures().get(0);
+		Set<Feature> scalarfeatures = signature.getFeatures().getAllByModel( ScalarFeatureData.class );
+		Set<Feature> functionfeatures = signature.getFeatures().getAllByModel( FunctionFeatureData.class );
+		for( Feature feature : scalarfeatures ) {
+			scalarFeatureIds.add( feature.getId() );
+		}
+		for( Feature feature : functionfeatures ) {
+			functionFeatureIds.add( feature.getId() );
 		}
 	}
 
@@ -277,9 +272,9 @@ public class FeatureERR {
 		}
 		
 		private static double[] buildThresholdsToCheck() {
-			final int N = 15;
+			final int N = 30;
 			double[] ret = new double[N];
-			ret[0] = 0.90d;
+			ret[0] = 0.80d;
 			for ( int i=1; i<ret.length; ++i ) {
 				ret[i] = ret[i-1] + 0.05d;
 			}

@@ -12,11 +12,8 @@ import com.vkb.alg.outlierfeature.DefaultOutlierFeatureAlgorithmTraits;
 import com.vkb.alg.outlierfeature.OutlierFeatureAlgorithm;
 import com.vkb.app.util.Environment;
 import com.vkb.app.util.FARFRRPlotter;
-import com.vkb.app.util.PreComputeFunctionDistances;
+import com.vkb.app.util.PreComputedDataUserLoader;
 import com.vkb.gui.Application;
-import com.vkb.io.NoOpUserLoaderTraits;
-import com.vkb.io.UserLoader;
-import com.vkb.math.dtw.PreCalculatedFunctionFeatureComparator;
 import com.vkb.model.User;
 import com.vkb.quality.farfrr.ERRCalculator;
 import com.vkb.quality.farfrr.FARFRRCalculator;
@@ -42,20 +39,13 @@ public class OutlierFeatureFeatureAlgorithmERR {
 	public OutlierFeatureFeatureAlgorithmERR( File[] inputFolders ) throws Exception {
 		executor = Executors.newFixedThreadPool( NTHREADS );
 		
-		List<User<NoOpUserLoaderTraits.Validator>> users = 
-				UserLoader.load( executor, new NoOpUserLoaderTraits.Factory(), inputFolders );
+		ConfigurableOutlierFeatureAlgorithmTraits algorithmTraits =
+				new ConfigurableOutlierFeatureAlgorithmTraits( DefaultOutlierFeatureAlgorithmTraits.getInstance() );
 		
-		PreComputeFunctionDistances preComputeFunctionDistances = new PreComputeFunctionDistances( executor, 
-						DefaultOutlierFeatureAlgorithmTraits.getInstance().getFunctionFeatureComparator() );
-		PreCalculatedFunctionFeatureComparator preComputedDistances =
-						preComputeFunctionDistances.apply( users );
-
-		ConfigurableOutlierFeatureAlgorithmTraits algorithmTraits = new 
-				ConfigurableOutlierFeatureAlgorithmTraits( DefaultOutlierFeatureAlgorithmTraits.getInstance() );
 		algorithmTraits.setThreshold( PATTERN_THRESHOLD );
-		algorithmTraits.setFunctionFeatureComparator( preComputedDistances );
 		
-		this.users = preComputeFunctionDistances.generateUsers( users, algorithmTraits );
+		PreComputedDataUserLoader preComputeFunctionDistances = new PreComputedDataUserLoader( executor );
+		this.users = preComputeFunctionDistances.load( inputFolders, algorithmTraits );
 	}
 	
 	

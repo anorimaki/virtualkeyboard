@@ -1,5 +1,6 @@
 package com.vkb.model;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -32,7 +33,11 @@ public class Features {
 	}
 	
 	public <T extends FeatureData> Set<Feature> getAllByModel( Class<T> t ) {
-		return modelTndex.get( t );
+		Set<Feature> ret = modelTndex.get( t );
+		if ( ret == null ) {
+			return Collections.emptySet();
+		}
+		return ret;
 	}
 	
 	public <T extends FeatureData> Set<T> getAllDatasByModel( Class<T> t ) {
