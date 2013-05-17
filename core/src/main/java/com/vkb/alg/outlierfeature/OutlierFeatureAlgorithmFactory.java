@@ -6,14 +6,14 @@ import com.vkb.alg.SignatureValidatorFactory;
 import com.vkb.model.CapturedData;
 
 public class OutlierFeatureAlgorithmFactory implements SignatureValidatorFactory<OutlierFeatureAlgorithm>  {
-	private double threshold;
+	private OutlierFeatureAlgorithmTraits algorithmTraits;
 	
-	public OutlierFeatureAlgorithmFactory( double threshold ) {
-		this.threshold = threshold;
+	public OutlierFeatureAlgorithmFactory( OutlierFeatureAlgorithmTraits algorithmTraits ) {
+		this.algorithmTraits = algorithmTraits;
 	}
-
+	
 	@Override
 	public OutlierFeatureAlgorithm generateValidator( List<CapturedData> patternSamples ) throws Exception {
-		return new OutlierFeatureAlgorithm( patternSamples, threshold );
+		return new OutlierFeatureAlgorithm( patternSamples, algorithmTraits );
 	}
 }

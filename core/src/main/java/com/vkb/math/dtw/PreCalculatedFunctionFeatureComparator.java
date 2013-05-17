@@ -55,6 +55,13 @@ public class PreCalculatedFunctionFeatureComparator implements FunctionFeatureCo
 		public static <K> Key<K> create( K f1, K f2 ) {
 			return new Key<K>( f1, f2 );
 		}
+		
+		@Override
+		public String toString() {
+			String firstString = first.toString().substring( 0, 40 ) + "...";
+			String secondString = second.toString().substring( 0, 40 ) + "...";
+			return "[" + firstString + "," + secondString + "]";
+		}
 	}
 	
 	private Map<Key<FunctionFeatureDatas>, Double> functionFeatureDatasValues;
@@ -65,9 +72,14 @@ public class PreCalculatedFunctionFeatureComparator implements FunctionFeatureCo
 		functionFeatureDataValues = new HashMap<Key<FunctionFeatureData>, Double>();
 	}
 	
+	public void put( PreCalculatedFunctionFeatureComparator other ) {
+		functionFeatureDatasValues.putAll( other.functionFeatureDatasValues );
+		functionFeatureDataValues.putAll( other.functionFeatureDataValues );
+	}
+	
 	public void put( FunctionFeatureComparator baseComparator, List<FunctionFeatureData> features ) throws Exception {
 		for ( int i=0; i<features.size(); i++ ){
-			for ( int j=i; j<features.size(); j++ ){
+			for ( int j=i+1; j<features.size(); j++ ){
 				double distance = baseComparator.distance( features.get(i), features.get(j) );
 				put( features.get(i), features.get(j), distance );
 			}
@@ -97,8 +109,25 @@ public class PreCalculatedFunctionFeatureComparator implements FunctionFeatureCo
 							FunctionFeatureData feature2 ) throws Exception {
 		Double ret = functionFeatureDataValues.get( Key.create(feature1, feature2) );
 		if ( ret == null ) {
-			throw new Exception( "Value not cached" );
+			throw new Exception( print() + "\nValue not cached:\n" +
+					"      " + feature1.toString().substring( 0, 40 ) + "...\n" +
+					"      " + feature2.toString().substring( 0, 40 ) + "..." );
 		}
 		return ret;
+	}
+	
+	private String print() {
+		StringBuilder ret = new StringBuilder();
+		ret.append( "FunctionFeatureDatas: (size:" + functionFeatureDatasValues.size() + ")\n" );
+		for(  Map.Entry<Key<FunctionFeatureDatas>, Double> entry : functionFeatureDatasValues.entrySet() ) {
+			ret.append( "  " + entry.getKey() +  ": " + entry.getValue() + "\n" );
+		}
+		
+		ret.append( "FunctionFeatureData: (size:" + functionFeatureDataValues.size() + ")\n" );
+		for(  Map.Entry<Key<FunctionFeatureData>, Double> entry : functionFeatureDataValues.entrySet() ) {
+			ret.append( "  " + entry.getKey() +  ": " + entry.getValue() + "\n" );
+		}
+		
+		return ret.toString();
 	}
 }

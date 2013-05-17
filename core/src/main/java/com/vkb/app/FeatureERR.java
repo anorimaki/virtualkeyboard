@@ -12,17 +12,18 @@ import java.util.concurrent.Executors;
 
 import org.jfree.chart.plot.XYPlot;
 
-import com.vkb.alg.SignatureValidatorFactory;
 import com.vkb.alg.ThresholdedSignatureValidator;
 import com.vkb.alg.determine.FunctionFeatureDeterminer;
 import com.vkb.alg.determine.ScalarFeatureDeterminer;
+import com.vkb.alg.outlierfeature.ConfigurableOutlierFeatureAlgorithmTraits;
+import com.vkb.alg.outlierfeature.DefaultOutlierFeatureAlgorithmTraits;
 import com.vkb.alg.outlierfeature.OutlierFeatureAlgorithm;
-import com.vkb.alg.outlierfeature.OutlierFeatureAlgorithmFactory;
 import com.vkb.alg.outlierfeature.OutlierFeatureSignaturePattern;
 import com.vkb.app.util.Environment;
 import com.vkb.app.util.FARFRRPlotter;
+import com.vkb.app.util.PreComputedDataUserLoader;
 import com.vkb.gui.Application;
-import com.vkb.io.UserLoader;
+import com.vkb.model.Feature;
 import com.vkb.model.FeatureId;
 import com.vkb.model.FunctionFeatureData;
 import com.vkb.model.ScalarFeatureData;
@@ -33,7 +34,6 @@ import com.vkb.quality.farfrr.FARFRRCalculator;
 import com.vkb.quality.farfrr.ui.FARFRRPrinter;
 
 public class FeatureERR {
-	private static double PATTERN_THRESHOLD = 0.0d;
 	private static final File INPUT_FOLDERS[] = { 
 		new File( Environment.RESOURCES_DIR, "user_a" ),
 		new File( Environment.RESOURCES_DIR, "user_doh" ),
@@ -41,27 +41,40 @@ public class FeatureERR {
 		new File( Environment.RESOURCES_DIR, "user_fj" ),
 		new File( Environment.RESOURCES_DIR, "user_jig" ),
 		new File( Environment.RESOURCES_DIR, "user_ma" ),
-		new File( Environment.RESOURCES_DIR, "user_xf" ) };
+		new File( Environment.RESOURCES_DIR, "user_xf" ) };  
+	
+	/*private static final File INPUT_FOLDERS[] = { 
+		new File( "src/main/resources2", "user_doh" ),
+		new File( "src/main/resources2", "user_xf" ) };*/ 
+	
 	private static int NTHREADS = INPUT_FOLDERS.length;
 	
-	private List<User<OutlierFeatureAlgorithm>> users;;
+	private List<User<OutlierFeatureAlgorithm>> users;
 	private ExecutorService executor;
 	
 	public FeatureERR( File[] inputFolders ) throws Exception {
 		executor = Executors.newFixedThreadPool( NTHREADS );
 		
-		SignatureValidatorFactory<OutlierFeatureAlgorithm> factory = 
-							new OutlierFeatureAlgorithmFactory( PATTERN_THRESHOLD );
-
-		users = UserLoader.load( executor, factory, inputFolders );
+		ConfigurableOutlierFeatureAlgorithmTraits algorithmTraits =
+				new ConfigurableOutlierFeatureAlgorithmTraits( DefaultOutlierFeatureAlgorithmTraits.getInstance() );
+		
+		algorithmTraits.setThreshold( 0.0d );
+		
+		long startTime = System.currentTimeMillis();
+		
+		PreComputedDataUserLoader preComputeFunctionDistances = new PreComputedDataUserLoader( executor );
+		this.users = preComputeFunctionDistances.load( inputFolders, algorithmTraits );
+		
+		long loadTime = System.currentTimeMillis() - startTime;
+		System.out.println( "Users loaded in " + loadTime/1000 + " seconds." );
 	}
 	
-
+	
 	public void run() throws Exception {
 		Set<FeatureId> scalarFeatures = new TreeSet<FeatureId>();
 		Set<FeatureId> functionFeatures = new TreeSet<FeatureId>();
 		getFeaturesToCheck( scalarFeatures, functionFeatures );
-
+		
 		Application application = new Application();
 		Map<FeatureId, ERRCalculator.Result> scalarResults = run( application, scalarFeatures,
 															ScalarFeatureTraits.instance );
@@ -170,15 +183,18 @@ public class FeatureERR {
 		return ret;
 	}
 	
-	private static void getFeaturesToCheck( Set<FeatureId> scalarFeatures, Set<FeatureId> functionFeatures ) {
-		Map<FeatureId, Double> features = OutlierFeatureSignaturePattern.getFeatureWeights();
-
-		for( Map.Entry<FeatureId, Double> feature : features.entrySet() ) {
-			if ( feature.getKey().getModel().equals( ScalarFeatureData.class ) ) {
-				scalarFeatures.add( feature.getKey() );
+	private void getFeaturesToCheck( Set<FeatureId> scalarFeatureIds, Set<FeatureId> functionFeatureIds ) {
+		Signature signature = users.get(0).getOwnSignatures().get(0);
+		Set<Feature> scalarfeatures = signature.getFeatures().getAllByModel( ScalarFeatureData.class );
+		Set<Feature> functionfeatures = signature.getFeatures().getAllByModel( FunctionFeatureData.class );
+		for( Feature feature : scalarfeatures ) {
+			if ( OutlierFeatureSignaturePattern.getFeatureWeights().containsKey( feature.getId() ) ) {
+				scalarFeatureIds.add( feature.getId() );
 			}
-			else if ( feature.getKey().getModel().equals( FunctionFeatureData.class ) ) {
-				functionFeatures.add( feature.getKey() );
+		}
+		for( Feature feature : functionfeatures ) {
+			if ( OutlierFeatureSignaturePattern.getFeatureWeights().containsKey( feature.getId() ) ) {
+				functionFeatureIds.add( feature.getId() );
 			}
 		}
 	}
@@ -265,9 +281,9 @@ public class FeatureERR {
 		}
 		
 		private static double[] buildThresholdsToCheck() {
-			final int N = 15;
+			final int N = 30;
 			double[] ret = new double[N];
-			ret[0] = 0.90d;
+			ret[0] = 0.80d;
 			for ( int i=1; i<ret.length; ++i ) {
 				ret[i] = ret[i-1] + 0.05d;
 			}
