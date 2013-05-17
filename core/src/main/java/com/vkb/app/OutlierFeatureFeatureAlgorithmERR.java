@@ -44,21 +44,31 @@ public class OutlierFeatureFeatureAlgorithmERR {
 		
 		algorithmTraits.setThreshold( PATTERN_THRESHOLD );
 		
+		long startTime = System.currentTimeMillis();
+		
 		PreComputedDataUserLoader preComputeFunctionDistances = new PreComputedDataUserLoader( executor );
 		this.users = preComputeFunctionDistances.load( inputFolders, algorithmTraits );
+		
+		long loadTime = System.currentTimeMillis() - startTime;
+		System.out.println( "Users loaded in " + loadTime/1000 + " seconds." );
 	}
 	
 	
 	public void run() throws Exception {
 		FARFRRCalculator errCalculator = new FARFRRCalculator( executor );
 		
+		long startTime = System.currentTimeMillis();
+		
 		List<FARFRRCalculator.Result> result = errCalculator.execute( users, ThresholdsToCheck );
 		
 		FARFRRPrinter printer = new FARFRRPrinter();
 		printer.print( ThresholdsToCheck, result );
 		
+		long endTime = System.currentTimeMillis() - startTime;
+		
 		ERRCalculator.Result errResult = ERRCalculator.calculate( result, ThresholdsToCheck );
 		System.out.println( "***************************************************************" );
+		System.out.println( "Time to resolve: " + endTime/1000 + " seconds." );
 		System.out.println( "ERR " + errResult.getValue() + " on threshold " + errResult.getThreshold() );
 
 		FARFRRPlotter plotter = new FARFRRPlotter();

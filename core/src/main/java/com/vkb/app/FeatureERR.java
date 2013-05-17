@@ -60,8 +60,13 @@ public class FeatureERR {
 		
 		algorithmTraits.setThreshold( 0.0d );
 		
+		long startTime = System.currentTimeMillis();
+		
 		PreComputedDataUserLoader preComputeFunctionDistances = new PreComputedDataUserLoader( executor );
 		this.users = preComputeFunctionDistances.load( inputFolders, algorithmTraits );
+		
+		long loadTime = System.currentTimeMillis() - startTime;
+		System.out.println( "Users loaded in " + loadTime/1000 + " seconds." );
 	}
 	
 	
@@ -183,10 +188,14 @@ public class FeatureERR {
 		Set<Feature> scalarfeatures = signature.getFeatures().getAllByModel( ScalarFeatureData.class );
 		Set<Feature> functionfeatures = signature.getFeatures().getAllByModel( FunctionFeatureData.class );
 		for( Feature feature : scalarfeatures ) {
-			scalarFeatureIds.add( feature.getId() );
+			if ( OutlierFeatureSignaturePattern.getFeatureWeights().containsKey( feature.getId() ) ) {
+				scalarFeatureIds.add( feature.getId() );
+			}
 		}
 		for( Feature feature : functionfeatures ) {
-			functionFeatureIds.add( feature.getId() );
+			if ( OutlierFeatureSignaturePattern.getFeatureWeights().containsKey( feature.getId() ) ) {
+				functionFeatureIds.add( feature.getId() );
+			}
 		}
 	}
 
