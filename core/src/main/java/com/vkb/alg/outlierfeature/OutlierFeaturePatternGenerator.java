@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.vkb.alg.SignaturePatternBasedValidator;
-import com.vkb.math.dtw.DefaultFunctionFeatureComparator;
 import com.vkb.math.dtw.FunctionFeatureComparator;
 import com.vkb.math.dtw.PreCalculatedFunctionFeatureComparator;
 import com.vkb.model.FeatureId;
@@ -34,9 +33,11 @@ public class OutlierFeaturePatternGenerator {
 	private double filterThreshold;
 	private FunctionFeatureComparator normalfunctionComparator;
 	
-	public OutlierFeaturePatternGenerator( double filterThreshold ) {
+
+	public OutlierFeaturePatternGenerator( double filterThreshold, 
+									FunctionFeatureComparator functionFeatureComprator ) {
 		this.filterThreshold = filterThreshold;
-		this.normalfunctionComparator = new DefaultFunctionFeatureComparator();
+		this.normalfunctionComparator = functionFeatureComprator;
 	}
 	
 	

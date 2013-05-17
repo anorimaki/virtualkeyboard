@@ -6,7 +6,6 @@ import java.util.Map;
 
 import com.vkb.alg.determine.FunctionFeatureDeterminer;
 import com.vkb.alg.determine.ScalarFeatureDeterminer;
-import com.vkb.math.dtw.DefaultFunctionFeatureComparator;
 import com.vkb.math.dtw.FunctionFeatureComparator;
 import com.vkb.model.FeatureId;
 import com.vkb.model.FunctionFeatureData;
@@ -19,11 +18,6 @@ public class OutlierFeatureSignaturePattern {
 	private static Map<FeatureId,Double> featureThresholds = featureThresholdsConstruct();
 	private Map<FeatureId, FunctionFeatureDeterminer> functionFeatureDeterminers;
 	private Map<FeatureId, ScalarFeatureDeterminer> scalarFeatureDeterminers;
-	
-	public OutlierFeatureSignaturePattern( List<Signature> traces ) throws Exception {
-		this( traces, new DefaultFunctionFeatureComparator() );
-	}
-	
 	
 	public OutlierFeatureSignaturePattern( List<Signature> traces, 
 							FunctionFeatureComparator functionFeatureComparator ) throws Exception {

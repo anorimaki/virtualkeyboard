@@ -12,17 +12,20 @@ import java.util.concurrent.Executors;
 
 import org.jfree.chart.plot.XYPlot;
 
-import com.vkb.alg.SignatureValidatorFactory;
 import com.vkb.alg.ThresholdedSignatureValidator;
 import com.vkb.alg.determine.FunctionFeatureDeterminer;
 import com.vkb.alg.determine.ScalarFeatureDeterminer;
+import com.vkb.alg.outlierfeature.ConfigurableOutlierFeatureAlgorithmTraits;
+import com.vkb.alg.outlierfeature.DefaultOutlierFeatureAlgorithmTraits;
 import com.vkb.alg.outlierfeature.OutlierFeatureAlgorithm;
-import com.vkb.alg.outlierfeature.OutlierFeatureAlgorithmFactory;
 import com.vkb.alg.outlierfeature.OutlierFeatureSignaturePattern;
 import com.vkb.app.util.Environment;
 import com.vkb.app.util.FARFRRPlotter;
+import com.vkb.app.util.PreComputeFunctionDistances;
 import com.vkb.gui.Application;
+import com.vkb.io.NoOpUserLoaderTraits;
 import com.vkb.io.UserLoader;
+import com.vkb.math.dtw.PreCalculatedFunctionFeatureComparator;
 import com.vkb.model.FeatureId;
 import com.vkb.model.FunctionFeatureData;
 import com.vkb.model.ScalarFeatureData;
@@ -33,7 +36,6 @@ import com.vkb.quality.farfrr.FARFRRCalculator;
 import com.vkb.quality.farfrr.ui.FARFRRPrinter;
 
 public class FeatureERR {
-	private static double PATTERN_THRESHOLD = 0.0d;
 	private static final File INPUT_FOLDERS[] = { 
 		new File( Environment.RESOURCES_DIR, "user_a" ),
 		new File( Environment.RESOURCES_DIR, "user_doh" ),
@@ -44,24 +46,34 @@ public class FeatureERR {
 		new File( Environment.RESOURCES_DIR, "user_xf" ) };
 	private static int NTHREADS = INPUT_FOLDERS.length;
 	
-	private List<User<OutlierFeatureAlgorithm>> users;;
+	private List<User<OutlierFeatureAlgorithm>> users;
 	private ExecutorService executor;
 	
 	public FeatureERR( File[] inputFolders ) throws Exception {
 		executor = Executors.newFixedThreadPool( NTHREADS );
 		
-		SignatureValidatorFactory<OutlierFeatureAlgorithm> factory = 
-							new OutlierFeatureAlgorithmFactory( PATTERN_THRESHOLD );
+		List<User<NoOpUserLoaderTraits.Validator>> users = 
+				UserLoader.load( executor, new NoOpUserLoaderTraits.Factory(), inputFolders );
+		
+		PreComputeFunctionDistances preComputeFunctionDistances = new PreComputeFunctionDistances( executor, 
+						DefaultOutlierFeatureAlgorithmTraits.getInstance().getFunctionFeatureComparator() );
+		PreCalculatedFunctionFeatureComparator preComputedDistances =
+						preComputeFunctionDistances.apply( users );
 
-		users = UserLoader.load( executor, factory, inputFolders );
+		ConfigurableOutlierFeatureAlgorithmTraits algorithmTraits = new 
+				ConfigurableOutlierFeatureAlgorithmTraits( DefaultOutlierFeatureAlgorithmTraits.getInstance() );
+		algorithmTraits.setThreshold( 0.0d );
+		algorithmTraits.setFunctionFeatureComparator( preComputedDistances );
+		
+		this.users = preComputeFunctionDistances.generateUsers( users, algorithmTraits );
 	}
 	
-
+	
 	public void run() throws Exception {
 		Set<FeatureId> scalarFeatures = new TreeSet<FeatureId>();
 		Set<FeatureId> functionFeatures = new TreeSet<FeatureId>();
 		getFeaturesToCheck( scalarFeatures, functionFeatures );
-
+		
 		Application application = new Application();
 		Map<FeatureId, ERRCalculator.Result> scalarResults = run( application, scalarFeatures,
 															ScalarFeatureTraits.instance );

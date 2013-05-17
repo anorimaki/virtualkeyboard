@@ -3,7 +3,6 @@ package com.vkb.app;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -13,17 +12,13 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYDataset;
 
-import com.vkb.alg.SignatureBuilder;
-import com.vkb.alg.SignatureValidatorFactory;
-import com.vkb.app.util.DefaultSignatureBuilder;
 import com.vkb.app.util.Environment;
 import com.vkb.gui.Application;
 import com.vkb.gui.DataConvert;
+import com.vkb.io.NoOpUserLoaderTraits;
 import com.vkb.io.UserLoader;
-import com.vkb.model.CapturedData;
 import com.vkb.model.FeatureId;
 import com.vkb.model.FunctionFeatureData;
-import com.vkb.model.Signature;
 import com.vkb.model.Signatures;
 import com.vkb.model.User;
 
@@ -42,7 +37,8 @@ public class ShowFunctionFeatures {
 	
 	
 	public void run() throws Exception {
-		List<User<UserLoaderValidator>> users = UserLoader.load( executor, new UserLoaderValidatorFactory(), inputFolders );
+		List<User<NoOpUserLoaderTraits.Validator>> users = 
+					UserLoader.load( executor, new NoOpUserLoaderTraits.Factory(), inputFolders );
 		
 		Application application = new Application();
 		for( FeatureId featureId : FeaturesToShow ) {
@@ -52,12 +48,14 @@ public class ShowFunctionFeatures {
 	}	
 	
 	
-	private void run( Application application, FeatureId feature, List<User<UserLoaderValidator>> users ) throws Exception {	
+	private void run( Application application, FeatureId feature, 
+						List<User<NoOpUserLoaderTraits.Validator>> users ) throws Exception {	
 		List<String> titles = new ArrayList<String>();
 		List<XYPlot> plots = new ArrayList<XYPlot>();
 		
-		for( User<UserLoaderValidator> user : users ) {
-			List<FunctionFeatureData> allFeatureDatas = user.getValidator().getFeatureDatas(feature);
+		for( User<NoOpUserLoaderTraits.Validator> user : users ) {
+			List<FunctionFeatureData> allFeatureDatas = 
+						Signatures.extractFeatureData( user.getValidator().getPatternSignatures(), feature );
 			
 			XYPlot plot = generatePlot( 
 						allFeatureDatas.subList( 0, Math.min( allFeatureDatas.size(), MAX_TRACES_PER_PLOT ) ) );
@@ -108,42 +106,5 @@ public class ShowFunctionFeatures {
 		}
     }
 	
-	private static class UserLoaderValidatorFactory 
-					implements SignatureValidatorFactory<UserLoaderValidator> {
-		private DefaultSignatureBuilder signatureBuilder;
-
-		public UserLoaderValidatorFactory() {
-			this.signatureBuilder = new DefaultSignatureBuilder();
-		}
-
-		@Override
-		public UserLoaderValidator generateValidator( List<CapturedData> patternSamples ) throws Exception {
-			List<Signature> patternSignatures = signatureBuilder.buildSignatures( patternSamples );
-			Map<FeatureId, List<FunctionFeatureData>> featuresDatas = 
-					Signatures.extractFeatureDatasByModel( patternSignatures, FunctionFeatureData.class );
-			return new UserLoaderValidator( featuresDatas, signatureBuilder );
-		}
-	}
-
-	private static class UserLoaderValidator implements SignatureBuilder {
-		private Map<FeatureId, List<FunctionFeatureData>> featureDatas ;
-		private SignatureBuilder signatureBuilder;
-
-		public UserLoaderValidator( Map<FeatureId, List<FunctionFeatureData>> featureDatas,
-									SignatureBuilder signatureBuilder ) {
-			this.signatureBuilder = signatureBuilder;
-			this.featureDatas = featureDatas;
-		}
-
-
-		public List<FunctionFeatureData> getFeatureDatas( FeatureId featureId ) {
-			return featureDatas.get( featureId );
-		}
-
-
-		@Override
-		public Signature buildSignature(CapturedData capturedData) throws Exception {
-			return signatureBuilder.buildSignature(capturedData);
-		}
-	}
+	
 }

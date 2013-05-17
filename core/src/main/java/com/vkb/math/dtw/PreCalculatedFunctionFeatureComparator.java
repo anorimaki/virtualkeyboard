@@ -65,6 +65,11 @@ public class PreCalculatedFunctionFeatureComparator implements FunctionFeatureCo
 		functionFeatureDataValues = new HashMap<Key<FunctionFeatureData>, Double>();
 	}
 	
+	public void put( PreCalculatedFunctionFeatureComparator other ) {
+		functionFeatureDatasValues.putAll( other.functionFeatureDatasValues );
+		functionFeatureDataValues.putAll( other.functionFeatureDataValues );
+	}
+	
 	public void put( FunctionFeatureComparator baseComparator, List<FunctionFeatureData> features ) throws Exception {
 		for ( int i=0; i<features.size(); i++ ){
 			for ( int j=i; j<features.size(); j++ ){

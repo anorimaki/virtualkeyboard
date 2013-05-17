@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.vkb.alg.SignatureBuilder;
-import com.vkb.alg.outlierfeature.OutlierFeatureAlgorithm;
+import com.vkb.alg.outlierfeature.DefaultOutlierFeatureAlgorithmTraits;
 import com.vkb.alg.outlierfeature.OutlierFeaturePatternGenerator;
 import com.vkb.app.util.Environment;
 import com.vkb.io.CapturedDataFilesHelper;
@@ -32,7 +32,8 @@ public class FilterPatternSamples {
 	}
 	
 	public void run() throws Exception {
-		SignatureBuilder signatureBuilder = OutlierFeatureAlgorithm.generateSignatureBuilder();
+		SignatureBuilder signatureBuilder = 
+					DefaultOutlierFeatureAlgorithmTraits.getInstance().getSignatureBuilder();
 		
 		for( File inputFolder : inputFolders ) {
 			System.out.println( "- Processign folder " + inputFolder.getPath() + ":" );
@@ -50,7 +51,9 @@ public class FilterPatternSamples {
 			signatures.add( signatureBuilder.buildSignature(capturedData) );
 		}
 		
-		OutlierFeaturePatternGenerator patternGenerator = new OutlierFeaturePatternGenerator( FILTER_THRESHOLD );
+		OutlierFeaturePatternGenerator patternGenerator = new OutlierFeaturePatternGenerator( 
+					FILTER_THRESHOLD, 
+					DefaultOutlierFeatureAlgorithmTraits.getInstance().getFunctionFeatureComparator() );
 		
 		OutlierFeaturePatternGenerator.Result result = patternGenerator.generate(signatures);
 		for( Signature signature : result.getUnusedSignatures() ) {
