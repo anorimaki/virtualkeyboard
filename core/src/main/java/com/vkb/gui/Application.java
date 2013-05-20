@@ -3,6 +3,8 @@ package com.vkb.gui;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -18,9 +20,9 @@ public class Application {
 	private class Window implements Runnable {
 		private Iterable<? extends Plot> plots;
 		private String title;
-		private String[] subtitles;
+		private Iterable<String> subtitles;
 
-		public Window( String title, String[] subtitles, Iterable<? extends Plot> plots ) {
+		public Window( String title, Iterable<String> subtitles, Iterable<? extends Plot> plots ) {
 			this.title = title ;
 			this.subtitles = subtitles;
 			this.plots = plots ;
@@ -29,23 +31,21 @@ public class Application {
 
 		@Override
 		public void run() {
-			int i;
 			JFreeChart chart;
 			ApplicationFrame mainFrame = new ApplicationFrame(title);
 			
-			GridLayout layout = new GridLayout(0,1);
+			GridLayout layout = new GridLayout( 0, 1 );
 			mainFrame.setLayout(layout);
 			
-			i=0;
+			Iterator<String> subtitleIt = subtitles.iterator();
 			for( Plot plot : plots ) {
-				if(subtitles.length<=0)
-					chart = new JFreeChart( title, JFreeChart.DEFAULT_TITLE_FONT,plot, true );
+				if( !subtitleIt.hasNext() )
+					chart = new JFreeChart( title, JFreeChart.DEFAULT_TITLE_FONT, plot, true );
 				else
-					chart = new JFreeChart( subtitles[i], JFreeChart.DEFAULT_TITLE_FONT,plot, true );
+					chart = new JFreeChart( subtitleIt.next(), JFreeChart.DEFAULT_TITLE_FONT, plot, true );
 			
 				JPanel chartPanel = new ChartPanel(chart);
 				mainFrame.add( chartPanel );
-				i++;
 			}
 				
 			mainFrame.pack();
@@ -58,18 +58,15 @@ public class Application {
 	private List<Thread> windowThreads = new ArrayList<Thread>();
 	
 	
-	public void start( String title, String[] subtitles, Iterable<? extends Plot> plots ) {
+	public void start( String title, Iterable<String> subtitles, Iterable<? extends Plot> plots ) {
 		Thread newThread = new Thread( new Window(title, subtitles, plots) );
 		newThread.start();
 		windowThreads.add( newThread );
 	}
 	
 	public void start( String title, Iterable<? extends Plot> plots ) {
-		String[] strV={};
-		
-		Thread newThread = new Thread( new Window(title, strV, plots) );
-		newThread.start();
-		windowThreads.add( newThread );
+		List<String> subtitles = Collections.emptyList();
+		start( title, subtitles, plots );
 	}
 	
 	
@@ -80,15 +77,15 @@ public class Application {
 	}
 	
 	public void run( String title, Iterable<? extends Plot> plots ) {
-		String[] strV={};
-		new Window( title, strV, plots ).run();
+		List<String> subtitles = Collections.emptyList();
+		run( title, subtitles, plots );
 	}
 	
 	public void run( String title, XYPlot plot ) {
 		run( title, Arrays.asList(plot) );
 	}
 	
-	public void run( String title, Iterable<? extends Plot> plots, String[] subtitles ) {
+	public void run( String title, Iterable<String> subtitles, Iterable<? extends Plot> plots ) {
 		new Window( title, subtitles, plots ).run();
 	}
 	

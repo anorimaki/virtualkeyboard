@@ -3,13 +3,15 @@ package com.vkb.alg.determine;
 import java.util.List;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 
+import com.vkb.math.Statistics;
 import com.vkb.model.ScalarFeatureData;
 
 public class ScalarFeatureDeterminer {
 	private static final double DEFAULT_THRESHOLD = 1.96d;
 	private double threshold = DEFAULT_THRESHOLD;
-	private DescriptiveStatistics patternStatistics;
+	private StatisticalSummary patternStatistics;
 	
 	public ScalarFeatureDeterminer( List<ScalarFeatureData> patternSamples ) throws Exception {
 		this.patternStatistics = calculateStatistics( patternSamples );
@@ -38,11 +40,11 @@ public class ScalarFeatureDeterminer {
 		return diff / stdev;
 	}
 	
-	private static DescriptiveStatistics calculateStatistics( List<ScalarFeatureData> datas ) throws Exception {
+	private static StatisticalSummary calculateStatistics( List<ScalarFeatureData> datas ) throws Exception {
 		DescriptiveStatistics ret = new DescriptiveStatistics();
 		for( ScalarFeatureData data : datas ) {
 			ret.addValue( data.getValue() );
 		}
-		return ret;
+		return Statistics.resume( ret );
 	}
 }

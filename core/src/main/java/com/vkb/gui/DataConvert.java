@@ -35,7 +35,8 @@ public class DataConvert {
 			
 			int index = 1;
 			while ( ret.getSeriesIndex(name) != -1 ) {
-				name = f.getName() + "(" + index + ")" ;
+				name = f.getName() + "[" + index + "]" ;
+				++index;
 			}
 			
 			ret.addSeries( getXYSeries( name, f.getPoints() ) );

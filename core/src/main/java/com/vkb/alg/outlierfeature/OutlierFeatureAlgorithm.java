@@ -3,16 +3,11 @@ package com.vkb.alg.outlierfeature;
 import java.util.List;
 
 import com.vkb.alg.CapturedDataValidator;
-import com.vkb.alg.FeaturesExtractor;
-import com.vkb.alg.GenericSignatureBuilder;
 import com.vkb.alg.GenericSignatureValidator;
-import com.vkb.alg.Preprocessor;
 import com.vkb.alg.SignatureBuilder;
 import com.vkb.alg.SignatureValidator;
 import com.vkb.alg.SignaturesBuilder;
 import com.vkb.alg.ThresholdedSignatureValidator;
-import com.vkb.alg.extract.DefaultFeaturesExtractor;
-import com.vkb.alg.preprocess.EmptyPreprocessor;
 import com.vkb.model.CapturedData;
 import com.vkb.model.Signature;
 
@@ -20,20 +15,21 @@ public class OutlierFeatureAlgorithm implements ThresholdedSignatureValidator, C
 	private GenericSignatureValidator impl;
 	private WorkValidator validator;
 	
-	public OutlierFeatureAlgorithm( List<CapturedData> capturedDatas, double threshold ) throws Exception {
-		GenericSignatureBuilder signatureBuilder = generateSignatureBuilder();
-		
+	public OutlierFeatureAlgorithm( List<CapturedData> capturedDatas, 
+								OutlierFeatureAlgorithmTraits algorithmTraits ) throws Exception {
+		SignatureBuilder signatureBuilder = algorithmTraits.getSignatureBuilder();
 		List<Signature> patternSignatures = new SignaturesBuilder(signatureBuilder).buildSignatures(capturedDatas);
 		
-		OutlierFeaturePatternGenerator patternGenerator = new OutlierFeaturePatternGenerator( threshold );
+		OutlierFeaturePatternGenerator patternGenerator = new OutlierFeaturePatternGenerator( 
+							algorithmTraits.getThreshold(), algorithmTraits.getFunctionFeatureComparator() );
 		OutlierFeaturePatternGenerator.Result patternResult = patternGenerator.generate(patternSignatures);
 		
-		init( signatureBuilder, patternResult.getPattern(), threshold );
+		init( signatureBuilder, patternResult.getPattern(), algorithmTraits.getThreshold() );
 	}
 
-	public OutlierFeatureAlgorithm( OutlierFeatureSignaturePattern pattern, double threshold ) throws Exception {
-		GenericSignatureBuilder signatureBuilder = generateSignatureBuilder();
-		init( signatureBuilder, pattern, threshold );
+	public OutlierFeatureAlgorithm( OutlierFeatureSignaturePattern pattern,
+								OutlierFeatureAlgorithmTraits algorithmTraits ) throws Exception {
+		init( algorithmTraits.getSignatureBuilder(), pattern, algorithmTraits.getThreshold() );
 	}
 	
 	@Override
@@ -59,14 +55,7 @@ public class OutlierFeatureAlgorithm implements ThresholdedSignatureValidator, C
 	public OutlierFeatureSignaturePattern getPattern() {
 		return validator.getPattern();
 	}
-	
-	public static GenericSignatureBuilder generateSignatureBuilder() {
-		Preprocessor preprocessor = new EmptyPreprocessor();
-		FeaturesExtractor featuresExtractor = new DefaultFeaturesExtractor();
-		GenericSignatureBuilder signatureBuilder = new GenericSignatureBuilder( preprocessor, featuresExtractor );
-		return signatureBuilder;
-	}
-	
+
 	
 	private void init( SignatureBuilder signatureBuilder, OutlierFeatureSignaturePattern pattern,
 						double threshold ) throws Exception {

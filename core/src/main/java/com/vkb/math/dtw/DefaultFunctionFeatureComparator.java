@@ -1,7 +1,6 @@
 package com.vkb.math.dtw;
 
 import com.fastdtw.util.EuclideanDistance;
-import com.vkb.math.DiscreteVectorFunction;
 import com.vkb.model.FunctionFeatureData;
 import com.vkb.model.FunctionFeatureDatas;
 
@@ -22,8 +21,6 @@ public class DefaultFunctionFeatureComparator implements FunctionFeatureComparat
 
 	@Override
 	public double distance( FunctionFeatureData feature1, FunctionFeatureData feature2 ) throws Exception {
-		DiscreteVectorFunction function1 = new DiscreteVectorFunction( feature1.getSamples() );
-		DiscreteVectorFunction function2 = new DiscreteVectorFunction( feature2.getSamples() );
-		return functionComparator.distance( function1, function2 );
+		return functionComparator.distance( feature1.getVectorFunction(), feature2.getVectorFunction() );
 	}
 }

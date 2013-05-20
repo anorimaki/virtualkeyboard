@@ -19,11 +19,9 @@ public class UserLoader<T extends SignatureBuilder>  {
 	private static String SAMPLES_FOLDER_STARTS = "samples_";
 	private static String PATTERN_FOLDER = "pattern";
 	
-	private ExecutorService executor;
 	private SignatureValidatorFactory<T> validatorFactory;
 	
-	public UserLoader( ExecutorService executor, SignatureValidatorFactory<T> validatorFactory  ) {
-		this.executor = executor;
+	public UserLoader( SignatureValidatorFactory<T> validatorFactory  ) {
 		this.validatorFactory = validatorFactory;
 	}
 	
@@ -31,32 +29,35 @@ public class UserLoader<T extends SignatureBuilder>  {
 		CapturedDatasParser inputDataParser = new CapturedDatasParser();
 		
 		File patternSamplesFolder = new File( userFolder, PATTERN_FOLDER );
+		if ( !patternSamplesFolder.isDirectory() ) {
+			throw new Exception( "Input pattern folder " + patternSamplesFolder.getPath() + " does not exists" );
+		}
+		
 		List<CapturedData> patternSamples = inputDataParser.parse(patternSamplesFolder);
-		T validator = validatorFactory.generateValidator( patternSamples );
+		T validator = validatorFactory.generateValidatorFromCaptures( patternSamples );
 
 		List<Signature> ownSignatures = loadSamples( new SignaturesBuilder(validator), 
 													inputDataParser, userFolder );
 		
-		return new User<T>( validator, ownSignatures );
+		return new User<T>( userFolder.getName(), validator, ownSignatures );
 	}
 	
-	public List<User<T>> load( File[] inputFolders ) throws Exception {
+	public List<User<T>> load( ExecutorService executor, File[] inputFolders ) throws Exception {
 		Parallelizer<User<T>> parallelizer = new Parallelizer<User<T>>(executor);
 		for( File inputFolder : inputFolders ) {
 			parallelizer.submit( new LoadTask(inputFolder) );
 		}
-		
 		return parallelizer.join();
 	}
 	
 	public static <K extends SignatureBuilder> User<K> 
-			load( ExecutorService executor, SignatureValidatorFactory<K> validatorFactory, File userFolder  ) throws Exception {
-		return new UserLoader<K>( executor, validatorFactory ).load( userFolder ); 
+			load( SignatureValidatorFactory<K> validatorFactory, File userFolder  ) throws Exception {
+		return new UserLoader<K>( validatorFactory ).load( userFolder ); 
 	}
 	
 	public static <K extends SignatureBuilder> List<User<K>>
 			load( ExecutorService executor, SignatureValidatorFactory<K> validatorFactory, File[] userFolder  ) throws Exception {
-		return new UserLoader<K>( executor, validatorFactory ).load( userFolder ); 
+		return new UserLoader<K>( validatorFactory ).load( executor, userFolder );
 	}
 	
 	private class LoadTask implements Callable<User<T>> {

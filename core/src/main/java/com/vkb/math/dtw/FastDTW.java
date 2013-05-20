@@ -1,10 +1,12 @@
 package com.vkb.math.dtw;
 
+import com.fastdtw.dtw.TimeWarpInfo;
+import com.fastdtw.matrix.ColMajorCell;
 import com.fastdtw.timeseries.TimeSeries;
 import com.fastdtw.util.DistanceFunction;
 import com.vkb.math.DiscreteVectorFunction;
 
-public class FastDTW implements FunctionComparator {
+public class FastDTW implements FunctionWarper, FunctionComparator {
 	public final static int DEFAULT_SEARCH_RADIUS = 3;
 	private DistanceFunction distanceFunction;
 	private int searchRadius;
@@ -27,11 +29,32 @@ public class FastDTW implements FunctionComparator {
 	}
 	
 	@Override
-	public double distance(DiscreteVectorFunction f1, DiscreteVectorFunction f2) throws Exception {
+	public double distance( DiscreteVectorFunction f1, DiscreteVectorFunction f2 ) throws Exception {
 		TimeSeries ts1 = DataConvert.getTimeSeries(f1);
 		TimeSeries ts2 = DataConvert.getTimeSeries(f2);
 		
 		return com.fastdtw.dtw.FastDTW.getWarpDistBetween( ts1, ts2, searchRadius, distanceFunction );
+	}
+	
+	@Override
+	public Result align( DiscreteVectorFunction f1, DiscreteVectorFunction f2 ) throws Exception {
+		TimeSeries ts1 = DataConvert.getTimeSeries(f1);
+		TimeSeries ts2 = DataConvert.getTimeSeries(f2);
+		
+		TimeWarpInfo warpInfo = com.fastdtw.dtw.FastDTW.getWarpInfoBetween( ts1, ts2, searchRadius, distanceFunction );
+		
+		WarpPath warpPath = convertWarpPath( warpInfo.getPath() );
+		
+		return new Result( warpPath, warpInfo.getDistance() );
+	}
+
+	private static WarpPath convertWarpPath( com.fastdtw.dtw.WarpPath path ) {
+		WarpPath ret = new WarpPath();
+		for( int i=path.size()-1; i>=0; --i ) {
+			ColMajorCell cell = path.get(i);
+			ret.pushFront( cell.getCol(), cell.getRow() );
+		}
+		return ret;
 	}
 
 	private static class CellCostFunctionToDistanceFunctionConverter implements DistanceFunction {
@@ -59,4 +82,6 @@ public class FastDTW implements FunctionComparator {
 			}
 		}
 	}
+
+	
 }

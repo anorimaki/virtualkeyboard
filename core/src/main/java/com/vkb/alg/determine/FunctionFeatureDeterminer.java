@@ -3,7 +3,9 @@ package com.vkb.alg.determine;
 import java.util.List;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 
+import com.vkb.math.Statistics;
 import com.vkb.math.dtw.DefaultFunctionFeatureComparator;
 import com.vkb.math.dtw.FunctionFeatureComparator;
 import com.vkb.model.FunctionFeatureData;
@@ -12,8 +14,12 @@ public class FunctionFeatureDeterminer {
 	private static final double DEFAULT_THRESHOLD = 1.0d;
 	private double threshold = DEFAULT_THRESHOLD;
 	private List<FunctionFeatureData> patternSamples;
+<<<<<<< HEAD
 	private DescriptiveStatistics patternStatistics;
 	private FunctionFeatureData prototypeF;
+=======
+	private StatisticalSummary patternStatistics;
+>>>>>>> origin/develop
 	private FunctionFeatureComparator comparator;
 	
 		
@@ -47,16 +53,15 @@ public class FunctionFeatureDeterminer {
 		return statistics.getMean() < (threshold * patternStatistics.getMean());
 	}
 	
-	private DescriptiveStatistics calculateFunctionsStatistics( List<FunctionFeatureData> datas ) throws Exception {
+	private StatisticalSummary calculateFunctionsStatistics( List<FunctionFeatureData> datas ) throws Exception {
 		DescriptiveStatistics ret = new DescriptiveStatistics();
-		
 		for ( int i=0; i<datas.size(); i++ ){
 			for ( int j=i+1; j<datas.size(); j++ ){
 				double distance = comparator.distance( datas.get(i), datas.get(j) );
 				ret.addValue( distance );
 			}
 		}
-		return ret;
+		return Statistics.resume( ret );
 	}
 	
 /*

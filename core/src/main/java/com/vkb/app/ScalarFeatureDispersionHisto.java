@@ -82,7 +82,7 @@ public class ScalarFeatureDispersionHisto {
 		}
 
 		Application application = new Application();
-		application.run( "Feature Quality", plots, titles.toArray( new String[0] ) );		
+		application.run( "Feature Quality", titles, plots );		
 	
 	}
 

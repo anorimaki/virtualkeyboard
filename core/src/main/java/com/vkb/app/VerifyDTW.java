@@ -27,7 +27,7 @@ import com.vkb.model.Signature;
 
 public class VerifyDTW {
 	private static final String BLANKS = "                                ";
-	private static final File INPUT_FOLDER = new File( Environment.RESOURCES_DIR, "user_doh/pattern" );
+	private static final File INPUT_FOLDER = new File( Environment.RESOURCES_DIR, "user_jig/pattern" );
 
 	private File inputFolder;
 	
@@ -82,7 +82,7 @@ public class VerifyDTW {
 	private void printTraces( List<Signature> traces ) {
 		final Color colors[] = { Color.BLUE, Color.CYAN, Color.GRAY, Color.GREEN, Color.MAGENTA, Color.ORANGE };
 		//final Feature featuresToPrint[] = { Feature.VELOCITY_X, Feature.VELOCITY_Y, Feature.ACCELERATION_X, Feature.ACCELERATION_Y };
-		final FeatureId featuresToPrint[] = { FeatureId.ACCELERATION_X, FeatureId.ACCELERATION_Y };
+		final FeatureId featuresToPrint[] = { FeatureId.ACCELERATION, FeatureId.ACCELERATION_Y };
 		
 		NumberAxis xAxis = new NumberAxis("Time");
 		xAxis.setAutoRangeIncludesZero(false);

@@ -7,20 +7,19 @@ import java.util.concurrent.Executors;
 
 import org.jfree.chart.plot.XYPlot;
 
-import com.vkb.alg.SignatureValidatorFactory;
+import com.vkb.alg.outlierfeature.ConfigurableOutlierFeatureAlgorithmTraits;
+import com.vkb.alg.outlierfeature.DefaultOutlierFeatureAlgorithmTraits;
 import com.vkb.alg.outlierfeature.OutlierFeatureAlgorithm;
-import com.vkb.alg.outlierfeature.OutlierFeatureAlgorithmFactory;
 import com.vkb.app.util.Environment;
 import com.vkb.app.util.FARFRRPlotter;
+import com.vkb.app.util.PreComputedDataUserLoader;
 import com.vkb.gui.Application;
-import com.vkb.io.UserLoader;
 import com.vkb.model.User;
 import com.vkb.quality.farfrr.ERRCalculator;
 import com.vkb.quality.farfrr.FARFRRCalculator;
 import com.vkb.quality.farfrr.ui.FARFRRPrinter;
 
 public class OutlierFeatureFeatureAlgorithmERR {
-	private static int NTHREADS = 10;
 	private static final File INPUT_FOLDERS[] = { 
 		new File( Environment.RESOURCES_DIR, "user_a" ),
 		new File( Environment.RESOURCES_DIR, "user_doh" ),
@@ -29,6 +28,7 @@ public class OutlierFeatureFeatureAlgorithmERR {
 		new File( Environment.RESOURCES_DIR, "user_jig" ),
 		new File( Environment.RESOURCES_DIR, "user_ma" ),
 		new File( Environment.RESOURCES_DIR, "user_xf" ) };
+	private static int NTHREADS = INPUT_FOLDERS.length;
 	
 	private static double PATTERN_THRESHOLD = 0.4d;
 	private List<User<OutlierFeatureAlgorithm>> users;
@@ -39,23 +39,36 @@ public class OutlierFeatureFeatureAlgorithmERR {
 	public OutlierFeatureFeatureAlgorithmERR( File[] inputFolders ) throws Exception {
 		executor = Executors.newFixedThreadPool( NTHREADS );
 		
-		SignatureValidatorFactory<OutlierFeatureAlgorithm> factory = 
-								new OutlierFeatureAlgorithmFactory( PATTERN_THRESHOLD );
+		ConfigurableOutlierFeatureAlgorithmTraits algorithmTraits =
+				new ConfigurableOutlierFeatureAlgorithmTraits( DefaultOutlierFeatureAlgorithmTraits.getInstance() );
 		
-		users = UserLoader.load( executor, factory, inputFolders );
+		algorithmTraits.setThreshold( PATTERN_THRESHOLD );
+		
+		long startTime = System.currentTimeMillis();
+		
+		PreComputedDataUserLoader preComputeFunctionDistances = new PreComputedDataUserLoader( executor );
+		this.users = preComputeFunctionDistances.load( inputFolders, algorithmTraits );
+		
+		long loadTime = System.currentTimeMillis() - startTime;
+		System.out.println( "Users loaded in " + loadTime/1000 + " seconds." );
 	}
 	
 	
 	public void run() throws Exception {
 		FARFRRCalculator errCalculator = new FARFRRCalculator( executor );
 		
+		long startTime = System.currentTimeMillis();
+		
 		List<FARFRRCalculator.Result> result = errCalculator.execute( users, ThresholdsToCheck );
 		
 		FARFRRPrinter printer = new FARFRRPrinter();
 		printer.print( ThresholdsToCheck, result );
 		
+		long endTime = System.currentTimeMillis() - startTime;
+		
 		ERRCalculator.Result errResult = ERRCalculator.calculate( result, ThresholdsToCheck );
 		System.out.println( "***************************************************************" );
+		System.out.println( "Time to resolve: " + endTime/1000 + " seconds." );
 		System.out.println( "ERR " + errResult.getValue() + " on threshold " + errResult.getThreshold() );
 
 		FARFRRPlotter plotter = new FARFRRPlotter();
