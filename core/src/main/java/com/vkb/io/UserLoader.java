@@ -34,7 +34,7 @@ public class UserLoader<T extends SignatureBuilder>  {
 		}
 		
 		List<CapturedData> patternSamples = inputDataParser.parse(patternSamplesFolder);
-		T validator = validatorFactory.generateValidator( patternSamples );
+		T validator = validatorFactory.generateValidatorFromCaptures( patternSamples );
 
 		List<Signature> ownSignatures = loadSamples( new SignaturesBuilder(validator), 
 													inputDataParser, userFolder );
