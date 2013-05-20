@@ -21,7 +21,8 @@ public class OutlierFeatureAlgorithm implements ThresholdedSignatureValidator, C
 		List<Signature> patternSignatures = new SignaturesBuilder(signatureBuilder).buildSignatures(capturedDatas);
 		
 		OutlierFeaturePatternGenerator patternGenerator = new OutlierFeaturePatternGenerator( 
-							algorithmTraits.getThreshold(), algorithmTraits.getFunctionFeatureComparator() );
+							algorithmTraits.getPatternFilterThreshold(),
+							algorithmTraits.getFunctionFeatureComparator() );
 		OutlierFeaturePatternGenerator.Result patternResult = patternGenerator.generate(patternSignatures);
 		
 		init( signatureBuilder, patternResult.getPattern(), algorithmTraits.getThreshold() );

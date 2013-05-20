@@ -14,7 +14,7 @@ import com.vkb.model.CapturedData;
 import com.vkb.model.Signature;
 
 public class FilterPatternSamples {
-	private static final double FILTER_THRESHOLD = 0.4d;
+	private static final double FILTER_THRESHOLD = 0.8d;
 	
 	private static final File INPUT_FOLDERS[] = { 
 		new File( Environment.RESOURCES_DIR, "user_a/pattern" ),
