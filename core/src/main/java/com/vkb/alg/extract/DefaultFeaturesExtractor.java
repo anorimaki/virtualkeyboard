@@ -35,15 +35,15 @@ public class DefaultFeaturesExtractor implements FeaturesExtractor {
 		extractVelocityFeatures( features, differentiator );
 		extractAccelerationFeatures( features, differentiator );
 		
-		extractPositionAvgFeatures( features );
+	//	extractPositionAvgFeatures( features );
 		extractVelocityAvgFeatures( features );
-		extractAccelerationAvgFeatures( features );
+	//	extractAccelerationAvgFeatures( features );
 		
 		TrapezoidIntegrator integrator=new TrapezoidIntegrator();
 		extractAreasFeatures( integrator, features );
 		
-		extractRelationFeatures( features );
-		extractRelationAreaFeatures (features );
+	//	extractRelationFeatures( features );
+	//	extractRelationAreaFeatures (features );
 		
 		return features;
 	}
