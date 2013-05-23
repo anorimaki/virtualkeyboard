@@ -14,6 +14,7 @@ public class DefaultOutlierFeatureAlgorithmTraits {
 	private static OutlierFeatureAlgorithmTraits buildInstance() {
 		ConfigurableOutlierFeatureAlgorithmTraits ret = new ConfigurableOutlierFeatureAlgorithmTraits();
 		ret.setThreshold( 0.4d );
+		ret.setPatternFilterThreshold( 0.8d );
 		ret.setFunctionFeatureComparator( new DefaultFunctionFeatureComparator() );
 		ret.setSignatureBuilder( new DefaultSignatureBuilder() );
 		return ret;
