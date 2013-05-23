@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.vkb.alg.determine.FunctionFeatureDeterminer;
+import com.vkb.alg.determine.FunctionFeatureDeterminerPrototype;
+import com.vkb.alg.determine.FunctionFeatureDeterminerMeans;
 import com.vkb.alg.determine.ScalarFeatureDeterminer;
 import com.vkb.math.dtw.FunctionFeatureComparator;
 import com.vkb.model.FeatureId;
@@ -105,7 +107,7 @@ public class OutlierFeatureSignaturePattern {
 		for( Map.Entry<FeatureId, List<FunctionFeatureData>> featureDatas : featuresDatas.entrySet() ) {
 			FeatureId featureId = featureDatas.getKey();
 			if ( featureWeights.containsKey(featureId) ) {
-				FunctionFeatureDeterminer validator = new FunctionFeatureDeterminer( featureDatas.getValue(), functionFeatureComparator );
+				FunctionFeatureDeterminer validator = new FunctionFeatureDeterminerPrototype( featureDatas.getValue(), functionFeatureComparator );
 				validator.setThreshold( featureThresholds.get(featureId) );
 				functionFeatureDeterminers.put( featureDatas.getKey(), validator );
 			}
